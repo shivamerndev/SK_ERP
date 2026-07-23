@@ -35,7 +35,7 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             icon: <LayoutDashboard className="w-5 h-5" />,
         },
         {
-            name: "Udhaar",
+            name: "Lend",
             path: "/udhaar",
             icon: <ClipboardList className="w-5 h-5" />,
         },
@@ -134,7 +134,7 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             {/* Collapse Arrow Desktop - Sleek Floating Button on Border */}
             <button
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="hidden lg:flex absolute top-6 -right-3 z-50 items-center justify-center w-6 h-6 rounded-full bg-[#0b1629] hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700 shadow-md transition-all duration-200 hover:scale-110 cursor-pointer"
+                className="hidden lg:flex absolute top-6 -right-1 z-50 items-center justify-center w-6 h-6 rounded-full bg-[#0b2029] hover:bg-slate-800 hover:text-slate-400  text-white border border-slate-700 shadow-md transition-all duration-200 hover:scale-110 cursor-pointer"
                 title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
                 {isSidebarCollapsed ? (
