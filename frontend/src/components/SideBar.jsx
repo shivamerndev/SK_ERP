@@ -1,0 +1,212 @@
+import { NavLink, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react"
+import useAuth from "../hooks/useAuth";
+import {
+    LayoutDashboard,
+    ClipboardList,
+    Package,
+    DollarSign,
+    ShoppingCart,
+    Box,
+    CreditCard,
+    Users,
+    MessageSquare,
+    Factory,
+    BarChart3,
+    Settings,
+    HelpCircle,
+    ChevronLeft,
+    ChevronRight,
+    ChevronDown,
+    LogOut
+} from "lucide-react";
+
+
+const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
+
+
+    const { handleLogout } = useAuth();
+    const location = useLocation();
+
+    const sidebarItems = [
+        {
+            name: "Dashboard",
+            path: "/",
+            icon: <LayoutDashboard className="w-5 h-5" />,
+        },
+        {
+            name: "Udhaar",
+            path: "/udhaar",
+            icon: <ClipboardList className="w-5 h-5" />,
+        },
+        {
+            name: "Products",
+            path: "/products",
+            icon: <Package className="w-5 h-5" />,
+        },
+        {
+            name: "Sales",
+            path: "/sales-mock",
+            icon: <DollarSign className="w-5 h-5" />,
+            hasDropdown: true,
+        },
+        {
+            name: "Purchase",
+            path: "/purchase-mock",
+            icon: <ShoppingCart className="w-5 h-5" />,
+            hasDropdown: true,
+        },
+        {
+            name: "Inventory (O2D)",
+            path: "/O2D",
+            icon: <Box className="w-5 h-5" />,
+            hasDropdown: true,
+        },
+        {
+            name: "Finance",
+            path: "/finance-mock",
+            icon: <CreditCard className="w-5 h-5" />,
+            hasDropdown: true,
+        },
+        {
+            name: "Customers",
+            path: "/customers",
+            icon: <Users className="w-5 h-5" />
+        },
+        {
+            name: "Manufacturing",
+            path: "/mfg-mock",
+            icon: <Factory className="w-5 h-5" />,
+            hasDropdown: true,
+        },
+        {
+            name: "Reports",
+            path: "/reports-mock",
+            icon: <BarChart3 className="w-5 h-5" />,
+            hasDropdown: true,
+        },
+        {
+            name: "Settings",
+            path: "/settings-mock",
+            icon: <Settings className="w-5 h-5" />,
+            hasDropdown: true,
+        },
+        {
+            name: "Help & Support",
+            path: "/help-mock",
+            icon: <HelpCircle className="w-5 h-5" />,
+        },
+    ];
+
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+
+    // Keep sidebar closed on route change on mobile
+    useEffect(() => {
+        setIsMobileSidebarOpen(false);
+    }, [location, setIsMobileSidebarOpen]);
+
+    return <>
+        {/* Mobile Sidebar Overlay */}
+        {isMobileSidebarOpen && (
+            <div
+                className="fixed inset-0 z-45 bg-slate-900/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"
+                onClick={() => setIsMobileSidebarOpen(false)}
+            />
+        )}
+
+        {/* Left Sidebar */}
+        <aside className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#0b1629] text-slate-300 border-r border-slate-800 shadow-xl transition-all duration-300 transform relative
+                lg:translate-x-0 lg:static lg:h-screen
+                ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+                ${isSidebarCollapsed ? "w-20" : "w-64"}`}
+        >
+            {/* Brand Logo & Header */}
+            <div className={`flex items-center px-5 py-5 border-b border-slate-800/80 ${isSidebarCollapsed ? "justify-center" : "justify-between"}`}>
+                <div className={`flex items-center gap-3 transition-all duration-200 ${isSidebarCollapsed ? "justify-center" : ""}`}>
+                    {/* Logo Avatar */}
+                    <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-extrabold text-lg flex-shrink-0 shadow-md shadow-blue-500/20">
+                        E
+                    </div>
+                    {!isSidebarCollapsed && (
+                        <div className="flex flex-col">
+                            <span className="font-bold text-white text-base leading-tight tracking-tight">ERP Suite</span>
+                            <span className="text-[10px] text-slate-400 font-medium tracking-wide">Smart Business Solution</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Collapse Arrow Desktop - Sleek Floating Button on Border */}
+            <button
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                className="hidden lg:flex absolute top-6 -right-3 z-50 items-center justify-center w-6 h-6 rounded-full bg-[#0b1629] hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700 shadow-md transition-all duration-200 hover:scale-110 cursor-pointer"
+                title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+                {isSidebarCollapsed ? (
+                    <ChevronRight className="w-3.5 h-3.5" strokeWidth={3} />
+                ) : (
+                    <ChevronLeft className="w-3.5 h-3.5" strokeWidth={3} />
+                )}
+            </button>
+
+            {/* Scrollable Navigation Area */}
+            <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1 scrollbar-none">
+                {sidebarItems.map((item, idx) => {
+                    const isMock = item.path.includes("-mock");
+
+                    // Highlight Inventory if currently in O2D
+                    const isInventoryActive = item.name.includes("Inventory") && location.pathname === "/O2D";
+                    const isItemActive = (location.pathname === item.path && !isMock) || isInventoryActive;
+
+                    return (
+                        <NavLink
+                            key={idx}
+                            to={isMock ? "#" : item.path}
+                            onClick={(e) => {
+                                if (isMock) {
+                                    e.preventDefault();
+                                    alert(`Module "${item.name}" is a demo link in this UI mockup layout.`);
+                                }
+                            }}
+                            className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group cursor-pointer
+                                ${isSidebarCollapsed ? "justify-center px-2" : "justify-start px-3"}
+                                ${isItemActive
+                                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/10"
+                                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/40"
+                                }`}
+                            title={isSidebarCollapsed ? item.name : undefined}
+                        >
+                            <div className={`flex-shrink-0 transition-colors
+                                ${isItemActive ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`}
+                            >
+                                {item.icon}
+                            </div>
+                            {!isSidebarCollapsed && (
+                                <span className="flex-1 truncate">{item.name}</span>
+                            )}
+                            {!isSidebarCollapsed && item.hasDropdown && (
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-400 ml-auto" />
+                            )}
+                        </NavLink>
+                    );
+                })}
+            </nav>
+
+            {/* Sidebar Footer / User Logout */}
+            <div className="p-3 border-t border-slate-800/80 bg-slate-950/20">
+                <button
+                    onClick={handleLogout}
+                    className={`flex items-center gap-3 w-full py-2.5 rounded-lg text-sm font-medium text-rose-400 hover:text-rose-200 hover:bg-rose-500/10 transition-all duration-150 cursor-pointer
+                        ${isSidebarCollapsed ? "justify-center px-2" : "justify-start px-3"}`}
+                    title="Sign Out"
+                >
+                    <LogOut className="w-5 h-5 flex-shrink-0" />
+                    {!isSidebarCollapsed && <span>Sign Out</span>}
+                </button>
+            </div>
+        </aside>
+    </>
+}
+
+export default SideBar
