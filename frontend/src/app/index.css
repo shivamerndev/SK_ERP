@@ -1,0 +1,384 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-main: #0f172a;
+  --color-bg-card: #1e293b;
+  --color-bg-glass: rgba(30, 41, 59, 0.75);
+  --color-border-glass: rgba(255, 255, 255, 0.1);
+  --color-accent-primary: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-text-main: #f8fafc;
+  --color-text-muted: #94a3b8;
+}
+
+:root {
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --bg-glass: rgba(30, 41, 59, 0.75);
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --accent-primary: #3b82f6;
+  --accent-hover: #2563eb;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+}
+
+body {
+  @apply bg-slate-950 text-slate-100 min-h-screen font-sans m-0 antialiased;
+}
+
+.app-shell {
+  @apply min-h-screen flex flex-col bg-slate-950 text-slate-100;
+}
+
+/* Auth Page */
+.auth-shell {
+  @apply min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-950 via-slate-900 to-slate-950 p-6;
+}
+
+.auth-panel {
+  @apply bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-10 w-full max-w-md shadow-2xl text-center;
+}
+
+.auth-header {
+  @apply flex items-center justify-center gap-3 mb-5;
+}
+
+.logo-badge {
+  @apply bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-extrabold px-3 py-1 rounded-lg text-sm tracking-wider uppercase shadow-md;
+}
+
+.eyebrow {
+  @apply text-slate-400 text-xs uppercase tracking-widest font-semibold;
+}
+
+.auth-panel h1 {
+  @apply text-2xl font-bold mb-2 text-white;
+}
+
+.muted {
+  @apply text-slate-400 text-sm leading-relaxed mb-8;
+}
+
+.auth-action-area {
+  @apply flex justify-center mb-6;
+}
+
+.google-btn-wrapper {
+  @apply inline-block transform hover:scale-105 transition-transform duration-200;
+}
+
+.auth-status-msg {
+  @apply p-3 rounded-lg text-sm mt-4 font-medium transition-all;
+}
+
+.auth-status-msg.info {
+  @apply bg-blue-500/15 border border-blue-500/30 text-blue-400;
+}
+
+.auth-status-msg.error {
+  @apply bg-red-500/15 border border-red-500/30 text-red-400;
+}
+
+/* Loading Card */
+.loading-card {
+  @apply flex flex-col items-center gap-4;
+}
+
+.spinner {
+  @apply w-10 h-10 border-3 border-white/10 rounded-full border-t-blue-500 animate-spin;
+}
+
+.loading-text {
+  @apply text-slate-400 text-sm font-medium;
+}
+
+/* ERP Navbar */
+.erp-navbar {
+  @apply bg-slate-900/90 backdrop-blur-md border-b border-white/10 px-8 py-3.5 flex items-center justify-between sticky top-0 z-50 shadow-sm;
+}
+
+.navbar-brand {
+  @apply flex items-center gap-2;
+}
+
+.brand-logo {
+  @apply font-extrabold text-xl bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent;
+}
+
+.brand-tag {
+  @apply text-xs bg-white/10 px-2 py-0.5 rounded text-slate-400 font-medium;
+}
+
+.navbar-links {
+  @apply flex gap-3;
+}
+
+.nav-link {
+  @apply text-slate-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200;
+}
+
+.nav-link.active {
+  @apply text-white bg-blue-500/20 border border-blue-500/40 shadow-sm;
+}
+
+.navbar-user {
+  @apply flex items-center gap-5;
+}
+
+.user-profile-badge {
+  @apply flex items-center gap-3;
+}
+
+.user-avatar-img, .user-avatar-placeholder {
+  @apply w-9 h-9 rounded-full object-cover border-2 border-blue-500/50 shadow-sm;
+}
+
+.user-avatar-placeholder {
+  @apply bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm;
+}
+
+.user-details {
+  @apply flex flex-col;
+}
+
+.user-name {
+  @apply font-semibold text-sm text-slate-100;
+}
+
+.user-email {
+  @apply text-xs text-slate-400;
+}
+
+.logout-btn {
+  @apply bg-red-500/15 hover:bg-red-500/25 text-red-400 hover:text-white border border-red-500/30 px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-200;
+}
+
+/* App Content */
+.app-content {
+  @apply flex-1 p-8 max-w-7xl mx-auto w-full box-border;
+}
+
+/* Dashboard Page */
+.dashboard-container {
+  @apply flex flex-col gap-8;
+}
+
+.welcome-banner {
+  @apply bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-white/10 rounded-2xl p-7 flex items-center justify-between shadow-xl;
+}
+
+.banner-text h1 {
+  @apply m-0 mb-1.5 text-2xl font-bold text-white;
+}
+
+.banner-text p {
+  @apply m-0 text-slate-400 text-sm;
+}
+
+.banner-badge {
+  @apply flex flex-col items-end gap-1.5;
+}
+
+.badge-role {
+  @apply bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2.5 py-1 rounded-md text-xs font-bold tracking-wide uppercase;
+}
+
+.badge-status {
+  @apply text-emerald-400 text-xs font-semibold flex items-center gap-1;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5;
+}
+
+.metric-card {
+  @apply bg-slate-900/80 hover:bg-slate-800/90 border border-white/10 hover:border-white/20 rounded-2xl p-6 flex items-center gap-5 transition-all duration-200 hover:-translate-y-0.5 shadow-lg;
+}
+
+.metric-icon {
+  @apply text-3xl bg-white/5 p-3 rounded-xl flex items-center justify-center;
+}
+
+.metric-info h3 {
+  @apply m-0 mb-1 text-xs font-medium text-slate-400 uppercase tracking-wider;
+}
+
+.metric-value {
+  @apply m-0 mb-1 text-2xl font-bold text-white tracking-tight;
+}
+
+.metric-sub {
+  @apply text-xs text-emerald-400 font-medium;
+}
+
+.text-warning {
+  @apply text-amber-400;
+}
+
+/* Dashboard Columns */
+.dashboard-columns {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}
+
+.dashboard-panel {
+  @apply bg-slate-900/80 border border-white/10 rounded-2xl p-6 shadow-lg;
+}
+
+.dashboard-panel h2 {
+  @apply text-lg font-bold text-white m-0 mb-5 flex items-center gap-2;
+}
+
+.task-list {
+  @apply list-none p-0 m-0 flex flex-col gap-4;
+}
+
+.task-item {
+  @apply flex items-center gap-4 bg-white/[0.03] p-4 rounded-xl border border-white/5 hover:border-white/10 transition-colors;
+}
+
+.task-priority {
+  @apply px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider;
+}
+
+.task-priority.high { @apply bg-red-500/20 text-red-400 border border-red-500/30; }
+.task-priority.medium { @apply bg-amber-500/20 text-amber-400 border border-amber-500/30; }
+.task-priority.low { @apply bg-blue-500/20 text-blue-400 border border-blue-500/30; }
+
+.task-details {
+  @apply flex flex-col;
+}
+
+.task-details strong {
+  @apply text-sm text-slate-200 font-semibold;
+}
+
+.task-details small {
+  @apply text-xs text-slate-400 mt-0.5;
+}
+
+.auth-details-box {
+  @apply flex flex-col gap-3;
+}
+
+.detail-row {
+  @apply flex justify-between items-center py-3 border-b border-white/5 text-sm;
+}
+
+.detail-label {
+  @apply text-slate-400 font-medium;
+}
+
+.detail-value {
+  @apply font-medium text-slate-200;
+}
+
+.detail-value.mono {
+  @apply font-mono text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20;
+}
+
+.status-active {
+  @apply text-emerald-400 font-semibold flex items-center gap-1.5;
+}
+
+/* O2D Workflow Page */
+.page-container {
+  @apply flex flex-col gap-6;
+}
+
+.page-header h1 {
+  @apply text-2xl font-bold text-white m-0 mb-1;
+}
+
+.page-header p {
+  @apply text-slate-400 text-sm m-0;
+}
+
+.workflow-card, .table-card {
+  @apply bg-slate-900/80 border border-white/10 rounded-2xl p-6 shadow-lg;
+}
+
+.workflow-card h2, .table-card h2 {
+  @apply text-lg font-bold text-white m-0 mb-5;
+}
+
+.flow-stepper {
+  @apply flex items-center justify-between overflow-x-auto py-4 gap-4 scrollbar-none;
+}
+
+.flow-step {
+  @apply flex flex-col items-center gap-2 min-w-[100px] relative;
+}
+
+.step-badge {
+  @apply w-8 h-8 rounded-full bg-white/10 text-slate-400 flex items-center justify-center font-bold text-xs transition-all;
+}
+
+.flow-step.completed .step-badge {
+  @apply bg-emerald-500 text-white shadow-md shadow-emerald-500/20;
+}
+
+.flow-step.active .step-badge {
+  @apply bg-blue-500 text-white ring-4 ring-blue-500/30 shadow-md shadow-blue-500/20;
+}
+
+.step-name {
+  @apply text-xs text-center text-slate-400 transition-colors;
+}
+
+.flow-step.completed .step-name, .flow-step.active .step-name {
+  @apply text-white font-semibold;
+}
+
+.table-wrapper {
+  @apply overflow-x-auto rounded-xl border border-white/5;
+}
+
+.erp-table {
+  @apply w-full text-left text-sm border-collapse;
+}
+
+.erp-table th {
+  @apply p-3.5 px-4 text-slate-400 bg-slate-800/50 border-b border-white/10 font-semibold text-xs uppercase tracking-wider;
+}
+
+.erp-table td {
+  @apply p-4 border-b border-white/5 text-slate-200;
+}
+
+.stage-pill {
+  @apply px-2.5 py-1 rounded-md text-xs font-semibold inline-block;
+}
+
+.stage-pill.active { @apply bg-blue-500/20 text-blue-400 border border-blue-500/30; }
+.stage-pill.pending { @apply bg-amber-500/20 text-amber-400 border border-amber-500/30; }
+.stage-pill.success { @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30; }
+
+.table-btn {
+  @apply bg-blue-500/20 hover:bg-blue-500/35 text-blue-400 hover:text-white border border-blue-500/40 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all duration-200;
+}
+
+.table-btn.secondary {
+  @apply bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white border border-white/10;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-none {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Light Theme overrides for erp-table when used in light panels */
+.light-theme-table th {
+  @apply bg-slate-50 text-slate-500 border-b border-slate-200/80 text-[11px] font-semibold tracking-wider;
+}
+.light-theme-table td {
+  @apply border-b border-slate-100 text-slate-700 text-sm;
+}
+.light-theme-table tr:hover {
+  @apply bg-slate-50/50;
+}

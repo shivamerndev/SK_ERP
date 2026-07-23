@@ -1,0 +1,35 @@
+import { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
+import SideBar from "../components/SideBar";
+import Navbar from "../components/Navbar";
+
+const App = () => {
+	
+	const { checkAuth , user } = useAuth();
+	const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+	useEffect(() => {
+		checkAuth();
+	}, []);
+
+	return (
+		<main className="h-screen w-full flex bg-white ">
+			<SideBar isMobileSidebarOpen={isMobileSidebarOpen} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
+
+			   {/* Right Main Container */}
+            <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+            
+				<Navbar user={user} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
+                {/* Main Viewport Content */}
+                <main className="flex-1 p-4 sm:p-6 bg-slate-50/50 w-full overflow-x-hidden">
+                    <div className="mx-auto max-w-7xl">
+                        <Outlet />
+                    </div>
+                </main>
+            </div>
+		</main>
+	);
+};
+
+export default App;
