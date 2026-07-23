@@ -46,27 +46,23 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
         },
         {
             name: "Sales",
-            path: "/sales-mock",
+            path: "/sales",
             icon: <DollarSign className="w-5 h-5" />,
-            hasDropdown: true,
         },
         {
-            name: "Purchase",
-            path: "/purchase-mock",
+            name: "Purchases",
+            path: "/purchases",
             icon: <ShoppingCart className="w-5 h-5" />,
-            hasDropdown: true,
         },
         {
             name: "Inventory (O2D)",
             path: "/O2D",
             icon: <Box className="w-5 h-5" />,
-            hasDropdown: true,
         },
         {
             name: "Finance",
-            path: "/finance-mock",
+            path: "/finance",
             icon: <CreditCard className="w-5 h-5" />,
-            hasDropdown: true,
         },
         {
             name: "Customers",
@@ -74,26 +70,24 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             icon: <Users className="w-5 h-5" />
         },
         {
-            name: "Manufacturing",
-            path: "/mfg-mock",
+            name: "Billing",
+            path: "/billing",
             icon: <Factory className="w-5 h-5" />,
-            hasDropdown: true,
         },
         {
             name: "Reports",
-            path: "/reports-mock",
+            path: "/reports",
             icon: <BarChart3 className="w-5 h-5" />,
-            hasDropdown: true,
         },
         {
             name: "Settings",
-            path: "/settings-mock",
+            path: "/settings",
             icon: <Settings className="w-5 h-5" />,
             hasDropdown: true,
         },
         {
             name: "Help & Support",
-            path: "/help-mock",
+            path: "/help",
             icon: <HelpCircle className="w-5 h-5" />,
         },
     ];
@@ -153,20 +147,19 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             {/* Scrollable Navigation Area */}
             <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1 scrollbar-none">
                 {sidebarItems.map((item, idx) => {
-                    const isMock = item.path.includes("-mock");
 
                     // Highlight Inventory if currently in O2D
                     const isInventoryActive = item.name.includes("Inventory") && location.pathname === "/O2D";
-                    const isItemActive = (location.pathname === item.path && !isMock) || isInventoryActive;
+                    const isItemActive = (location.pathname === item.path) || isInventoryActive;
 
                     return (
                         <NavLink
                             key={idx}
-                            to={isMock ? "#" : item.path}
+                            to={item.path}
                             onClick={(e) => {
-                                if (isMock) {
+                                if (item.path === "/settings") {
                                     e.preventDefault();
-                                    alert(`Module "${item.name}" is a demo link in this UI mockup layout.`);
+                                    alert(`Please add hindi language and theme options in it`);
                                 }
                             }}
                             className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group cursor-pointer

@@ -13,6 +13,11 @@ const App = () => {
 		checkAuth();
 	}, []);
 
+
+	if (!user) {
+		return <Outlet />
+	}
+
 	return (
 		<main className="h-screen w-full flex bg-white ">
 			<SideBar isMobileSidebarOpen={isMobileSidebarOpen} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
