@@ -4,7 +4,7 @@ import ProtectedRoute from "../routes/ProtectedRoute"
 import PublicRoute from "../routes/PublicRoute"
 import Google from "../pages/Google"
 import Dashboard from "../pages/Dashboard"
-import O2D from "../pages/O2D"
+import Inventory from "../pages/Inventory"
 import Udhaar from "../pages/Udhaar"
 import Products from "../pages/Products"
 import Sales from "../pages/Sales"
@@ -51,8 +51,8 @@ export const router = createBrowserRouter([
                         element: <Purchases />
                     },
                     {
-                        path: "/O2D",
-                        element: <O2D />
+                        path: "/inventory",
+                        element: <Inventory />
                     },
                     {
                         path: "/customers",

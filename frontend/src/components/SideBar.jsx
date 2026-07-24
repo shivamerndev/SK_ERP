@@ -55,8 +55,8 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             icon: <ShoppingCart className="w-5 h-5" />,
         },
         {
-            name: "Inventory (O2D)",
-            path: "/O2D",
+            name: "Inventory",
+            path: "/inventory",
             icon: <Box className="w-5 h-5" />,
         },
         {
