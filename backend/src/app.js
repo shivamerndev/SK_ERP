@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
+import path from "path";
 
 import authRouter from "./routes/auth.routes.js";
 
@@ -29,6 +30,17 @@ app.use((req, res, next) => {
 app.use(responseMiddleware);
 
 app.use("/api/v1/auth", authRouter);
+
+// Serve frontend static assets from public directory
+app.use(express.static(path.resolve("dist")));
+
+// Fallback to index.html for client-side SPA routing (React Router)
+app.get("*client", (req, res, next) => {
+	if (req.path.startsWith("/api")) {
+		return next();
+	}
+	res.sendFile(path.resolve("dist", "index.html"));
+});
 
 app.use(errorMiddleware);
 

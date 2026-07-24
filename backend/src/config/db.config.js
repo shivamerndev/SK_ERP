@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 import { MONGO_URI } from "./env.config.js";
+import dns from "dns"
+
+dns.setServers(["8.8.8.8"])
 
 async function connectDB() {
     try {
