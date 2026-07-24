@@ -194,6 +194,9 @@ const INITIAL_PRODUCTS = [
   }
 ];
 
+// Default categories list matching current presets
+const DEFAULT_CATEGORIES = ["bichiya", "got", "earring", "ring", "bracelet", "Payal", "Kangan", "Katori", "necklace", "watches"];
+
 // High-quality placeholder images to pick from in modal
 const PRESET_IMAGES = [
   { name: "Necklace 1", url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=150&auto=format&fit=crop&q=60" },
@@ -233,11 +236,20 @@ const Products = () => {
   // Form Field States (Add / Edit)
   const [formName, setFormName] = useState("");
   const [formCategory, setFormCategory] = useState("necklace");
+  const [customCategory, setCustomCategory] = useState("");
   const [formPrice, setFormPrice] = useState("");
   const [formStocks, setFormStocks] = useState("");
   const [formStatus, setFormStatus] = useState("Active");
   const [formImageUrl, setFormImageUrl] = useState(PRESET_IMAGES[0].url);
   const [formErrors, setFormErrors] = useState({});
+
+  const allCategories = useMemo(() => {
+    const list = new Set([
+      ...DEFAULT_CATEGORIES,
+      ...products.map((p) => p.category.toLowerCase().trim())
+    ]);
+    return Array.from(list).filter(Boolean).sort();
+  }, [products]);
 
   // Notification Toast State
   const [notifications, setNotifications] = useState([]);
@@ -278,7 +290,8 @@ const Products = () => {
 
   const handleOpenAddModal = () => {
     setFormName("");
-    setFormCategory("necklace");
+    setFormCategory(allCategories[0] || "necklace");
+    setCustomCategory("");
     setFormPrice("");
     setFormStocks("");
     setFormStatus("Active");
@@ -291,6 +304,7 @@ const Products = () => {
     setCurrentProduct(product);
     setFormName(product.name);
     setFormCategory(product.category.toLowerCase());
+    setCustomCategory("");
     setFormPrice(product.price.toString());
     setFormStocks(product.stocks.toString());
     setFormStatus(product.status);
@@ -310,6 +324,9 @@ const Products = () => {
     if (!formName.trim()) errors.name = "Product name is required";
     if (!formPrice || parseFloat(formPrice) <= 0) errors.price = "Enter a valid positive price";
     if (formStocks === "" || parseInt(formStocks) < 0) errors.stocks = "Stocks cannot be negative";
+    if (formCategory === "new" && !customCategory.trim()) {
+      errors.category = "Category name is required";
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -318,10 +335,11 @@ const Products = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    const finalCategory = formCategory === "new" ? customCategory.trim() : formCategory;
     const newProduct = {
       id: "prod-" + Date.now(),
       name: formName.trim(),
-      category: formCategory.charAt(0).toUpperCase() + formCategory.slice(1),
+      category: finalCategory.charAt(0).toUpperCase() + finalCategory.slice(1),
       price: parseFloat(formPrice),
       stocks: parseInt(formStocks),
       status: formStatus,
@@ -337,13 +355,14 @@ const Products = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    const finalCategory = formCategory === "new" ? customCategory.trim() : formCategory;
     setProducts((prev) =>
       prev.map((p) =>
         p.id === currentProduct.id
           ? {
             ...p,
             name: formName.trim(),
-            category: formCategory.charAt(0).toUpperCase() + formCategory.slice(1),
+            category: finalCategory.charAt(0).toUpperCase() + finalCategory.slice(1),
             price: parseFloat(formPrice),
             stocks: parseInt(formStocks),
             status: formStatus,
@@ -514,8 +533,8 @@ const Products = () => {
                         <span className={`w-2 h-2 mt-1.5 rounded-full ${n.type === "success" ? "bg-emerald-500" : n.type === "danger" ? "bg-rose-500" : "bg-blue-500"
                           }`} />
                         <div className="flex-1 flex flex-col">
-                           <span className="text-xs text-slate-700 font-medium leading-relaxed">{n.message}</span>
-                           <span className="text-[10px] text-slate-400 mt-0.5">{n.time}</span>
+                          <span className="text-xs text-slate-700 font-medium leading-relaxed">{n.message}</span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">{n.time}</span>
                         </div>
                       </div>
                     ))
@@ -538,8 +557,8 @@ const Products = () => {
               <button
                 onClick={() => toggleDropdown("category")}
                 className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${activeDropdown === "category" || selectedCategory !== "All Categories"
-                    ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                   }`}
               >
                 <span>{selectedCategory}</span>
@@ -569,8 +588,8 @@ const Products = () => {
               <button
                 onClick={() => toggleDropdown("status")}
                 className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${activeDropdown === "status" || selectedStatus !== "All Status"
-                    ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                   }`}
               >
                 <span>{selectedStatus}</span>
@@ -600,8 +619,8 @@ const Products = () => {
               <button
                 onClick={() => toggleDropdown("price")}
                 className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${activeDropdown === "price" || selectedPriceRange !== "All Prices"
-                    ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                   }`}
               >
                 <span>{selectedPriceRange}</span>
@@ -631,8 +650,8 @@ const Products = () => {
               <button
                 onClick={() => toggleDropdown("stock")}
                 className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${activeDropdown === "stock" || selectedStockLevel !== "All Stock"
-                    ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                   }`}
               >
                 <span>{selectedStockLevel}</span>
@@ -805,8 +824,8 @@ const Products = () => {
                     <td className="p-4 px-6 text-center">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 transition-all ${product.status === "Active"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                            : "bg-slate-50 text-slate-500 border border-slate-100"
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                          : "bg-slate-50 text-slate-500 border border-slate-100"
                           }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${product.status === "Active" ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
@@ -878,14 +897,23 @@ const Products = () => {
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Category</label>
                     <select
                       value={formCategory}
-                      onChange={(e) => setFormCategory(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormCategory(val);
+                        if (val === "new") {
+                          setCustomCategory("");
+                        }
+                      }}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all capitalize font-medium"
                     >
-                      <option value="necklace">Necklace</option>
-                      <option value="bracelet">Bracelet</option>
-                      <option value="earrings">Earrings</option>
-                      <option value="ring">Ring</option>
-                      <option value="watches">Watches</option>
+                      {allCategories.map((c) => (
+                        <option key={c} value={c} className="uppercase">
+                          {c}
+                        </option>
+                      ))}
+                      <option value="new" className="text-blue-600 font-bold text-center">
+                        + New Category
+                      </option>
                     </select>
                   </div>
 
@@ -902,6 +930,20 @@ const Products = () => {
                     </select>
                   </div>
                 </div>
+
+                {formCategory === "new" && (
+                  <div className="animate-fade-in">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">New Category Name</label>
+                    <input
+                      type="text"
+                      value={customCategory}
+                      onChange={(e) => setCustomCategory(e.target.value)}
+                      placeholder="e.g. Necklace, Bracelet, Rings..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all uppercase"
+                    />
+                    {formErrors.category && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.category}</span>}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   {/* Price */}
@@ -1022,14 +1064,23 @@ const Products = () => {
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Category</label>
                     <select
                       value={formCategory}
-                      onChange={(e) => setFormCategory(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormCategory(val);
+                        if (val === "new") {
+                          setCustomCategory("");
+                        }
+                      }}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all capitalize font-medium"
                     >
-                      <option value="necklace">Necklace</option>
-                      <option value="bracelet">Bracelet</option>
-                      <option value="earrings">Earrings</option>
-                      <option value="ring">Ring</option>
-                      <option value="watches">Watches</option>
+                      {allCategories.map((c) => (
+                        <option key={c} value={c} className="uppercase">
+                          {c}
+                        </option>
+                      ))}
+                      <option value="new" className="text-blue-600 font-bold text-center">
+                        + New Category
+                      </option>
                     </select>
                   </div>
 
@@ -1046,6 +1097,20 @@ const Products = () => {
                     </select>
                   </div>
                 </div>
+
+                {formCategory === "new" && (
+                  <div className="animate-fade-in">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">New Category Name</label>
+                    <input
+                      type="text"
+                      value={customCategory}
+                      onChange={(e) => setCustomCategory(e.target.value)}
+                      placeholder="e.g. Necklace, Bracelet, Rings..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all uppercase"
+                    />
+                    {formErrors.category && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.category}</span>}
+                  </div>
+                )}
 
 
                 <div className="grid grid-cols-2 gap-4">

@@ -13,6 +13,7 @@ import Customers from "../pages/Customers"
 import Billing from "../pages/Billing"
 import Finance from "../pages/Finance"
 import NotFound from "./NotFound"
+import Reports from "../pages/Reports"
 
 export const router = createBrowserRouter([
     {
@@ -65,6 +66,10 @@ export const router = createBrowserRouter([
                     {
                         path: "/billing",
                         element: <Billing />
+                    },
+                    {
+                        path: "/reports",
+                        element: <Reports />
                     }
                 ]
             },

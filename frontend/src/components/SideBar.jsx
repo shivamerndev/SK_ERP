@@ -92,13 +92,27 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
         },
     ];
 
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+    const [isHovered, setIsHovered] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
     // Keep sidebar closed on route change on mobile
     useEffect(() => {
         setIsMobileSidebarOpen(false);
     }, [location, setIsMobileSidebarOpen]);
+
+    // Handle screen resize to detect mobile devices
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 1024); // lg breakpoint is 1024px
+        };
+        handleResize();
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    // The sidebar displays collapsed only if we are on desktop, it's set to collapsed, and the user is not hovering
+    const isCollapsed = !isMobile && isSidebarCollapsed && !isHovered;
 
     return <>
         {/* Mobile Sidebar Overlay */}
@@ -110,19 +124,22 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
         )}
 
         {/* Left Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#0b1629] text-slate-300 border-r border-slate-800 shadow-xl transition-all duration-300 transform relative
-                lg:translate-x-0 lg:static lg:h-screen
+        <aside
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className={`fixed lg:relative inset-y-0 left-0 z-50 flex flex-col bg-[#0b1629] text-slate-300 border-r border-slate-800 shadow-xl transition-all duration-300 transform
+                lg:translate-x-0 lg:h-screen
                 ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-                ${isSidebarCollapsed ? "w-20" : "w-64"}`}
+                ${isCollapsed ? "w-20" : "w-64"}`}
         >
             {/* Brand Logo & Header */}
-            <div className={`flex items-center px-5 py-5 border-b border-slate-800/80 ${isSidebarCollapsed ? "justify-center" : "justify-between"}`}>
-                <div className={`flex items-center gap-3 transition-all duration-200 ${isSidebarCollapsed ? "justify-center" : ""}`}>
+            <div className={`flex items-center px-5 py-5 border-b border-slate-800/80 ${isCollapsed ? "justify-center" : "justify-between"}`}>
+                <div className={`flex items-center gap-3 transition-all duration-200 ${isCollapsed ? "justify-center" : ""}`}>
                     {/* Logo Avatar */}
                     <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-extrabold text-lg flex-shrink-0 shadow-md shadow-blue-500/20">
                         E
                     </div>
-                    {!isSidebarCollapsed && (
+                    {!isCollapsed && (
                         <div className="flex flex-col">
                             <span className="font-bold text-white text-base leading-tight tracking-tight">ERP Suite</span>
                             <span className="text-[10px] text-slate-400 font-medium tracking-wide">Smart Business Solution</span>
@@ -163,22 +180,22 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
                                 }
                             }}
                             className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group cursor-pointer
-                                ${isSidebarCollapsed ? "justify-center px-2" : "justify-start px-3"}
+                                ${isCollapsed ? "justify-center px-2" : "justify-start px-3"}
                                 ${isItemActive
                                     ? "bg-blue-600 text-white shadow-md shadow-blue-500/10"
                                     : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/40"
                                 }`}
-                            title={isSidebarCollapsed ? item.name : undefined}
+                            title={isCollapsed ? item.name : undefined}
                         >
                             <div className={`flex-shrink-0 transition-colors
                                 ${isItemActive ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`}
                             >
                                 {item.icon}
                             </div>
-                            {!isSidebarCollapsed && (
+                            {!isCollapsed && (
                                 <span className="flex-1 truncate">{item.name}</span>
                             )}
-                            {!isSidebarCollapsed && item.hasDropdown && (
+                            {!isCollapsed && item.hasDropdown && (
                                 <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-400 ml-auto" />
                             )}
                         </NavLink>
@@ -191,11 +208,11 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
                 <button
                     onClick={handleLogout}
                     className={`flex items-center gap-3 w-full py-2.5 rounded-lg text-sm font-medium text-rose-400 hover:text-rose-200 hover:bg-rose-500/10 transition-all duration-150 cursor-pointer
-                        ${isSidebarCollapsed ? "justify-center px-2" : "justify-start px-3"}`}
+                        ${isCollapsed ? "justify-center px-2" : "justify-start px-3"}`}
                     title="Sign Out"
                 >
                     <LogOut className="w-5 h-5 flex-shrink-0" />
-                    {!isSidebarCollapsed && <span>Sign Out</span>}
+                    {!isCollapsed && <span>Sign Out</span>}
                 </button>
             </div>
         </aside>
