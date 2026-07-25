@@ -16,6 +16,7 @@ import {
   Sparkles,
   Eye
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 // ----------------------------------------------------
 // DEFAULT MOCK PRODUCTS (19 Items matching the counts)
@@ -286,6 +287,13 @@ const Products = () => {
     const id = Date.now();
     const newNotif = { id, message, type, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
     setNotifications((prev) => [newNotif, ...prev].slice(0, 10)); // Limit to last 10
+    if (type === "success") {
+      toast.success(message);
+    } else if (type === "danger" || type === "error") {
+      toast.error(message);
+    } else {
+      toast(message);
+    }
   };
 
   const handleOpenAddModal = () => {

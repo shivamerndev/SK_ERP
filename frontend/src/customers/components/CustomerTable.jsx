@@ -19,14 +19,6 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
         return cust.transactions.reduce((sum, tx) => sum + (tx.type === "LENT" ? tx.amount : -tx.amount), 0);
     };
 
- 
-
-    const getTier = (cust) => {
-        if (cust.creditLimit >= 15000) return "VIP";
-        if (cust.creditLimit >= 5000) return "Regular";
-        return "New";
-    };
-
     const getRiskCategory = (cust) => {
         const bal = getBalance(cust);
         const limit = cust.creditLimit || 1;
@@ -128,7 +120,7 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                             <tr className="bg-slate-50/50 border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
                                 <th className="px-6 py-4">Customer Details</th>
                                 <th className="px-6 py-4">Outstanding debt</th>
-                                <th className="px-6 py-4">Credit limit utilization</th>
+                                <th className="px-6 py-4">Credit limit</th>
                                 <th className="px-6 py-4 text-center">Loyalty tier</th>
                                 <th className="px-6 py-4 text-center">Quick alert</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
@@ -136,9 +128,8 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-sm">
                             {customers.map((c) => {
-
                                 const balance = getBalance(c);
-                                const tier = getTier(c);
+                                const tier = c.loyality
                                 const risk = getRiskCategory(c);
                                 const limitUsage = c.creditLimit ? Math.round((balance / c.creditLimit) * 100) : 0;
 
@@ -149,7 +140,7 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm flex-shrink-0 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-                                                    {c.fullName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
+                                                    {c._id}
                                                 </div>
                                                 <div className="flex flex-col min-w-0">
                                                     <span
@@ -172,7 +163,7 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
                                                 <span className={`font-extrabold ${balance > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                                                    ₹{balance.toLocaleString("en-IN")}
+                                                    ₹{c.totalLend}
                                                 </span>
                                                 {balance < 0 && <span className="text-[10px] text-emerald-500 font-bold uppercase">Prepayment</span>}
                                             </div>
@@ -183,7 +174,7 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                             <div className="space-y-1.5">
                                                 <div className="flex justify-between text-[11px] font-semibold text-slate-500">
                                                     <span>{limitUsage}% used</span>
-                                                    <span>Limit ₹{(c.creditLimit || 0).toLocaleString("en-IN")}</span>
+                                                 <span>{((c.creditLimit || 550) / 1000).toFixed(3).replace(/\.?0+$/, "")} kg</span>
                                                 </div>
                                                 <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden relative">
                                                     <div className={`h-full rounded-full transition-all duration-500 ${limitUsage >= 95 ? "bg-rose-500" : limitUsage >= 75 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${Math.min(limitUsage, 100)}%` }} />

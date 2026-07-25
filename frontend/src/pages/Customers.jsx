@@ -20,16 +20,11 @@ const Customers = () => {
   const [showAnalytics, setShowAnalytics] = useState(true);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-
-
-
-  useEffect(() => {
-    handleAllCustomers()
-  }, [])
-
   const [selectedCust, setSelectedCust] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  
+  useEffect(() => { handleAllCustomers() }, [])
 
   return (
     <div className="space-y-6">

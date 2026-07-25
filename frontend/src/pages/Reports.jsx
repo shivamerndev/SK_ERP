@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   FileText,
   Search,
@@ -14,10 +14,9 @@ import {
   Clock,
   ArrowUpRight,
   Filter,
-  RotateCcw,
-  CheckCircle,
-  AlertCircle
+  RotateCcw
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 // Default Seed Bill matching Billing.jsx
 const SEED_BILL = {
@@ -86,21 +85,20 @@ const Reports = () => {
   // Modal State
   const [selectedBill, setSelectedBill] = useState(null);
 
-  // Toast notifications state
-  const [notifications, setNotifications] = useState([]);
-
   // Sync to localstorage
   useEffect(() => {
     localStorage.setItem("erp_bills", JSON.stringify(history));
   }, [history]);
 
-  // Toast Helper
+  // Toast Helper using react-hot-toast
   const showToast = (message, type = "success") => {
-    const id = Date.now();
-    setNotifications((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    }, 4000);
+    if (type === "success") {
+      toast.success(message);
+    } else if (type === "error") {
+      toast.error(message);
+    } else {
+      toast(message);
+    }
   };
 
   // Reset Filters
@@ -226,34 +224,6 @@ const Reports = () => {
 
   return (
     <div className="space-y-6">
-      {/* Toast Alert Container */}
-      <div className="fixed top-6 right-6 z-50 flex flex-col gap-2 max-w-sm">
-        {notifications.map((n) => (
-          <div
-            key={n.id}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg animate-scale-up ${
-              n.type === "success"
-                ? "bg-emerald-950/80 border-emerald-500/30 text-emerald-300"
-                : n.type === "error"
-                ? "bg-red-950/80 border-red-500/30 text-red-300"
-                : "bg-blue-950/80 border-blue-500/30 text-blue-300"
-            } backdrop-blur-md`}
-          >
-            {n.type === "success" ? (
-              <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-            ) : n.type === "error" ? (
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-            ) : (
-              <FileText className="w-5 h-5 text-blue-400 flex-shrink-0" />
-            )}
-            <span className="text-sm font-medium">{n.message}</span>
-            <button onClick={() => setNotifications((prev) => prev.filter((x) => x.id !== n.id))} className="text-white/40 hover:text-white ml-auto">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        ))}
-      </div>
-
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5 screen-only">
         <div>

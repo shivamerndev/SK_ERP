@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { toast } from "react-hot-toast";
 import {
   Search,
   Plus,
@@ -178,8 +179,7 @@ const Udhaar = () => {
   const [selectedLendItems, setSelectedLendItems] = useState([]); // Array of { product, qty }
   const [txFormErrors, setTxFormErrors] = useState({});
 
-  // Toast notification state
-  const [notifications, setNotifications] = useState([]);
+
 
   // Refs for clicking outside dropdowns
   const dropdownRef = useRef(null);
@@ -206,14 +206,15 @@ const Udhaar = () => {
   // HELPERS & DERIVED VALUES
   // ----------------------------------------------------
   
-  // Helper to add toast notification
+  // Helper to add toast notification using react-hot-toast
   const addNotification = (message, type = "info") => {
-    const id = Date.now();
-    setNotifications((prev) => [{ id, message, type, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }, ...prev].slice(0, 5));
-    // Clear after 4 seconds
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    }, 4000);
+    if (type === "success") {
+      toast.success(message);
+    } else if (type === "danger" || type === "error") {
+      toast.error(message);
+    } else {
+      toast(message);
+    }
   };
 
   // Process customer balances and risk status dynamically
@@ -693,33 +694,7 @@ Thank you for your continued support!
   return (
     <div className="flex flex-col gap-6 select-none animate-fade-in pb-16">
       
-      {/* TOAST FLOATING NOTIFICATIONS */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none">
-        {notifications.map((n) => (
-          <div
-            key={n.id}
-            className={`p-4 rounded-xl shadow-xl border flex items-start gap-3 pointer-events-auto transition-all bg-white ${
-              n.type === "success"
-                ? "border-emerald-200 bg-emerald-50/95 text-emerald-900"
-                : n.type === "danger"
-                ? "border-rose-200 bg-rose-50/95 text-rose-900"
-                : "border-indigo-200 bg-indigo-50/95 text-indigo-900"
-            }`}
-          >
-            {n.type === "success" ? (
-              <CheckCircle size={20} className="text-emerald-500 shrink-0 mt-0.5" />
-            ) : n.type === "danger" ? (
-              <AlertCircle size={20} className="text-rose-500 shrink-0 mt-0.5" />
-            ) : (
-              <Info size={20} className="text-indigo-500 shrink-0 mt-0.5" />
-            )}
-            <div className="flex-1 flex flex-col">
-              <span className="text-sm font-semibold">{n.message}</span>
-              <span className="text-[10px] opacity-70 mt-0.5">{n.time}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+
 
       {/* ----------------------------------------------------
           1. HEADER PANEL & QUICK ACTIONS

@@ -32,6 +32,10 @@ const customerSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    creditLimit: {
+      type: Number,
+      default: 0
+    },
     loyality: {
       type: String,
       enum: ["vip", "regular", "new"],
