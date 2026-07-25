@@ -4,6 +4,7 @@ import morgan from "morgan";
 import path from "path";
 
 import authRouter from "./routes/auth.routes.js";
+import customerRouter from "./routes/customer.routes.js";
 
 import errorMiddleware from "./middlewares/reject.middleware.js";
 import responseMiddleware from "./middlewares/response.middleware.js";
@@ -30,11 +31,11 @@ app.use((req, res, next) => {
 app.use(responseMiddleware);
 
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/customer",customerRouter)
 
-// Serve frontend static assets from public directory
 app.use(express.static(path.resolve("dist")));
 
-// Fallback to index.html for client-side SPA routing (React Router)
+
 app.get("*client", (req, res, next) => {
 	if (req.path.startsWith("/api")) {
 		return next();

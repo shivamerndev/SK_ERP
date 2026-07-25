@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react"
-import useAuth from "../hooks/useAuth";
+import useAuth from "../auth/useAuth";
 import {
     LayoutDashboard,
     ClipboardList,

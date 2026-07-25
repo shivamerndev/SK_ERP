@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import useAuth from "../hooks/useAuth";
+import useAuth from "../auth/useAuth.js";
 import {
   TrendingUp,
   TrendingDown,

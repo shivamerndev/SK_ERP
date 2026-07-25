@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import useAuth from "../hooks/useAuth.js";
+import useAuth from "../auth/useAuth.js";
 
 const PublicRoute = () => {
 	const { user, initialized, isLoading } = useAuth();
