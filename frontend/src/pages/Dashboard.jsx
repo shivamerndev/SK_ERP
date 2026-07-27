@@ -2,17 +2,7 @@ import { useState, useMemo } from "react";
 import useAuth from "../auth/useAuth.js";
 import {
   TrendingUp,
-  TrendingDown,
-  DollarSign,
-  ShoppingBag,
-  Users,
   FileText,
-  AlertTriangle,
-  HelpCircle,
-  Bell,
-  Settings,
-  ArrowUpRight,
-  ArrowDownRight,
   CheckCircle2,
   AlertCircle,
   XCircle,
@@ -22,21 +12,13 @@ import {
   BarChart3,
   PieChart as PieIcon,
   LineChart as LineIcon,
-  Globe,
-  MapPin,
-  Plus,
-  Play,
-  Info,
-  RotateCw,
   Filter,
   Download,
-  PlusCircle,
   ChevronDown,
   Layers,
   CheckSquare,
   Square,
-  X,
-  FileCheck
+  X
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -44,8 +26,6 @@ import {
   Area,
   LineChart,
   Line,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
@@ -55,41 +35,12 @@ import {
   CartesianGrid,
   Legend
 } from "recharts";
+import KpiCards from "../dashboard/components/KpiCards.jsx";
 
 // ==========================================
 // MOCK DATA PRESETS & FILTER CONFIGURATIONS
 // ==========================================
 
-const kpiPresets = {
-  "May 01, 2025 - May 31, 2025": [
-    { title: "Total Revenue", value: "$2,451,200", percentage: "+58.6%", subtext: "vs Apr 2025", isPositive: true, color: "#10b981", bg: "bg-emerald-50 text-emerald-600", sparkline: [10, 15, 8, 22, 18, 30, 25, 35] },
-    { title: "Total Orders", value: "1,248", percentage: "+12.5%", subtext: "vs Apr 2025", isPositive: true, color: "#3b82f6", bg: "bg-blue-50 text-blue-600", sparkline: [12, 14, 11, 19, 16, 22, 19, 26] },
-    { title: "Total Customers", value: "856", percentage: "+8.2%", subtext: "vs Apr 2025", isPositive: true, color: "#8b5cf6", bg: "bg-purple-50 text-purple-600", sparkline: [15, 12, 20, 18, 25, 23, 29, 32] },
-    { title: "Pending Invoices", value: "152", percentage: "+5.4%", subtext: "vs Apr 2025", isPositive: true, color: "#f59e0b", bg: "bg-amber-50 text-amber-600", sparkline: [8, 12, 10, 15, 14, 18, 13, 21] },
-    { title: "Low Stock Items", value: "23", percentage: "2.1%", subtext: "vs Apr 2025", isPositive: false, color: "#ef4444", bg: "bg-red-50 text-red-600", sparkline: [30, 28, 25, 23, 26, 21, 24, 20] }
-  ],
-  "Last 30 Days": [
-    { title: "Total Revenue", value: "$2,120,400", percentage: "+45.2%", subtext: "vs Prev 30 Days", isPositive: true, color: "#10b981", bg: "bg-emerald-50 text-emerald-600", sparkline: [8, 12, 15, 10, 20, 18, 28, 30] },
-    { title: "Total Orders", value: "1,120", percentage: "+10.1%", subtext: "vs Prev 30 Days", isPositive: true, color: "#3b82f6", bg: "bg-blue-50 text-blue-600", sparkline: [10, 11, 9, 15, 12, 18, 15, 22] },
-    { title: "Total Customers", value: "810", percentage: "+6.5%", subtext: "vs Prev 30 Days", isPositive: true, color: "#8b5cf6", bg: "bg-purple-50 text-purple-600", sparkline: [12, 10, 18, 15, 20, 17, 24, 28] },
-    { title: "Pending Invoices", value: "168", percentage: "+8.9%", subtext: "vs Prev 30 Days", isPositive: true, color: "#f59e0b", bg: "bg-amber-50 text-amber-600", sparkline: [5, 9, 12, 8, 14, 12, 18, 16] },
-    { title: "Low Stock Items", value: "18", percentage: "4.5%", subtext: "vs Prev 30 Days", isPositive: false, color: "#ef4444", bg: "bg-red-50 text-red-600", sparkline: [25, 22, 20, 18, 21, 16, 19, 15] }
-  ],
-  "This Quarter": [
-    { title: "Total Revenue", value: "$7,350,600", percentage: "+32.4%", subtext: "vs Q1 2025", isPositive: true, color: "#10b981", bg: "bg-emerald-50 text-emerald-600", sparkline: [25, 32, 40, 38, 45, 52, 48, 60] },
-    { title: "Total Orders", value: "3,850", percentage: "+15.2%", subtext: "vs Q1 2025", isPositive: true, color: "#3b82f6", bg: "bg-blue-50 text-blue-600", sparkline: [22, 28, 32, 30, 38, 42, 39, 48] },
-    { title: "Total Customers", value: "2,400", percentage: "+12.8%", subtext: "vs Q1 2025", isPositive: true, color: "#8b5cf6", bg: "bg-purple-50 text-purple-600", sparkline: [18, 24, 28, 25, 32, 35, 32, 40] },
-    { title: "Pending Invoices", value: "320", percentage: "+1.2%", subtext: "vs Q1 2025", isPositive: true, color: "#f59e0b", bg: "bg-amber-50 text-amber-600", sparkline: [12, 15, 14, 18, 16, 20, 18, 22] },
-    { title: "Low Stock Items", value: "35", percentage: "8.5%", subtext: "vs Q1 2025", isPositive: false, color: "#ef4444", bg: "bg-red-50 text-red-600", sparkline: [15, 18, 22, 20, 25, 28, 26, 32] }
-  ],
-  "Year to Date": [
-    { title: "Total Revenue", value: "$22,450,200", percentage: "+24.8%", subtext: "vs YTD 2024", isPositive: true, color: "#10b981", bg: "bg-emerald-50 text-emerald-600", sparkline: [80, 95, 110, 105, 125, 140, 135, 160] },
-    { title: "Total Orders", value: "12,248", percentage: "+18.6%", subtext: "vs YTD 2024", isPositive: true, color: "#3b82f6", bg: "bg-blue-50 text-blue-600", sparkline: [75, 88, 98, 92, 108, 118, 112, 130] },
-    { title: "Total Customers", value: "6,856", percentage: "+14.2%", subtext: "vs YTD 2024", isPositive: true, color: "#8b5cf6", bg: "bg-purple-50 text-purple-600", sparkline: [60, 72, 82, 78, 90, 102, 98, 115] },
-    { title: "Pending Invoices", value: "485", percentage: "-10.5%", subtext: "vs YTD 2024", isPositive: false, color: "#ef4444", bg: "bg-red-50 text-red-600", sparkline: [40, 38, 35, 32, 28, 25, 24, 20] },
-    { title: "Low Stock Items", value: "42", percentage: "15.6%", subtext: "vs YTD 2024", isPositive: false, color: "#ef4444", bg: "bg-red-50 text-red-600", sparkline: [20, 25, 28, 26, 32, 35, 38, 42] }
-  ]
-};
 
 const revenueTrendPresets = {
   Monthly: [
@@ -164,8 +115,6 @@ const expenseData = [
   { name: "Others", value: 122100, color: "#8b5cf6" }
 ];
 
-// Sparkline formatting helpers
-const formatSparklineData = (data) => data.map((val, idx) => ({ idx, value: val }));
 
 // Custom formatters
 const currencyFormatter = (value) =>
@@ -198,10 +147,11 @@ const GlassTooltip = ({ active, payload, label, isCurrency = true }) => {
 };
 
 const Dashboard = () => {
+
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("Overview");
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
-  const [selectedDateRange, setSelectedDateRange] = useState("May 01, 2025 - May 31, 2025");
+  const [selectedDateRange, setSelectedDateRange] = useState("Jul 01, 2026 - Jul 31, 2026");
   const [monthlyFilter, setMonthlyFilter] = useState("Monthly");
 
   // Layout toggles
@@ -247,14 +197,7 @@ const Dashboard = () => {
     { name: "Smart Systems LLC", orders: 25, amount: "$125,400", initials: "SS", bg: "bg-indigo-100 text-indigo-700" }
   ];
 
-  // Dynamic notifications list
-  const notifications = [
-    { id: 1, title: "Low Stock Alert", desc: "Product 'Wireless Mouse' is running low.", time: "10 mins ago", color: "text-amber-600 bg-amber-50 border-amber-100", icon: AlertTriangle },
-    { id: 2, title: "New Order Received", desc: "Order #ORD-1258 has been created.", time: "25 mins ago", color: "text-emerald-600 bg-emerald-50 border-emerald-100", icon: ShoppingBag },
-    { id: 3, title: "Invoice Payment", desc: "Payment received for INV-2025-0456", time: "1 hour ago", color: "text-blue-600 bg-blue-50 border-blue-100", icon: FileCheck },
-    { id: 4, title: "Leave Request", desc: "John Doe has requested leave.", time: "2 hours ago", color: "text-purple-600 bg-purple-50 border-purple-100", icon: Users },
-    { id: 5, title: "System Update", desc: "System will be updated on Sunday.", time: "1 day ago", color: "text-slate-600 bg-slate-50 border-slate-200", icon: Settings }
-  ];
+
 
   // Projects Progress Data
   const projects = [
@@ -266,7 +209,7 @@ const Dashboard = () => {
 
   // Date Range Picker Options
   const dateOptions = [
-    "May 01, 2025 - May 31, 2025",
+    "Jul 01, 2026 - Jul 31, 2026",
     "Last 30 Days",
     "This Quarter",
     "Year to Date"
@@ -307,18 +250,6 @@ const Dashboard = () => {
     };
   }, [tasks]);
 
-  // Derive KPI details dynamically using filters
-  const currentKpis = useMemo(() => {
-    const preset = kpiPresets[selectedDateRange] || kpiPresets["May 01, 2025 - May 31, 2025"];
-    return preset.map((kpi) => {
-      let icon = DollarSign;
-      if (kpi.title === "Total Orders") icon = ShoppingBag;
-      if (kpi.title === "Total Customers") icon = Users;
-      if (kpi.title === "Pending Invoices") icon = FileText;
-      if (kpi.title === "Low Stock Items") icon = AlertTriangle;
-      return { ...kpi, icon };
-    });
-  }, [selectedDateRange]);
 
   // Derive Revenue data dynamically
   const currentRevenueData = useMemo(() => {
@@ -353,11 +284,10 @@ const Dashboard = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`pb-2 text-sm font-semibold tracking-tight transition-all border-b-2 cursor-pointer ${
-                  activeTab === tab
-                    ? "border-blue-600 text-blue-600 font-bold"
-                    : "border-transparent text-slate-400 hover:text-slate-600"
-                }`}
+                className={`pb-2 text-sm font-semibold tracking-tight transition-all border-b-2 cursor-pointer ${activeTab === tab
+                  ? "border-blue-600 text-blue-600 font-bold"
+                  : "border-transparent text-slate-400 hover:text-slate-600"
+                  }`}
               >
                 {tab}
               </button>
@@ -420,82 +350,11 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* ========================================================= */}
-      {/* OVERVIEW VIEW CONTENT                                     */}
-      {/* ========================================================= */}
       {activeTab === "Overview" && (
         <div className="flex flex-col gap-6 animate-fade-in">
-          {/* KPI Cards Grid */}
-          {layout.kpiCards && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-              {currentKpis.map((kpi, idx) => {
-                const IconComponent = kpi.icon;
-                const isRevenue = kpi.title === "Total Revenue";
-                const isOrders = kpi.title === "Total Orders";
-                const isCustomers = kpi.title === "Total Customers";
-                const isPendingInvoices = kpi.title === "Pending Invoices";
-                const isLowStock = kpi.title === "Low Stock Items";
 
-                // Map sparkline format
-                const chartData = formatSparklineData(kpi.sparkline);
+          {layout.kpiCards && (<KpiCards selectedDateRange={selectedDateRange} />)}
 
-                return (
-                  <div
-                    key={idx}
-                    className="bg-white border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 min-h-[145px] relative group overflow-hidden"
-                  >
-                    {/* Top row */}
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{kpi.title}</span>
-                      <div className={`w-9 h-9 rounded-full ${kpi.bg} flex items-center justify-center flex-shrink-0`}>
-                        <IconComponent className="w-4 h-4" />
-                      </div>
-                    </div>
-
-                    {/* Value row */}
-                    <div className="mb-2 z-10">
-                      <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none mb-1.5">{kpi.value}</h3>
-                      <div className="flex items-center gap-1">
-                        {kpi.isPositive ? (
-                          <span className="text-emerald-500 text-[11px] font-extrabold flex items-center leading-none">
-                            <TrendingUp className="w-3.5 h-3.5 mr-0.5 inline" /> {kpi.percentage}
-                          </span>
-                        ) : (
-                          <span className="text-rose-500 text-[11px] font-extrabold flex items-center leading-none">
-                            <TrendingDown className="w-3.5 h-3.5 mr-0.5 inline" /> {kpi.percentage}
-                          </span>
-                        )}
-                        <span className="text-slate-400 text-[10px] font-medium leading-none">{kpi.subtext}</span>
-                      </div>
-                    </div>
-
-                    {/* Mini Sparkline Chart */}
-                    <div className="h-10 w-full mt-1.5 overflow-hidden -mx-5 -mb-5 absolute bottom-0 left-0 right-0 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id={`kpi-grad-${idx}`} x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor={kpi.color} stopOpacity={0.15} />
-                              <stop offset="100%" stopColor={kpi.color} stopOpacity={0.0} />
-                            </linearGradient>
-                          </defs>
-                          <Area
-                            type="monotone"
-                            dataKey="value"
-                            stroke={kpi.color}
-                            strokeWidth={1.8}
-                            fill={`url(#kpi-grad-${idx})`}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
             {/* Interactive Area Chart for Revenue Overview */}
             {layout.revenueOverview && (
@@ -820,13 +679,12 @@ const Dashboard = () => {
                         </span>
                       </button>
                       <span
-                        className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                          task.status === "Completed"
-                            ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                            : task.status === "In Progress"
+                        className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${task.status === "Completed"
+                          ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                          : task.status === "In Progress"
                             ? "bg-blue-50 text-blue-600 border border-blue-100"
                             : "bg-amber-50 text-amber-600 border border-amber-100"
-                        }`}
+                          }`}
                       >
                         {task.status}
                       </span>
@@ -912,13 +770,12 @@ const Dashboard = () => {
                         <button
                           key={day}
                           onClick={() => setSelectedDay(day)}
-                          className={`relative flex items-center justify-center rounded-full w-5 h-5 mx-auto cursor-pointer transition-colors text-[9px] ${
-                            isSelected
-                              ? "bg-blue-600 text-white font-extrabold"
-                              : hasEvent
+                          className={`relative flex items-center justify-center rounded-full w-5 h-5 mx-auto cursor-pointer transition-colors text-[9px] ${isSelected
+                            ? "bg-blue-600 text-white font-extrabold"
+                            : hasEvent
                               ? "bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"
                               : "hover:bg-slate-100"
-                          }`}
+                            }`}
                         >
                           {day}
                           {hasEvent && !isSelected && (
@@ -948,9 +805,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* ANALYTICS VIEW CONTENT                                    */}
-      {/* ========================================================= */}
+
       {activeTab === "Analytics" && (
         <div className="flex flex-col gap-6 animate-fade-in">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">

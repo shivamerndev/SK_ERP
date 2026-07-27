@@ -6,6 +6,7 @@ import path from "path";
 import authRouter from "./routes/auth.routes.js";
 import customerRouter from "./routes/customer.routes.js";
 import billingRouter from "./routes/billing.routes.js";
+import dashboardRouter from "./routes/dashboard.routes.js";
 
 import errorMiddleware from "./middlewares/reject.middleware.js";
 import responseMiddleware from "./middlewares/response.middleware.js";
@@ -34,6 +35,7 @@ app.use(responseMiddleware);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/customer", customerRouter);
 app.use("/api/v1/billing", billingRouter);
+app.use("/api/v1/dashboard", dashboardRouter);
 
 app.use(express.static(path.resolve("dist")));
 

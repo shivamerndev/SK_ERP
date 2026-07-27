@@ -25,12 +25,12 @@ const App = () => {
 			<SideBar isMobileSidebarOpen={isMobileSidebarOpen} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
 
 			   {/* Right Main Container */}
-            <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+            <div className="flex-1 flex flex-col h-screen overflow-y-auto">
             
 				<Navbar user={user} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
                 {/* Main Viewport Content */}
                 <main className="flex-1 p-4 sm:p-6 bg-slate-50/50 w-full overflow-x-hidden">
-                    <div className="mx-auto max-w-7xl">
+                    <div className="mx-auto pl-4">
                         <Outlet />
                     </div>
                 </main>
