@@ -8,7 +8,7 @@ const createCustomer = async (customerData) => {
 
 
 const getAllCustomers = async () => {
-    const customers = await Customer.find().select("fullName loyality phone totalLend totalSpent").lean()
+    const customers = await Customer.find().select("fullName loyality phone totalLend totalSpent address").lean()
     return customers
 }
 
@@ -26,5 +26,14 @@ const getCustomerById = async (customerId) => {
 }
 
 
+const updateCustomerBalances = async (customerId, spentInc, lendInc) => {
+    const customer = await Customer.findByIdAndUpdate(
+        customerId,
+        { $inc: { totalSpent: spentInc, totalLend: lendInc } },
+        { new: true }
+    ).lean()
+    return customer
+}
 
-export default { createCustomer, getAllCustomers, findCustomer, getCustomerById }
+
+export default { createCustomer, getAllCustomers, findCustomer, getCustomerById, updateCustomerBalances }

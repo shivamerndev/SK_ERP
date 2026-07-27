@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { getBillHistory, saveBillHistory, getUdhaarCustomers, saveUdhaarCustomers, getProductsList, getGeneralTransactions, saveGeneralTransactions } from "./billing.service";
+import { getBillHistory, saveBillHistory, getProductsList } from "./billing.service";
+import { getAllCustomersService } from "../customers/customer.service";
 import { toast } from "react-hot-toast";
 
 const EMPTY_ROW = {
@@ -115,8 +116,8 @@ const useBilling = () => {
 
   // LOAD SEED/EXTERNAL DATA
   useEffect(() => {
-    setCustomers(getUdhaarCustomers());
-    setProducts(getProductsList());
+    
+    // setProducts(getProductsList());
 
     // Set current time
     const updateTime = () => {
@@ -130,38 +131,45 @@ const useBilling = () => {
     };
     updateTime();
 
-    // Auto-generate Bill No (max bill number + 1)
-    const bills = getBillHistory();
-    setHistory(bills);
-    const maxNo = bills.reduce((acc, curr) => {
-      const val = parseInt(curr.billNo);
-      return !isNaN(val) ? Math.max(acc, val) : acc;
-    }, 0);
-    setBillNo(String(maxNo ? maxNo + 1 : 80));
-  }, []);
+    // Fetch Customers from backend
+    const loadCustomers = async () => {
+      try {
+        const res = await getAllCustomersService();
+        setCustomers(res.data?.data || []);
+      } catch (err) {
+        console.error("Failed to load customers", err);
+      }
+    };
 
-  // Save history to localStorage
-  useEffect(() => {
-    if (history.length > 0) {
-      saveBillHistory(history);
-    }
-  }, [history]);
+    // Fetch Bills from backend
+    const loadBills = async () => {
+      try {
+        const res = await getBillHistory();
+        const bills = res.data?.data || [];
+        setHistory(bills);
+        const maxNo = bills.reduce((acc, curr) => {
+          const val = parseInt(curr.billNo);
+          return !isNaN(val) ? Math.max(acc, val) : acc;
+        }, 0);
+        setBillNo(String(maxNo ? maxNo + 1 : 1));
+      } catch (err) {
+        console.error("Failed to load bill history", err);
+      }
+    };
+
+    loadCustomers();
+    loadBills();
+  }, []);
 
   // DATA AUTOLOAD ON CUSTOMER SELECT
   const handleSelectCustomer = (cust) => {
     setSelectedCustomerId(cust.id || cust._id);
     setCustomerName(cust.name || cust.fullName);
     setCustomerPhone(cust.phone || "");
-    setCustomerAddress(cust.notes || "");
+    setCustomerAddress(cust.notes || cust.address || "");
 
-    // Calculate outstanding cash & fine balance
-    let cashBal = 0;
-    if (cust.transactions) {
-      cust.transactions.forEach((tx) => {
-        if (tx.type === "LENT") cashBal += tx.amount;
-        else if (tx.type === "PAID") cashBal -= tx.amount;
-      });
-    }
+    // Calculate outstanding cash balance if backend returns it
+    const cashBal = cust.totalLend || 0;
 
     // Prefill Last Balance Cash
     setLastBalanceAmount(cashBal > 0 ? String(cashBal) : "0");
@@ -284,8 +292,7 @@ const useBilling = () => {
     setJamaAmount("");
 
     // Auto-generate next Bill No
-    const bills = getBillHistory();
-    const maxNo = bills.reduce((acc, curr) => {
+    const maxNo = history.reduce((acc, curr) => {
       const val = parseInt(curr.billNo);
       return !isNaN(val) ? Math.max(acc, val) : acc;
     }, 0);
@@ -295,7 +302,7 @@ const useBilling = () => {
   };
 
   // SAVE & POST OPERATIONS
-  const handleSaveInvoice = (e) => {
+  const handleSaveInvoice = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!customerName.trim()) {
       showToast("Customer name is required", "error");
@@ -306,117 +313,55 @@ const useBilling = () => {
       return;
     }
 
-    const newBill = {
-      id: `bill-${Date.now()}`,
-      billNo: billNo || String(history.length + 80),
-      customerName: customerName.trim().toUpperCase(),
-      customerPhone: customerPhone.trim(),
-      customerAddress: customerAddress.trim(),
-      date,
-      time,
-      topHeader: topHeader.trim(),
-      title: billTitle.trim(),
-      items: items.map((row) => ({
-        ...row,
-        weight: row.weight.toString(),
-        less: row.less.toString(),
-        tunch: row.tunch.toString(),
-        lab: row.lab.toString()
-      })),
-      totals,
-      lastBalance: {
-        amount: parseFloat(lastBalanceAmount) || 0,
-        fine: parseFloat(lastBalanceFine) || 0
-      },
-      jamaDetail: {
-        details: jamaDetails.trim(),
-        weight: parseFloat(jamaWeight) || 0,
-        netWt: parseFloat(jamaNetWt || jamaWeight) || 0,
-        tunch: jamaTunch.toString(),
-        fine: computedJamaFine,
-        amount: parseFloat(jamaAmount) || 0
-      },
-      finalBaki,
-      postedToUdhaar: postToLedger && !!selectedCustomerId
-    };
+    try {
+      const newBill = {
+        billNo: billNo || String(history.length + 80),
+        customerName: customerName.trim().toUpperCase(),
+        customerPhone: customerPhone.trim(),
+        customerAddress: customerAddress.trim(),
+        customerId: selectedCustomerId ? Number(selectedCustomerId) : null,
+        date,
+        time,
+        topHeader: topHeader.trim(),
+        title: billTitle.trim(),
+        items: items.map((row) => ({
+          ...row,
+          weight: row.weight.toString(),
+          less: row.less.toString(),
+          tunch: row.tunch.toString(),
+          lab: row.lab.toString()
+        })),
+        totals,
+        lastBalance: {
+          amount: parseFloat(lastBalanceAmount) || 0,
+          fine: parseFloat(lastBalanceFine) || 0
+        },
+        jamaDetail: {
+          details: jamaDetails.trim(),
+          weight: parseFloat(jamaWeight) || 0,
+          netWt: parseFloat(jamaNetWt || jamaWeight) || 0,
+          tunch: jamaTunch.toString(),
+          fine: computedJamaFine,
+          amount: parseFloat(jamaAmount) || 0
+        },
+        finalBaki,
+        postedToUdhaar: postToLedger && !!selectedCustomerId
+      };
 
-    // Save to bill history
-    setHistory((prev) => [newBill, ...prev]);
+      const res = await saveBillHistory(newBill);
+      const savedBill = res.data.data;
 
-    // Integrate with Udhaar ledger
-    if (postToLedger) {
-      const customerId = selectedCustomerId;
-      let finalCustList = [...customers];
+      // Save to bill history
+      setHistory((prev) => [savedBill, ...prev]);
 
-      // If customer is selected
-      if (customerId) {
-        finalCustList = customers.map((cust) => {
-          if (cust.id === customerId || cust._id === customerId) {
-            const updatedTransactions = [...(cust.transactions || [])];
+      showToast(`Invoice No. ${savedBill.billNo} saved successfully!`);
 
-            // Add labor charge as LENT
-            if (totals.amount > 0) {
-              updatedTransactions.push({
-                id: `tx-bill-labor-${Date.now()}`,
-                date,
-                type: "LENT",
-                amount: totals.amount,
-                description: `Bill No. ${newBill.billNo} - Labor charges estimate`
-              });
-            }
-
-            // Add cash payment as PAID
-            if (parseFloat(jamaAmount) > 0) {
-              updatedTransactions.push({
-                id: `tx-bill-jama-${Date.now()}`,
-                date,
-                type: "PAID",
-                amount: parseFloat(jamaAmount),
-                description: `Bill No. ${newBill.billNo} - Cash Jama credit`,
-                method: "Cash"
-              });
-            }
-
-            return {
-              ...cust,
-              transactions: updatedTransactions
-            };
-          }
-          return cust;
-        });
-
-        setCustomers(finalCustList);
-        saveUdhaarCustomers(finalCustList);
-        showToast("Posted transaction to Udhaar statement!", "success");
-      }
-
-      // Integrate with Finance ledger (general transactions)
-      const financeLedger = getGeneralTransactions();
-      const transactionsToAdd = [];
-
-      // Outflow/Inflow from labor (as income) and jama payment (as income/inflow)
-      if (parseFloat(jamaAmount) > 0) {
-        transactionsToAdd.push({
-          id: `tx-fin-jama-${Date.now()}`,
-          date,
-          type: "INFLOW",
-          category: "Sales Revenue",
-          amount: parseFloat(jamaAmount),
-          paymentMethod: "Cash",
-          description: `Cash deposit from ${newBill.customerName} (Bill No. ${newBill.billNo})`
-        });
-      }
-
-      if (transactionsToAdd.length > 0) {
-        saveGeneralTransactions([...transactionsToAdd, ...financeLedger]);
-        showToast("Recorded cash flows in general finance ledger!", "success");
-      }
+      // Auto print trigger / preview
+      setPreviewBill(savedBill);
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.message || "Failed to save invoice", "error");
     }
-
-    showToast(`Invoice No. ${newBill.billNo} saved successfully!`);
-
-    // Auto print trigger / preview
-    setPreviewBill(newBill);
   };
 
   const handlePrint = (bill) => {

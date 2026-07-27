@@ -61,7 +61,7 @@ const FinalSettlement = ({
             />
             <span className="text-sm font-semibold text-slate-700">Update Udhaar Customer Profile & General Ledger</span>
           </label>
-          
+
           {!selectedCustomerId && postToLedger && (
             <p className="text-xs text-amber-600 flex items-start gap-1">
               <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
@@ -73,22 +73,17 @@ const FinalSettlement = ({
 
       {/* Form Controls */}
       <div className="grid grid-cols-3 gap-3 mt-8">
-        <button
-          type="button"
-          onClick={handleClearForm}
-          className="flex items-center justify-center gap-1.5 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-xl py-3 text-xs font-bold transition-colors"
-        >
-          <X className="w-4 h-4" />
-          Reset
-        </button>
-        <button
-          type="button"
-          onClick={handleSaveInvoice}
-          className="col-span-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 text-sm font-bold shadow-md shadow-blue-500/10 transition-colors"
-        >
+
+        <button type="button" onClick={handleSaveInvoice} className="col-span-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white rounded-xl py-3 text-sm font-bold shadow-md shadow-blue-500/10 transition-colors">
           <Save className="w-4 h-4" />
           Save & Preview Invoice
         </button>
+
+        <button type="button" onClick={handleClearForm} className="flex hover:bg-red-300/50 items-center justify-center gap-1.5 border border-slate-400 cursor-pointer hover:border-red-300 hover:text-red-500 text-slate-500 rounded-xl py-3 text-xs font-bold transition-colors">
+          <X className="w-4 h-4" />
+          Reset
+        </button>
+
       </div>
     </div>
   );

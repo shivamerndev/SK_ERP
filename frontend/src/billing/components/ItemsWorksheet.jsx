@@ -55,7 +55,7 @@ const ItemsWorksheet = ({
                   onFocus={() => setItemSearchFocused(index)}
                   onBlur={() => setTimeout(() => setItemSearchFocused(null), 250)}
                   onChange={(e) => handleRowChange(index, "item", e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm font-semibold text-slate-700"
+                  className="w-full bg-white uppercase border border-slate-200 rounded-md px-2 py-1.5 text-sm font-semibold text-slate-700"
                 />
                 {itemSearchFocused === index && products.length > 0 && (
                   <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-40 overflow-y-auto z-40">
@@ -128,13 +128,7 @@ const ItemsWorksheet = ({
 
               {/* Lab Expression or Rate */}
               <td className="py-2 px-1">
-                <input
-                  type="text"
-                  placeholder="850 or 17*12"
-                  value={row.lab}
-                  onChange={(e) => handleRowChange(index, "lab", e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm text-slate-600 font-mono"
-                />
+                <input type="text" placeholder="850 or 17*12" value={row.lab} onChange={(e) => handleRowChange(index, "lab", e.target.value)} className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm text-slate-600 font-mono" />
               </td>
 
               {/* Amount (Labor) Calculated */}
@@ -149,11 +143,7 @@ const ItemsWorksheet = ({
 
               {/* Actions */}
               <td className="py-2 px-1 text-center">
-                <button
-                  type="button"
-                  onClick={() => handleRemoveRow(index)}
-                  className="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-                >
+                <button type="button" onClick={() => handleRemoveRow(index)} className="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </td>
