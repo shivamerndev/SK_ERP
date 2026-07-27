@@ -1,4 +1,5 @@
 import { FileText, Download } from "lucide-react";
+import { createPortal } from "react-dom";
 
 const BillPreview = ({ previewBill, handlePrint }) => {
   return (
@@ -65,6 +66,18 @@ const BillPreview = ({ previewBill, handlePrint }) => {
                 <span>Total Sale Labor Amt:</span>
                 <span>₹{previewBill.totals.amount}</span>
               </div>
+              {previewBill.lastBalance && (previewBill.lastBalance.amount > 0 || previewBill.lastBalance.fine > 0) && (
+                <div className="flex justify-between text-slate-500 font-semibold border-t border-slate-100 pt-1">
+                  <span>Last Balance:</span>
+                  <span>{previewBill.lastBalance.fine}g / ₹{previewBill.lastBalance.amount}</span>
+                </div>
+              )}
+              {previewBill.silverRate > 0 && (
+                <div className="flex justify-between text-indigo-600 font-semibold border-t border-slate-100 pt-1">
+                  <span>Bhaw Settle ({previewBill.silverRate}/kg):</span>
+                  <span>+₹{previewBill.convertedFineAmount}</span>
+                </div>
+              )}
               {previewBill.jamaDetail.details && (
                 <div className="flex justify-between text-indigo-600 font-semibold border-t border-slate-100 pt-1">
                   <span>Jama ({previewBill.jamaDetail.details}):</span>
@@ -87,7 +100,7 @@ const BillPreview = ({ previewBill, handlePrint }) => {
       </div>
 
       {/* PRINT-ONLY TRADITIONAL ESTIMATE SLIP CONTAINER */}
-      {previewBill && (
+      {previewBill && createPortal(
         <div className="print-invoice print-only">
           <div className="print-container">
             {/* Header section */}
@@ -138,33 +151,20 @@ const BillPreview = ({ previewBill, handlePrint }) => {
                   </tr>
                 ))}
 
-                {/* Fill empty items rows to mimic paper aesthetic if items count is small */}
-                {Array.from({ length: Math.max(0, 10 - previewBill.items.length) }).map((_, idx) => (
-                  <tr key={`empty-${idx}`} className="empty-filler-row">
-                    <td className="col-amount">&nbsp;</td>
-                    <td className="col-item">&nbsp;</td>
-                    <td className="col-weight">&nbsp;</td>
+                {/* TOTAL SALE ROW */}
+                {!(previewBill.silverRate > 0) && (
+                  <tr className="row-total-sale">
+                    <td className="col-amount font-mono text-center font-bold">{previewBill.totals.amount || ""}</td>
+                    <td className="col-item text-left font-black">TOTAL SALE</td>
+                    <td className="col-weight font-mono text-right font-bold">{previewBill.totals.weight}</td>
                     <td className="col-panni">&nbsp;</td>
-                    <td className="col-less">&nbsp;</td>
-                    <td className="col-netwt">&nbsp;</td>
+                    <td className="col-less font-mono text-right font-bold">{previewBill.totals.less || ""}</td>
+                    <td className="col-netwt font-mono text-right font-bold">{previewBill.totals.netWt}</td>
                     <td className="col-tunch">&nbsp;</td>
                     <td className="col-lab">&nbsp;</td>
-                    <td className="col-fine">&nbsp;</td>
+                    <td className="col-fine font-mono text-right font-bold">{previewBill.totals.fine}</td>
                   </tr>
-                ))}
-
-                {/* TOTAL SALE ROW */}
-                <tr className="row-total-sale">
-                  <td className="col-amount font-mono text-center font-bold">{previewBill.totals.amount || ""}</td>
-                  <td className="col-item text-left font-black">TOTAL SALE</td>
-                  <td className="col-weight font-mono text-right font-bold">{previewBill.totals.weight}</td>
-                  <td className="col-panni">&nbsp;</td>
-                  <td className="col-less font-mono text-right font-bold">{previewBill.totals.less || ""}</td>
-                  <td className="col-netwt font-mono text-right font-bold">{previewBill.totals.netWt}</td>
-                  <td className="col-tunch">&nbsp;</td>
-                  <td className="col-lab">&nbsp;</td>
-                  <td className="col-fine font-mono text-right font-bold">{previewBill.totals.fine}</td>
-                </tr>
+                )}
 
                 {/* LAST BALANCE ROW */}
                 <tr className="row-last-bal">
@@ -196,30 +196,65 @@ const BillPreview = ({ previewBill, handlePrint }) => {
                   </td>
                 </tr>
 
+                {/* BHAW FINE SETTLEMENT ROW */}
+                {previewBill.silverRate > 0 && (
+                  <tr className="row-bhaw-settle">
+                    <td className="col-amount font-mono text-center font-bold">
+                      {previewBill.convertedFineAmount || ""}
+                    </td>
+                    <td className="col-item text-left font-bold">
+                      Bhaw - {previewBill.time}
+                    </td>
+                    <td className="col-weight font-mono text-right font-bold">
+                      {previewBill.silverRate}
+                    </td>
+                    <td className="col-panni">&nbsp;</td>
+                    <td className="col-less">&nbsp;</td>
+                    <td className="col-netwt">&nbsp;</td>
+                    <td className="col-tunch">&nbsp;</td>
+                    <td className="col-lab">&nbsp;</td>
+                    <td className="col-fine font-mono text-right font-bold">
+                      {previewBill.totals.fine + (previewBill.lastBalance.fine || 0) - (previewBill.jamaDetail.fine || 0)}
+                    </td>
+                  </tr>
+                )}
+
                 {/* JAMA DETAIL ROW */}
                 <tr className="row-jama-detail">
                   <td className="col-amount font-mono text-center font-bold">
                     {previewBill.jamaDetail.amount || ""}
                   </td>
-                  <td className="col-item text-left text-slate-600 font-bold">
-                    Jama Detail <br />
-                    <span className="font-normal">{previewBill.jamaDetail.details || ""}</span>
+                  <td className="col-item text-left font-bold">
+                    {previewBill.silverRate > 0 ? (previewBill.jamaDetail.details || "CASH JAMA") : (
+                      <>
+                        Jama Detail <br />
+                        <span className="font-normal">{previewBill.jamaDetail.details || ""}</span>
+                      </>
+                    )}
                   </td>
-                  <td className="col-weight font-mono text-right">{previewBill.jamaDetail.weight || ""}</td>
+                  <td className="col-weight font-mono text-right">
+                    {previewBill.silverRate > 0 ? "" : (previewBill.jamaDetail.weight || "")}
+                  </td>
                   <td className="col-panni">&nbsp;</td>
                   <td className="col-less">&nbsp;</td>
-                  <td className="col-netwt font-mono text-right">{previewBill.jamaDetail.netWt || ""}</td>
-                  <td className="col-tunch font-mono text-right">{previewBill.jamaDetail.tunch || ""}</td>
+                  <td className="col-netwt font-mono text-right">
+                    {previewBill.silverRate > 0 ? "" : (previewBill.jamaDetail.netWt || "")}
+                  </td>
+                  <td className="col-tunch font-mono text-right">
+                    {previewBill.silverRate > 0 ? "" : (previewBill.jamaDetail.tunch || "")}
+                  </td>
                   <td className="col-lab">&nbsp;</td>
                   <td className="col-fine font-mono text-right font-bold">
-                    {previewBill.jamaDetail.fine || ""}
+                    {previewBill.silverRate > 0 ? "" : (previewBill.jamaDetail.fine || "")}
                   </td>
                 </tr>
 
                 {/* BAKI FINAL ROW */}
                 <tr className="row-baki-final">
                   <td className="col-amount font-mono text-center font-black text-lg">{previewBill.finalBaki.amount}</td>
-                  <td className="col-item text-left font-black text-base">(BAKI) &nbsp;&nbsp;&nbsp;Final &nbsp;&nbsp;&nbsp;Total Kachhi - 1</td>
+                  <td className="col-item text-left font-black text-base">
+                    (BAKI) &nbsp;&nbsp;&nbsp;Final
+                  </td>
                   <td className="col-weight">&nbsp;</td>
                   <td className="col-panni">&nbsp;</td>
                   <td className="col-less">&nbsp;</td>
@@ -232,7 +267,8 @@ const BillPreview = ({ previewBill, handlePrint }) => {
               </tbody>
             </table>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* PRINT-ONLY MEDIA STYLES */}
@@ -243,8 +279,8 @@ const BillPreview = ({ previewBill, handlePrint }) => {
         }
 
         @media print {
-          /* Hide all screen interface elements */
-          .screen-only, body * {
+          /* Hide all sibling elements of the print container under body */
+          body > *:not(.print-invoice) {
             display: none !important;
           }
           
@@ -255,12 +291,18 @@ const BillPreview = ({ previewBill, handlePrint }) => {
             margin: 0 !important;
             padding: 0 !important;
             height: auto !important;
+            overflow: visible !important;
             font-size: 13px !important;
             line-height: 1.4 !important;
             font-family: Arial, sans-serif !important;
           }
 
-          .print-only, .print-only * {
+          @page {
+            size: auto;
+            margin: 10mm;
+          }
+
+          .print-only {
             display: block !important;
           }
 
@@ -271,6 +313,8 @@ const BillPreview = ({ previewBill, handlePrint }) => {
             margin: 15px auto !important;
             padding: 5px !important;
             background-color: #fff !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
 
           .print-header {
@@ -338,21 +382,19 @@ const BillPreview = ({ previewBill, handlePrint }) => {
           /* Explicit Column widths */
           .col-amount { width: 10% !important; text-align: center !important; }
           .col-item { width: 30% !important; }
-          .col-weight { width: 10% !important; }
+          .col-weight { width: 10% !important; text-align: center !important; }
           .col-panni { width: 15% !important; }
-          .col-less { width: 8% !important; }
-          .col-netwt { width: 10% !important; }
-          .col-tunch { width: 8% !important; }
-          .col-lab { width: 10% !important; }
-          .col-fine { width: 10% !important; }
-
-          /* Empty spacer rows height and styling */
-          .empty-filler-row td {
-            height: 25px !important;
-            border: 1px solid #000 !important;
-          }
+          .col-less { width: 8% !important; text-align: center !important; }
+          .col-netwt { width: 10% !important; text-align: center !important; }
+          .col-tunch { width: 8% !important; text-align: center !important; }
+          .col-lab { width: 10% !important; text-align: center !important; }
+          .col-fine { width: 10% !important; text-align: center !important; }
 
           /* Row Total Sale styling */
+          .row-total-sale {
+            border-top: 2px solid #000 !important;
+            border-bottom: 1px solid #000 !important;
+          }
           .row-total-sale td {
             font-weight: bold !important;
             background-color: #fff !important;
@@ -377,6 +419,9 @@ const BillPreview = ({ previewBill, handlePrint }) => {
           }
 
           /* Baki Final Row styling (heavy highlight) */
+          .row-baki-final {
+            border-bottom: 2px solid #000 !important;
+          }
           .row-baki-final td {
             font-weight: bold !important;
             border: 1px solid #000 !important;

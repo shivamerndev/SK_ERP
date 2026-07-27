@@ -12,8 +12,13 @@ const FinalSettlement = ({
   setPostToLedger,
   selectedCustomerId,
   handleClearForm,
-  handleSaveInvoice
+  handleSaveInvoice,
+  silverRate,
+  convertedFineAmount
 }) => {
+  const isSettle = parseFloat(silverRate) > 0;
+  const totalFineToSettle = (parseFloat(lastBalanceFine) || 0) + totals.fine - computedJamaFine;
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between h-full">
       <div>
@@ -26,12 +31,15 @@ const FinalSettlement = ({
           {/* Baki cash card */}
           <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-5 flex justify-between items-center">
             <div>
-              <p className="text-xs font-bold text-emerald-800 uppercase tracking-wide">Baki Labor Amount</p>
+              <p className="text-xs font-bold text-emerald-800 uppercase tracking-wide">
+                {isSettle ? "Baki Total Amount (Settle)" : "Baki Labor Amount"}
+              </p>
               <p className="text-2xl font-black text-emerald-700 font-mono mt-1">₹{finalBaki.amount}</p>
             </div>
             <div className="text-right text-xs text-slate-400">
               <p>Sale: ₹{totals.amount}</p>
               <p className="mt-0.5">Bal: +₹{parseFloat(lastBalanceAmount) || 0}</p>
+              {isSettle && <p className="mt-0.5 text-indigo-600 font-semibold">Fine Settle: +₹{convertedFineAmount}</p>}
               <p className="mt-0.5">Jama: -₹{parseFloat(jamaAmount) || 0}</p>
             </div>
           </div>
@@ -46,6 +54,7 @@ const FinalSettlement = ({
               <p>Sale: {totals.fine}g</p>
               <p className="mt-0.5">Bal: +{parseFloat(lastBalanceFine) || 0}g</p>
               <p className="mt-0.5">Jama: -{computedJamaFine}g</p>
+              {isSettle && <p className="mt-0.5 text-indigo-600 font-semibold">Settle: -{totalFineToSettle}g</p>}
             </div>
           </div>
         </div>

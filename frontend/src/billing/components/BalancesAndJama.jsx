@@ -1,6 +1,26 @@
 import { RotateCcw } from "lucide-react";
 
-const BalancesAndJama = ({ lastBalanceAmount, setLastBalanceAmount, lastBalanceFine, setLastBalanceFine, jamaDetails, setJamaDetails, jamaWeight, setJamaWeight, jamaNetWt, setJamaNetWt, jamaTunch, setJamaTunch, jamaAmount, setJamaAmount, computedJamaFine }) => {
+const BalancesAndJama = ({
+  lastBalanceAmount,
+  setLastBalanceAmount,
+  lastBalanceFine,
+  setLastBalanceFine,
+  jamaDetails,
+  setJamaDetails,
+  jamaWeight,
+  setJamaWeight,
+  jamaNetWt,
+  setJamaNetWt,
+  jamaTunch,
+  setJamaTunch,
+  jamaAmount,
+  setJamaAmount,
+  computedJamaFine,
+  silverRate,
+  setSilverRate,
+  convertedFineAmount,
+  totals
+}) => {
 
 
   return (
@@ -22,6 +42,29 @@ const BalancesAndJama = ({ lastBalanceAmount, setLastBalanceAmount, lastBalanceF
             <label className="block text-xs font-semibold text-slate-500 mb-1">Fine Balance (g)</label>
             <input type="number" value={lastBalanceFine} placeholder="0" onChange={(e) => setLastBalanceFine(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
           </div>
+        </div>
+      </div>
+
+      {/* Silver Rate / Bhaw Settlement */}
+      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-4">
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Silver Rate & Fine Settle (Bhaw)</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-black">
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1">Silver Rate (Bhaw per kg)</label>
+            <input type="number" value={silverRate} placeholder="e.g. 223600" onChange={(e) => setSilverRate(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
+          </div>
+          {parseFloat(silverRate) > 0 && (
+            <div className="flex flex-col justify-end pb-1 text-xs font-semibold text-slate-600 space-y-1">
+              <div className="flex justify-between">
+                <span>Fine to Settle:</span>
+                <span className="font-bold text-slate-800 font-mono">{(parseFloat(lastBalanceFine) || 0) + totals.fine - computedJamaFine} g</span>
+              </div>
+              <div className="flex justify-between border-t border-slate-200 pt-1">
+                <span>Converted Value:</span>
+                <span className="font-bold text-emerald-600 font-mono">₹{convertedFineAmount}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

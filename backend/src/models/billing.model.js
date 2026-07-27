@@ -53,7 +53,7 @@ const billingSchema = new mongoose.Schema(
       trim: true
     },
     customerPhone: {
-      type: String,
+      type: Number,
       trim: true
     },
     customerAddress: {
@@ -103,6 +103,14 @@ const billingSchema = new mongoose.Schema(
     finalBaki: {
       amount: { type: Number, default: 0 },
       fine: { type: Number, default: 0 }
+    },
+    silverRate: {
+      type: Number,
+      default: 0
+    },
+    convertedFineAmount: {
+      type: Number,
+      default: 0
     },
     postedToUdhaar: {
       type: Boolean,

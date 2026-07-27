@@ -50,6 +50,10 @@
   --text-muted: #94a3b8;
 }
 
+.scrollbar-none{
+  scrollbar-width: none
+}
+
 body {
   @apply bg-slate-950 text-slate-100 min-h-screen font-sans m-0 antialiased;
 }

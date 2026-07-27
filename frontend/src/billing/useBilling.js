@@ -94,6 +94,7 @@ const useBilling = () => {
   const [jamaNetWt, setJamaNetWt] = useState("");
   const [jamaTunch, setJamaTunch] = useState("");
   const [jamaAmount, setJamaAmount] = useState("");
+  const [silverRate, setSilverRate] = useState("");
 
   // Options
   const [postToLedger, setPostToLedger] = useState(true);
@@ -216,17 +217,34 @@ const useBilling = () => {
     return Math.round((net * tunch) / 100);
   }, [jamaWeight, jamaNetWt, jamaTunch]);
 
+  const totalFineBeforeSettle = useMemo(() => {
+    const lastFine = parseFloat(lastBalanceFine) || 0;
+    return totals.fine + lastFine - computedJamaFine;
+  }, [totals.fine, lastBalanceFine, computedJamaFine]);
+
+  const convertedFineAmount = useMemo(() => {
+    const rate = parseFloat(silverRate) || 0;
+    if (rate <= 0) return 0;
+    return Math.round((totalFineBeforeSettle * rate) / 1000);
+  }, [totalFineBeforeSettle, silverRate]);
+
   // Baki Outputs
   const finalBaki = useMemo(() => {
     const lastCash = parseFloat(lastBalanceAmount) || 0;
-    const lastFine = parseFloat(lastBalanceFine) || 0;
     const jamaCash = parseFloat(jamaAmount) || 0;
 
-    return {
-      amount: Math.round(totals.amount + lastCash - jamaCash),
-      fine: Math.round(totals.fine + lastFine - computedJamaFine)
-    };
-  }, [totals.amount, totals.fine, lastBalanceAmount, lastBalanceFine, jamaAmount, computedJamaFine]);
+    if (parseFloat(silverRate) > 0) {
+      return {
+        amount: Math.round(totals.amount + lastCash - jamaCash + convertedFineAmount),
+        fine: 0
+      };
+    } else {
+      return {
+        amount: Math.round(totals.amount + lastCash - jamaCash),
+        fine: Math.round(totalFineBeforeSettle)
+      };
+    }
+  }, [totals.amount, lastBalanceAmount, jamaAmount, silverRate, convertedFineAmount, totalFineBeforeSettle]);
 
   // Autocomplete lists
   const filteredCustomers = useMemo(() => {
@@ -290,6 +308,7 @@ const useBilling = () => {
     setJamaNetWt("");
     setJamaTunch("");
     setJamaAmount("");
+    setSilverRate("");
 
     // Auto-generate next Bill No
     const maxNo = history.reduce((acc, curr) => {
@@ -317,7 +336,7 @@ const useBilling = () => {
       const newBill = {
         billNo: billNo || String(history.length + 80),
         customerName: customerName.trim().toUpperCase(),
-        customerPhone: customerPhone.trim(),
+        customerPhone: customerPhone,
         customerAddress: customerAddress.trim(),
         customerId: selectedCustomerId ? Number(selectedCustomerId) : null,
         date,
@@ -345,6 +364,8 @@ const useBilling = () => {
           amount: parseFloat(jamaAmount) || 0
         },
         finalBaki,
+        silverRate: parseFloat(silverRate) || 0,
+        convertedFineAmount,
         postedToUdhaar: postToLedger && !!selectedCustomerId
       };
 
@@ -393,6 +414,7 @@ const useBilling = () => {
     jamaNetWt,
     jamaTunch,
     jamaAmount,
+    silverRate,
     postToLedger,
     previewBill,
     custSearchFocused,
@@ -416,6 +438,7 @@ const useBilling = () => {
     setJamaNetWt,
     setJamaTunch,
     setJamaAmount,
+    setSilverRate,
     setPostToLedger,
     setPreviewBill,
     setCustSearchFocused,
@@ -424,6 +447,8 @@ const useBilling = () => {
     // Computed
     totals,
     computedJamaFine,
+    totalFineBeforeSettle,
+    convertedFineAmount,
     finalBaki,
     filteredCustomers,
 

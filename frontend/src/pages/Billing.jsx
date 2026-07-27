@@ -27,6 +27,7 @@ const Billing = () => {
     jamaNetWt,
     jamaTunch,
     jamaAmount,
+    silverRate,
     postToLedger,
     previewBill,
     // Setters
@@ -46,10 +47,12 @@ const Billing = () => {
     setJamaNetWt,
     setJamaTunch,
     setJamaAmount,
+    setSilverRate,
     setPostToLedger,
     // Computed
     totals,
     computedJamaFine,
+    convertedFineAmount,
     finalBaki,
     filteredCustomers,
     products,
@@ -125,6 +128,10 @@ const Billing = () => {
                 jamaAmount={jamaAmount}
                 setJamaAmount={setJamaAmount}
                 computedJamaFine={computedJamaFine}
+                silverRate={silverRate}
+                setSilverRate={setSilverRate}
+                convertedFineAmount={convertedFineAmount}
+                totals={totals}
               />
 
               <FinalSettlement
@@ -139,6 +146,8 @@ const Billing = () => {
                 selectedCustomerId={selectedCustomerId}
                 handleClearForm={handleClearForm}
                 handleSaveInvoice={handleSaveInvoice}
+                silverRate={silverRate}
+                convertedFineAmount={convertedFineAmount}
               />
 
             </div>

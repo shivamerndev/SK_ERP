@@ -16,7 +16,7 @@ function billingValidator(billingData) {
   const schema = joi.object({
     billNo: joi.string().allow(""),
     customerName: joi.string().required().trim(),
-    customerPhone: joi.string().allow("").trim().default(""),
+    customerPhone: joi.number().min(10).required(),
     customerAddress: joi.string().allow("").trim().default(""),
     customerId: joi.number().allow(null, "").empty(""),
     date: joi.string().required(),
@@ -47,6 +47,8 @@ function billingValidator(billingData) {
       amount: joi.number().default(0),
       fine: joi.number().default(0)
     }).default(),
+    silverRate: joi.number().allow(null, "").default(0),
+    convertedFineAmount: joi.number().allow(null, "").default(0),
     postedToUdhaar: joi.boolean().default(false)
   });
 
