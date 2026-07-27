@@ -4,7 +4,7 @@ const getBillHistory = () => api.get("/billing");
 
 const saveBillHistory = (billData) => api.post("/billing", billData);
 
-const getProductsList = () => [
+const getProductsList = () => [ 
   { id: "p1", name: "OP* KATORI" },
   { id: "p2", name: "PS DLX" },
   { id: "p3", name: "SM 70 PAYAL" },

@@ -1,25 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
-import {
-  FileText,
-  Search,
-  Trash2,
-  ExternalLink,
-  X,
-  History,
-  TrendingUp,
-  Coins,
-  Scale,
-  Calendar,
-  User,
-  Clock,
-  ArrowUpRight,
-  Filter,
-  RotateCcw
-} from "lucide-react";
-import { toast } from "react-hot-toast";
+import { FileText, History, TrendingUp, Coins, Scale, User } from "lucide-react";
 import PrintModal from "../report/components/PrintModal";
 import ReportFilter from "../report/components/ReportFilter";
+import LedgerTable from "../report/components/LedgerTable";
+import SavedInvoices from "../report/components/SavedInvoices";
+import useReport from "../report/hook/useReport";
+import { showToast } from "../utils/toast.utils";
 
 // Default Seed Bill matching Billing.jsx
 const SEED_BILL = {
@@ -79,11 +66,13 @@ const SEED_BILL = {
 }
 
 const Reports = () => {
-  
-  const [history, setHistory] = useState(() => {
-    const saved = localStorage.getItem("erp_bills");
-    return saved ? JSON.parse(saved) : [SEED_BILL];
-  });
+
+  const { handleGetReports, selectedBill, history } = useReport()
+
+  useEffect(() => {
+    handleGetReports()
+  }, [])
+
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,19 +80,6 @@ const Reports = () => {
   const [endDate, setEndDate] = useState("");
   const [bakiFilter, setBakiFilter] = useState("all"); // 'all' | 'outstanding_amt' | 'outstanding_fine' | 'no_outstanding'
 
-  // Modal State
-  const [selectedBill, setSelectedBill] = useState(null);
-
-  // Toast Helper using react-hot-toast
-  const showToast = (message, type = "success") => {
-    if (type === "success") {
-      toast.success(message);
-    } else if (type === "error") {
-      toast.error(message);
-    } else {
-      toast(message);
-    }
-  };
 
   // Reset Filters
   const handleResetFilters = () => {
@@ -114,9 +90,7 @@ const Reports = () => {
     showToast("Filters reset to default", "info");
   };
 
-  // ----------------------------------------------------
-  // FILTERED DATA & CALCULATIONS
-  // ----------------------------------------------------
+
   const filteredHistory = useMemo(() => {
     return history.filter((bill) => {
       // 1. Search Query Filter (Bill No or Client Name)
@@ -207,17 +181,6 @@ const Reports = () => {
   }, [filteredHistory]);
 
 
-  const handleDeleteBill = (id) => {
-    if (confirm("Are you sure you want to delete this invoice record from logs?")) {
-      setHistory((prev) => prev.filter((b) => b.id !== id));
-      if (selectedBill && selectedBill.id === id) {
-        setSelectedBill(null);
-      }
-      showToast("Invoice deleted successfully!", "info");
-    }
-  };
-
-
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -305,7 +268,7 @@ const Reports = () => {
           </div>
         </div>
       </div>
-      
+
       <ReportFilter
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -377,369 +340,16 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* INVOICE HISTORY LOG VIEW */}
-        <div className="xl:col-span-3">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-indigo-600" />
-                <h2 className="font-bold text-slate-800">Saved Invoices</h2>
-              </div>
-            </div>
+        <SavedInvoices filteredHistory={filteredHistory} />
 
-            {/* List display */}
-            {filteredHistory.length > 0 ? (
-              <div className="overflow-x-auto rounded-xl border border-slate-100">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
-                      <th className="p-3">Bill No</th>
-                      <th className="p-3">Client</th>
-                      <th className="p-3">Date & Time</th>
-                      <th className="p-3 text-right">Items Count</th>
-                      <th className="p-3 text-right">Labor Total</th>
-                      <th className="p-3 text-right font-semibold">Fine Total</th>
-                      <th className="p-3 text-right text-rose-500 font-bold">Baki Amount</th>
-                      <th className="p-3 text-right text-purple-600 font-bold">Baki Fine</th>
-                      <th className="p-3 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredHistory.map((bill) => (
-                      <tr key={bill.id} className="hover:bg-slate-50/70 transition-colors font-semibold text-slate-700">
-                        <td className="p-3 text-indigo-600 font-bold font-mono">#{bill.billNo}</td>
-                        <td className="p-3 font-bold text-slate-800">{bill.customerName}</td>
-                        <td className="p-3 text-slate-500 font-mono">
-                          {bill.date} <span className="text-[10px] text-slate-400">({bill.time})</span>
-                        </td>
-                        <td className="p-3 text-right font-mono text-slate-500">{bill.items?.length || 0} items</td>
-                        <td className="p-3 text-right font-mono text-slate-500 font-semibold text-slate-700">₹{bill.totals?.amount || 0}</td>
-                        <td className="p-3 text-right font-mono text-slate-500">{bill.totals?.fine || 0}g</td>
-                        <td className="p-3 text-right font-mono text-rose-500 font-bold">₹{bill.finalBaki?.amount || 0}</td>
-                        <td className="p-3 text-right font-mono text-purple-600 font-bold">{bill.finalBaki?.fine || 0}g</td>
-                        <td className="p-3 text-center flex items-center justify-center gap-1.5 font-bold">
-                          <button
-                            onClick={() => setSelectedBill(bill)}
-                            className="flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-100 px-2.5 py-1.5 rounded-lg font-bold transition-colors cursor-pointer"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            Open View
-                          </button>
-                          <button
-                            onClick={() => handleDeleteBill(bill.id)}
-                            className="text-slate-400 hover:text-red-500 hover:bg-slate-100 p-1.5 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-20 text-slate-400 border border-dashed border-slate-200 rounded-2xl bg-slate-50">
-                <FileText className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-                <p className="font-bold text-slate-500">No saved invoices found</p>
-                <p className="text-xs text-slate-400 mt-1">Try clearing filters or create a new invoice in the Billing page.</p>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* PRINT-ONLY TRADITIONAL ESTIMATE SLIP CONTAINER (Visible only in system print prompt) */}
-      {selectedBill && createPortal(
-        <div className="print-invoice print-only">
-          <div className="print-container">
-            {/* Header section */}
-            <div className="print-header font-serif">
-              <p className="traditional-hail">{selectedBill.topHeader}</p>
-              <h1 className="traditional-title">{selectedBill.title}</h1>
-            </div>
+      {selectedBill && createPortal(<LedgerTable selectedBill={selectedBill} />, document.body)}
 
-            {/* Meta client detail info row */}
-            <div className="print-meta-grid">
-              <div className="meta-col-left font-sans font-bold">
-                <p>Bill No. &nbsp;<span className="font-mono">{selectedBill.billNo}</span></p>
-                <p className="meta-client-name mt-1">{selectedBill.customerName}</p>
-              </div>
-              <div className="meta-col-right text-right font-sans font-bold">
-                <p className="font-mono">{selectedBill.time}</p>
-                <p className="font-mono mt-1">{selectedBill.date}</p>
-              </div>
-            </div>
+      {selectedBill && <PrintModal selectedBill={selectedBill} />}
 
-            {/* Ledger Table */}
-            <table className="traditional-bill-table font-sans">
-              <thead>
-                <tr>
-                  <th className="col-amount text-center font-bold" style={{ border: '1px solid black' }}>Amount</th>
-                  <th className="col-item text-left font-bold" style={{ border: '1px solid black' }}>Item</th>
-                  <th className="col-weight text-right font-bold" style={{ border: '1px solid black' }}>Weight</th>
-                  <th className="col-panni text-left font-bold" style={{ border: '1px solid black' }}>Panni Detail</th>
-                  <th className="col-less text-right font-bold" style={{ border: '1px solid black' }}>Less</th>
-                  <th className="col-netwt text-right font-bold" style={{ border: '1px solid black' }}>Net Wt.</th>
-                  <th className="col-tunch text-right font-bold" style={{ border: '1px solid black' }}>Tunch</th>
-                  <th className="col-lab text-right font-bold" style={{ border: '1px solid black' }}>Lab.</th>
-                  <th className="col-fine text-right font-bold" style={{ border: '1px solid black' }}>Fine</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedBill.items?.map((row, idx) => (
-                  <tr key={idx}>
-                    <td className="col-amount font-mono text-center">{row.amount || ""}</td>
-                    <td className="col-item text-left font-bold">{row.item}</td>
-                    <td className="col-weight font-mono text-right">{row.weight}</td>
-                    <td className="col-panni font-mono text-left">{row.panniDetail || ""}</td>
-                    <td className="col-less font-mono text-right">{row.less || ""}</td>
-                    <td className="col-netwt font-mono text-right">{row.netWt || ""}</td>
-                    <td className="col-tunch font-mono text-right">{row.tunch}</td>
-                    <td className="col-lab font-mono text-right">{row.lab || ""}</td>
-                    <td className="col-fine font-mono text-right">{row.fine || ""}</td>
-                  </tr>
-                ))}
 
-                {/* TOTAL SALE ROW */}
-                <tr className="row-total-sale">
-                  <td className="col-amount font-mono text-center font-bold">{selectedBill.totals?.amount || ""}</td>
-                  <td className="col-item text-left font-black">TOTAL SALE</td>
-                  <td className="col-weight font-mono text-right font-bold">{selectedBill.totals?.weight}</td>
-                  <td className="col-panni">&nbsp;</td>
-                  <td className="col-less font-mono text-right font-bold">{selectedBill.totals?.less || ""}</td>
-                  <td className="col-netwt font-mono text-right font-bold">{selectedBill.totals?.netWt}</td>
-                  <td className="col-tunch">&nbsp;</td>
-                  <td className="col-lab">&nbsp;</td>
-                  <td className="col-fine font-mono text-right font-bold">{selectedBill.totals?.fine}</td>
-                </tr>
-
-                {/* LAST BALANCE ROW */}
-                <tr className="row-last-bal">
-                  <td className="col-amount font-mono text-center font-bold">{selectedBill.lastBalance?.amount || ""}</td>
-                  <td className="col-item text-left text-slate-500 font-bold">Last Bal. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="font-mono text-xs">{selectedBill.date}</span></td>
-                  <td className="col-weight">&nbsp;</td>
-                  <td className="col-panni">&nbsp;</td>
-                  <td className="col-less">&nbsp;</td>
-                  <td className="col-netwt">&nbsp;</td>
-                  <td className="col-tunch">&nbsp;</td>
-                  <td className="col-lab">&nbsp;</td>
-                  <td className="col-fine font-mono text-right font-bold">{selectedBill.lastBalance?.fine || "0"}</td>
-                </tr>
-
-                {/* TOTAL SALE + LAST BAL ROW */}
-                <tr className="row-inter-total">
-                  <td className="col-amount font-mono text-center font-bold">
-                    {(selectedBill.totals?.amount || 0) + (selectedBill.lastBalance?.amount || 0) || ""}
-                  </td>
-                  <td className="col-item text-left font-black">Total</td>
-                  <td className="col-weight">&nbsp;</td>
-                  <td className="col-panni">&nbsp;</td>
-                  <td className="col-less">&nbsp;</td>
-                  <td className="col-netwt">&nbsp;</td>
-                  <td className="col-tunch">&nbsp;</td>
-                  <td className="col-lab">&nbsp;</td>
-                  <td className="col-fine font-mono text-right font-bold">
-                    {(selectedBill.totals?.fine || 0) + (selectedBill.lastBalance?.fine || 0) || ""}
-                  </td>
-                </tr>
-
-                {/* JAMA DETAIL ROW */}
-                <tr className="row-jama-detail">
-                  <td className="col-amount font-mono text-center font-bold">
-                    {selectedBill.jamaDetail?.amount || ""}
-                  </td>
-                  <td className="col-item text-left text-slate-600 font-bold">
-                    Jama Detail <br />
-                    <span className="font-normal">{selectedBill.jamaDetail?.details || ""}</span>
-                  </td>
-                  <td className="col-weight font-mono text-right">{selectedBill.jamaDetail?.weight || ""}</td>
-                  <td className="col-panni">&nbsp;</td>
-                  <td className="col-less">&nbsp;</td>
-                  <td className="col-netwt font-mono text-right">{selectedBill.jamaDetail?.netWt || ""}</td>
-                  <td className="col-tunch font-mono text-right">{selectedBill.jamaDetail?.tunch || ""}</td>
-                  <td className="col-lab">&nbsp;</td>
-                  <td className="col-fine font-mono text-right font-bold">
-                    {selectedBill.jamaDetail?.fine || ""}
-                  </td>
-                </tr>
-
-                {/* BAKI FINAL ROW */}
-                <tr className="row-baki-final">
-                  <td className="col-amount font-mono text-center font-black text-lg">{selectedBill.finalBaki?.amount}</td>
-                  <td className="col-item text-left font-black text-base">(BAKI) &nbsp;&nbsp;&nbsp;Final &nbsp;&nbsp;&nbsp;Total Kachhi - 1</td>
-                  <td className="col-weight">&nbsp;</td>
-                  <td className="col-panni">&nbsp;</td>
-                  <td className="col-less">&nbsp;</td>
-                  <td className="col-netwt">&nbsp;</td>
-                  <td className="col-tunch font-black text-center text-sm">(BAKI)</td>
-                  <td className="col-lab">&nbsp;</td>
-                  <td className="col-fine font-mono text-right font-black text-lg">{selectedBill.finalBaki?.fine}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {selectedBill && <PrintModal selectedBill={selectedBill} setSelectedBill={setSelectedBill} />}
-
-      <style>{`
-        .print-only {
-          display: none;
-        }
-
-        @media print {
-          /* Hide all sibling elements of the print container under body */
-          body > *:not(.print-invoice) {
-            display: none !important;
-          }
-          
-          /* Override body margins and styles for printer */
-          body, html {
-            background-color: #fff !important;
-            color: #000 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            height: auto !important;
-            overflow: visible !important;
-            font-size: 13px !important;
-            line-height: 1.4 !important;
-            font-family: Arial, sans-serif !important;
-          }
-
-          @page {
-            size: auto;
-            margin: 10mm;
-          }
-
-          .print-only {
-            display: block !important;
-          }
-
-          /* Traditional slip layout structure */
-          .print-container {
-            width: 95% !important;
-            max-width: 800px !important;
-            margin: 15px auto !important;
-            padding: 5px !important;
-            background-color: #fff !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-          }
-
-          .print-header {
-            text-align: center;
-            margin-bottom: 20px;
-          }
-
-          .traditional-hail {
-            font-size: 14px !important;
-            font-weight: bold !important;
-            margin: 0 0 4px 0 !important;
-            letter-spacing: 1px;
-            font-family: inherit;
-          }
-
-          .traditional-title {
-            font-size: 15px !important;
-            font-weight: bold !important;
-            margin: 0 !important;
-            text-decoration: underline !important;
-            letter-spacing: 1.5px;
-            font-family: inherit;
-          }
-
-          .print-meta-grid {
-            display: flex !important;
-            justify-content: space-between !important;
-            margin-bottom: 8px !important;
-            font-size: 13px !important;
-            padding: 0 4px !important;
-          }
-
-          .meta-client-name {
-            font-size: 13px !important;
-            font-weight: bold !important;
-            letter-spacing: 0.5px;
-          }
-
-          /* Main Table Styling - Double lines, thin gridlines */
-          .traditional-bill-table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            border-top: 2px solid #000 !important;
-            border-bottom: 2px solid #000 !important;
-            font-size: 12px !important;
-          }
-
-          .traditional-bill-table th {
-            border: 1px solid #000 !important;
-            font-weight: bold !important;
-            padding: 6px 4px !important;
-            font-size: 12px !important;
-            text-align: inherit;
-            background-color: #f5f5f5 !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-
-          .traditional-bill-table td {
-            border: 1px solid #000 !important;
-            padding: 6px 6px !important;
-            height: 22px;
-          }
-
-          /* Explicit Column widths */
-          .col-amount { width: 10% !important; text-align: center !important; }
-          .col-item { width: 30% !important; }
-          .col-weight { width: 10% !important; }
-          .col-panni { width: 15% !important; }
-          .col-less { width: 8% !important; }
-          .col-netwt { width: 10% !important; }
-          .col-tunch { width: 8% !important; }
-          .col-lab { width: 10% !important; }
-          .col-fine { width: 10% !important; }
-
-          /* Row Total Sale styling */
-          .row-total-sale {
-            border-top: 2px solid #000 !important;
-            border-bottom: 1px solid #000 !important;
-          }
-          .row-total-sale td {
-            font-weight: bold !important;
-            background-color: #fff !important;
-            border: 1px solid #000 !important;
-          }
-
-          /* Last Balance Row styling */
-          .row-last-bal td {
-            background-color: #fff !important;
-            border: 1px solid #000 !important;
-          }
-
-          /* Inter Total Row styling */
-          .row-inter-total td {
-            font-weight: bold !important;
-            border: 1px solid #000 !important;
-          }
-
-          /* Jama Detail Row styling */
-          .row-jama-detail td {
-            border: 1px solid #000 !important;
-          }
-
-          /* Baki Final Row styling (heavy highlight) */
-          .row-baki-final {
-            border-bottom: 2px solid #000 !important;
-          }
-          .row-baki-final td {
-            font-weight: bold !important;
-            border: 1px solid #000 !important;
-            padding: 8px 6px !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };

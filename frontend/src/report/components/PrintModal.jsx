@@ -1,11 +1,13 @@
 import { FileText, X, User, Clock, ArrowUpRight } from "lucide-react";
+import useReport from "../hook/useReport";
 
 
-const PrintModal = ({ selectedBill, setSelectedBill }) => {
+const PrintModal = ({ selectedBill }) => {
 
+    const { handleSelectBill } = useReport()
 
     const handlePrint = (bill) => {
-        setSelectedBill(bill);
+        handleSelectBill(bill);
         setTimeout(() => {
             window.print();
         }, 100);
@@ -25,7 +27,7 @@ const PrintModal = ({ selectedBill, setSelectedBill }) => {
                         </span>
                     </div>
                     <button
-                        onClick={() => setSelectedBill(null)}
+                        onClick={() => handleSelectBill(null)}
                         className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
                     >
                         <X className="w-5 h-5" />

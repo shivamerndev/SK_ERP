@@ -15,8 +15,15 @@ const getBillById = async (billId) => {
   return bill;
 };
 
+
+const deleteBill = async (billId) => {
+  const bill = await Billing.findByIdAndDelete(billId);
+  return bill.toObject();
+}
+
 export default {
   createBill,
   getAllBills,
-  getBillById
+  getBillById,
+  deleteBill
 };

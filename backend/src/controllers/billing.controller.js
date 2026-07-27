@@ -27,8 +27,17 @@ const getBillById = asyncHandler(async (req, res) => {
   return res.success(200, "Bill Fetched Successfully", response);
 });
 
+
+const deleteBill = asyncHandler(async (req, res) => {
+  const { id } = req.params
+  const response = await billingService.deleteBill(id)
+
+  return res.success(200, "Bill Deleted Successfully", response)
+});
+
 export {
   createBill,
   getAllBills,
-  getBillById
+  getBillById,
+  deleteBill
 };

@@ -118,7 +118,7 @@ const useBilling = () => {
   // LOAD SEED/EXTERNAL DATA
   useEffect(() => {
     
-    // setProducts(getProductsList());
+    setProducts(getProductsList());
 
     // Set current time
     const updateTime = () => {
