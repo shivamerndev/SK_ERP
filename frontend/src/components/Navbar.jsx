@@ -12,7 +12,7 @@ const Navbar = ({ user, setIsMobileSidebarOpen }) => {
 
     useEffect(() => {
         const delay = setTimeout(() => {
-            handleSearch(search)
+           if(search) handleSearch(search)
         }, 500);
         return () => clearTimeout(delay);
     }, [search])

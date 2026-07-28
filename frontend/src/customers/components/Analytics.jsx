@@ -1,10 +1,11 @@
 import { TrendingUp, CheckCircle, ChevronDown } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, PieChart, Pie } from "recharts";
 
 
-const Analytics = ({showAnalytics,setShowAnalytics}) => {
+const Analytics = () => {
 
+    const [showAnalytics, setShowAnalytics] = useState(true);
 
     let customers = []
 

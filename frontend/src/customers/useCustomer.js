@@ -52,7 +52,7 @@ const useCustomer = () => {
         // Schema validation
         const isValid = importedData.every(c =>
           c.id &&
-          c.name &&
+          c.fullName &&
           c.phone &&
           typeof c.creditLimit === "number" &&
           Array.isArray(c.transactions)
@@ -73,29 +73,12 @@ const useCustomer = () => {
     e.target.value = null; // reset file input
   };
 
-  const openWhatsApp = (c) => {
-    const bal = getBalance(c);
-    if (bal <= 0) return;
-
-    const prefilledText = `Dear *${c.name}*,\n\nThis is a friendly reminder from *ERP Suite Store* regarding your outstanding balance of *₹${bal.toLocaleString("en-IN")}*.\n\nPlease clear it at your earliest convenience using UPI, cash, or bank transfer.\n\nThank you for your business!\n_Sent via ERP Suite_`;
-
-    // Clean phone number (replace non digits)
-    const phoneClean = c.phone.replace(/\D/g, "");
-    // Prefill 91 for Indian country code if not present
-    const finalPhone = phoneClean.length === 10 ? "91" + phoneClean : phoneClean;
-    const url = `https://wa.me/${finalPhone}?text=${encodeURIComponent(prefilledText)}`;
-
-    window.open(url, "_blank");
-  };
-
-
 
   return {
     handleCreateCustomer,
     handleAllCustomers,
     handleExport,
-    handleImport,
-    openWhatsApp
+    handleImport
   }
 
 };

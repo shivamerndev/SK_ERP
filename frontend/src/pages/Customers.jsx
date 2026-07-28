@@ -19,16 +19,17 @@ const Customers = () => {
 
   const customers = useSelector(allCustomers) || []
 
-  const [showAnalytics, setShowAnalytics] = useState(true);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [selectedCust, setSelectedCust] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  
-  useEffect(() => { handleAllCustomers() }, [])
 
-  // Auto-open drawer if customer ID exists in URL query parameter (e.g. from navbar search)
+  useEffect(() => {
+    handleAllCustomers()
+  }, [])
+
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const customerId = params.get("id");
@@ -37,20 +38,20 @@ const Customers = () => {
       if (cust) {
         setSelectedCust(cust);
         setIsDrawerOpen(true);
-        // Clean up URL query parameters without reloading the page
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
   }, [customers, location.search]);
 
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
 
       <TitleHeader setIsAddOpen={setIsAddOpen} />
 
-      <StatsGrid />
+      {/* <StatsGrid /> */}
 
-      <Analytics setShowAnalytics={setShowAnalytics} showAnalytics={showAnalytics} />
+      {/* <Analytics /> */}
 
       <CustomerTable setIsDrawerOpen={setIsDrawerOpen} setSelectedCust={setSelectedCust} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} customers={customers} />
 
