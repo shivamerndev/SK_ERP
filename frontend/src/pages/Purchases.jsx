@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Search,
   Plus,
@@ -36,114 +36,17 @@ import {
   Line
 } from "recharts";
 
-// ----------------------------------------------------
-// DEFAULT PURCHASE RECORDS (Spanning June & July 2026)
-// ----------------------------------------------------
-const INITIAL_PURCHASES = [
-  {
-    id: "purchase-1",
-    billCode: "PUR-2026-101",
-    date: "2026-06-10",
-    sku: "SLV-RG-002",
-    productName: "Oxidized Floral Band Ring",
-    category: "Rings",
-    supplierName: "Apex Silver Refinery",
-    quantity: 50,
-    weightPerPiece: 6.8,
-    totalWeight: 340.0, // 50 * 6.8
-    silverRate: 80.0, // ₹80 / gram
-    makingChargeType: "PER_GRAM",
-    makingCharge: 10, // ₹10 / gram
-    purity: 925,
-    cost: 31518, // Math.round((340 * 80 * 0.925 + 340 * 10) * 1.03)
-    paymentMethod: "Bank Transfer"
-  },
-  {
-    id: "purchase-2",
-    billCode: "PUR-2026-102",
-    date: "2026-06-20",
-    sku: "SLV-PY-001",
-    productName: "Sterling Bridal Payal (Anklet)",
-    category: "Anklets",
-    supplierName: "Jaipur Filigree Works",
-    quantity: 20,
-    weightPerPiece: 42.5,
-    totalWeight: 850.0,
-    silverRate: 81.0,
-    makingChargeType: "PER_GRAM",
-    makingCharge: 8,
-    purity: 925,
-    cost: 72688,
-    paymentMethod: "UPI"
-  },
-  {
-    id: "purchase-3",
-    billCode: "PUR-2026-103",
-    date: "2026-07-05",
-    sku: "SLV-KD-003",
-    productName: "Classic Rajasthani Kada (Bracelet)",
-    category: "Bracelets",
-    supplierName: "Mewar Ornaments",
-    quantity: 30,
-    weightPerPiece: 35.0,
-    totalWeight: 1050.0,
-    silverRate: 82.0,
-    makingChargeType: "PER_GRAM",
-    makingCharge: 7,
-    purity: 925,
-    cost: 99879,
-    paymentMethod: "Bank Transfer"
-  },
-  {
-    id: "purchase-4",
-    billCode: "PUR-2026-104",
-    date: "2026-07-12",
-    sku: "SLV-CH-004",
-    productName: "Unisex Curb Link Chain",
-    category: "Chains",
-    supplierName: "Gujarat Silver Labs",
-    quantity: 60,
-    weightPerPiece: 18.2,
-    totalWeight: 1092.0,
-    silverRate: 83.0,
-    makingChargeType: "PER_GRAM",
-    makingCharge: 6,
-    purity: 925,
-    cost: 92945,
-    paymentMethod: "UPI"
-  },
-  {
-    id: "purchase-5",
-    billCode: "PUR-2026-105",
-    date: "2026-07-18",
-    sku: "SLV-TR-005",
-    productName: "Traditional Adjustable Bichhiya (Toe Rings)",
-    category: "Toe Rings",
-    supplierName: "Surat Craft Co.",
-    quantity: 150,
-    weightPerPiece: 4.5,
-    totalWeight: 675.0,
-    silverRate: 84.0,
-    makingChargeType: "FLAT_PIECE",
-    makingCharge: 30,
-    purity: 900,
-    cost: 57273,
-    paymentMethod: "Cash"
-  }
-];
-
 const Purchases = () => {
-  // ----------------------------------------------------
-  // STATE MANAGEMENT
-  // ----------------------------------------------------
+
+
   const [purchaseRecords, setPurchaseRecords] = useState(() => {
     const saved = localStorage.getItem("erp_purchase_records");
-    return saved ? JSON.parse(saved) : INITIAL_PURCHASES;
+    return saved && JSON.parse(saved)
   });
 
   const [inventory, setInventory] = useState(() => {
     const saved = localStorage.getItem("erp_silver_inventory");
-    return saved ? JSON.parse(saved) : [];
+    return saved && JSON.parse(saved);
   });
 
   // Daily silver rate for pricing calculations
@@ -782,11 +685,10 @@ const Purchases = () => {
                   setCustomEndDate("");
                 }
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                dateRangePreset === p.val
-                  ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                  : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200"
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${dateRangePreset === p.val
+                ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200"
+                }`}
             >
               {p.label}
             </button>
@@ -960,8 +862,8 @@ const Purchases = () => {
                     <ComposedChart data={chartData.dailyTrendData} margin={{ left: -10, right: 10, bottom: 5 }}>
                       <defs>
                         <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25}/>
-                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -1187,7 +1089,7 @@ const Purchases = () => {
                       <td className="px-6 py-4 text-center text-slate-500 font-medium text-xs">
                         ₹{p.silverRate}/g
                         <span className="block text-[9px] text-slate-400 font-semibold">
-                          Purity {p.purity === 925 ? "92.5%" : `${p.purity/10}%`}
+                          Purity {p.purity === 925 ? "92.5%" : `${p.purity / 10}%`}
                         </span>
                       </td>
 
@@ -1271,7 +1173,7 @@ const Purchases = () => {
             </div>
 
             {/* Modal Body / Form */}
-            <form onSubmit={handleRecordPurchaseSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            <form onSubmit={handleRecordPurchaseSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-black">
 
               {/* Date & Supplier */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1283,9 +1185,8 @@ const Purchases = () => {
                     type="date"
                     value={purchaseForm.date}
                     onChange={(e) => setPurchaseForm(prev => ({ ...prev, date: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      formErrors.date ? "border-rose-400" : "border-slate-200"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${formErrors.date ? "border-rose-400" : "border-slate-200"
+                      }`}
                   />
                   {formErrors.date && <span className="text-xs font-semibold text-rose-500">{formErrors.date}</span>}
                 </div>
@@ -1298,9 +1199,8 @@ const Purchases = () => {
                     value={purchaseForm.supplierName}
                     onChange={(e) => setPurchaseForm(prev => ({ ...prev, supplierName: e.target.value }))}
                     placeholder="e.g. Apex Silver Refinery"
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      formErrors.supplierName ? "border-rose-400" : "border-slate-200"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${formErrors.supplierName ? "border-rose-400" : "border-slate-200"
+                      }`}
                   />
                   {formErrors.supplierName && <span className="text-xs font-semibold text-rose-500">{formErrors.supplierName}</span>}
                 </div>
@@ -1313,11 +1213,10 @@ const Purchases = () => {
                 <select
                   value={purchaseForm.sku}
                   onChange={handleSKUChange}
-                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none text-sm font-semibold bg-white ${
-                    formErrors.sku ? "border-rose-400" : "border-slate-200"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none text-sm font-semibold bg-white ${formErrors.sku ? "border-rose-400" : "border-slate-200"
+                    }`}
                 >
-                  <option value="">-- Select Design from Warehouse Inventory --</option>
+                  <option value="">-- Select Design from Inventory --</option>
                   {inventory.map(item => (
                     <option key={item.sku} value={item.sku}>
                       {item.sku} - {item.name} (Stock: {item.stocks} pcs, Weight: {item.weight}g)
@@ -1364,9 +1263,8 @@ const Purchases = () => {
                     value={purchaseForm.quantity}
                     onChange={(e) => setPurchaseForm(prev => ({ ...prev, quantity: e.target.value }))}
                     placeholder="Enter piece count"
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      formErrors.quantity ? "border-rose-400" : "border-slate-200"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${formErrors.quantity ? "border-rose-400" : "border-slate-200"
+                      }`}
                   />
                   {formErrors.quantity && <span className="text-xs font-semibold text-rose-500">{formErrors.quantity}</span>}
                 </div>
@@ -1379,9 +1277,8 @@ const Purchases = () => {
                     step={0.1}
                     value={purchaseForm.appliedRate}
                     onChange={(e) => setPurchaseForm(prev => ({ ...prev, appliedRate: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      formErrors.appliedRate ? "border-rose-400" : "border-slate-200"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${formErrors.appliedRate ? "border-rose-400" : "border-slate-200"
+                      }`}
                   />
                   {formErrors.appliedRate && <span className="text-xs font-semibold text-rose-500">{formErrors.appliedRate}</span>}
                 </div>
@@ -1581,7 +1478,7 @@ const Purchases = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Purity Stamp</span>
                     <span className="text-slate-700 font-bold">
-                      {selectedPurchase.purity === 925 ? "925 Sterling (92.5%)" : `${selectedPurchase.purity/10}% Fine`}
+                      {selectedPurchase.purity === 925 ? "925 Sterling (92.5%)" : `${selectedPurchase.purity / 10}% Fine`}
                     </span>
                   </div>
 
