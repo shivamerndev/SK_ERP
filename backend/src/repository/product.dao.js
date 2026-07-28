@@ -29,10 +29,29 @@ const deleteProduct = async (productId) => {
     return product;
 };
 
+const searchProducts = async (query) => {
+    const regex = new RegExp(query, "i");
+    const products = await Product.find({
+        $or: [
+            { name: regex },
+            { category: regex }
+        ]
+    }).lean();
+    return products;
+};
+
+const searchCategories = async (query) => {
+    const regex = new RegExp(query, "i");
+    const categories = await Product.distinct("category", { category: regex });
+    return categories;
+};
+
 export default {
     createProduct,
     getAllProducts,
     getProductById,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    searchProducts,
+    searchCategories
 };

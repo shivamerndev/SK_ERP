@@ -35,5 +35,17 @@ const updateCustomerBalances = async (customerId, spentInc, lendInc) => {
     return customer
 }
 
+const searchCustomers = async (query) => {
+    const regex = new RegExp(query, "i");
+    const customers = await Customer.find({
+        $or: [
+            { fullName: regex },
+            { address: regex },
+            { shopName: regex }
+        ]
+    }).select("fullName loyality phone totalLend totalSpent address shopName").lean();
+    return customers;
+}
 
-export default { createCustomer, getAllCustomers, findCustomer, getCustomerById, updateCustomerBalances }
+
+export default { createCustomer, getAllCustomers, findCustomer, getCustomerById, updateCustomerBalances, searchCustomers }

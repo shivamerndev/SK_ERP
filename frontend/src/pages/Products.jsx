@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 import useProduct from "../products/useProduct";
 import AddProduct from "../products/components/AddProduct.jsx";
@@ -25,6 +26,7 @@ const PRESET_IMAGES = [
 const Products = () => {
 
   const { products = [], handleAllProducts, handleCreateProduct, handleUpdateProduct, handleDeleteProduct } = useProduct();
+  const location = useLocation();
 
   useEffect(() => {
     handleAllProducts();
@@ -32,7 +34,19 @@ const Products = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("All Categories");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedCategory = searchParams.get("category") || "All Categories";
+  const setSelectedCategory = (category) => {
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      if (category && category !== "All Categories") {
+        newParams.set("category", category);
+      } else {
+        newParams.delete("category");
+      }
+      return newParams;
+    });
+  };
   const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [selectedWeightRange, setSelectedWeightRange] = useState("All Weights");
   const [selectedStockLevel, setSelectedStockLevel] = useState("All Stock");
@@ -124,6 +138,20 @@ const Products = () => {
     setIsEditModalOpen(true);
   };
 
+  // Auto-open edit modal if product ID exists in URL query parameter (e.g. from navbar search)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const productId = params.get("id");
+    if (productId && products.length > 0) {
+      const prod = products.find(p => String(p._id) === String(productId));
+      if (prod) {
+        handleOpenEditModal(prod);
+        // Clean up URL query parameters without reloading the page
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, [products, location.search]);
+
   const handleOpenDeleteModal = (product) => {
     setCurrentProduct(product);
     setIsDeleteModalOpen(true);
@@ -147,7 +175,7 @@ const Products = () => {
 
   // Reset Filters
   const handleClearFilters = () => {
-    setSelectedCategory("All Categories");
+    setSearchParams({});
     setSelectedStatus("All Status");
     setSelectedWeightRange("All Weights");
     setSelectedStockLevel("All Stock");

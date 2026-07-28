@@ -29,10 +29,22 @@ const deleteProduct = async (productId) => {
     return product;
 };
 
+const searchProducts = async (query) => {
+    const products = await productRepo.searchProducts(query);
+    return products;
+};
+
+const searchCategories = async (query) => {
+    const categories = await productRepo.searchCategories(query);
+    return categories;
+};
+
 export default {
     createProduct,
     getAllProducts,
     getProductById,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    searchProducts,
+    searchCategories
 };

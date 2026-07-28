@@ -1,12 +1,28 @@
+import { useEffect, useState } from "react"
+import useNavbar from "../navigations/useNavbar"
+import { Link } from "react-router-dom"
 
 
 const Navbar = ({ user, setIsMobileSidebarOpen }) => {
 
 
+    const { results, handleSearch } = useNavbar()
+
+    const [search, setSearch] = useState("")
+
+    useEffect(() => {
+        const delay = setTimeout(() => {
+            handleSearch(search)
+        }, 500);
+        return () => clearTimeout(delay);
+    }, [search])
+
     return <header className="sticky top-0 z-30 flex items-center justify-between bg-white border-b border-slate-200/80 px-4 sm:px-6 py-3 shadow-sm shadow-slate-100">
-        {/* Left: Mobile Toggle & Search */}
+
+
         <div className="flex items-center gap-3 flex-1">
-            {/* Mobile Hamburger Button */}
+
+
             <button
                 onClick={() => setIsMobileSidebarOpen(true)}
                 className="lg:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 focus:outline-none transition-colors"
@@ -25,9 +41,135 @@ const Navbar = ({ user, setIsMobileSidebarOpen }) => {
                 </span>
                 <input
                     type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search anything..."
                     className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50/50 focus:bg-white text-slate-700"
                 />
+
+                {
+                    search.length > 0 && (
+                        <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200/80 rounded-2xl shadow-xl p-2 z-50 max-h-[350px] overflow-y-auto backdrop-blur-lg bg-white/95 border-b-4 border-b-blue-500/10">
+                            {results.length === 0 ? (
+                                <div className="p-6 text-center text-slate-400 flex flex-col items-center gap-2">
+                                    <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span className="text-sm font-medium">No results found</span>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-1">
+                                    <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                        Search Results ({results.length})
+                                    </div>
+                                    <ul className="divide-y divide-slate-100/50">
+                                        {results.map((result) => (
+                                            <li key={result._id}>
+                                                <Link
+                                                    to={result.url}
+                                                    onClick={() => setSearch("")}
+                                                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-all group"
+                                                >
+                                                    {result.type === "category" ? (
+                                                        <>
+                                                            {/* Avatar block with category icon */}
+                                                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100/40 text-emerald-600 flex items-center justify-center font-bold text-sm group-hover:from-emerald-600 group-hover:to-teal-600 group-hover:text-white transition-all flex-shrink-0">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M6 20h12a2 2 0 002-2V9a2 2 0 00-2-2h-1L11 3H6a2 2 0 00-2 2v13a2 2 0 002 2z" />
+                                                                </svg>
+                                                            </div>
+
+                                                            {/* Category details */}
+                                                            <div className="flex flex-col flex-1 min-w-0">
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <span className="font-semibold text-slate-700 text-sm group-hover:text-emerald-600 transition-colors truncate capitalize">
+                                                                        {result.name}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-400">
+                                                                    <span className="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider scale-95 origin-left">
+                                                                        Category
+                                                                    </span>
+                                                                    <span className="text-slate-400 text-[11px]">Filter Products</span>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    ) : result.type === "product" ? (
+                                                        <>
+                                                            {/* Avatar block with product image or placeholder */}
+                                                            {result.image ? (
+                                                                <img
+                                                                    src={result.image}
+                                                                    alt={result.name}
+                                                                    className="w-9 h-9 rounded-full object-cover border border-slate-100/40 flex-shrink-0"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100/40 text-amber-600 flex items-center justify-center font-bold text-sm group-hover:from-amber-600 group-hover:to-orange-600 group-hover:text-white transition-all flex-shrink-0">
+                                                                    P
+                                                                </div>
+                                                            )}
+
+                                                            {/* Product Information details */}
+                                                            <div className="flex flex-col flex-1 min-w-0">
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <span className="font-semibold text-slate-700 text-sm group-hover:text-blue-600 transition-colors truncate">
+                                                                        {result.name}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-slate-400 font-semibold flex-shrink-0 bg-slate-100/60 px-1.5 py-0.5 rounded-md">
+                                                                        {result.pieces} pcs
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-400">
+                                                                    <span className="bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider scale-95 origin-left">
+                                                                        {result.category}
+                                                                    </span>
+                                                                    <span className="text-slate-400 text-[11px]">Product</span>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            {/* Avatar block with initials */}
+                                                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100/40 text-blue-600 flex items-center justify-center font-bold text-sm group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:text-white transition-all flex-shrink-0">
+                                                                {result.fullName ? result.fullName.charAt(0).toUpperCase() : "?"}
+                                                            </div>
+
+                                                            {/* Customer Information details */}
+                                                            <div className="flex flex-col flex-1 min-w-0">
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <span className="font-semibold text-slate-700 text-sm group-hover:text-blue-600 transition-colors truncate">
+                                                                        {result.fullName}
+                                                                    </span>
+                                                                    {result.phone && (
+                                                                        <span className="text-[10px] text-slate-400 font-semibold flex-shrink-0 bg-slate-100/60 px-1.5 py-0.5 rounded-md">
+                                                                            {result.phone}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-400">
+                                                                    {result.shopName && (
+                                                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider scale-95 origin-left">
+                                                                            {result.shopName}
+                                                                        </span>
+                                                                    )}
+                                                                    {result.address && (
+                                                                        <span className="truncate max-w-[200px] text-slate-400 text-[11px]">
+                                                                            {result.address}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
             </div>
         </div>
 

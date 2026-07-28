@@ -16,4 +16,9 @@ const getAllCustomers = async () => {
     return customers
 }
 
-export default { createCustomer, getAllCustomers }
+const searchCustomers = async (query) => {
+    const customers = await customerRepo.searchCustomers(query)
+    return customers
+}
+
+export default { createCustomer, getAllCustomers, searchCustomers }
