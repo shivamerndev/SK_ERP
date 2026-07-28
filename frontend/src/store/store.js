@@ -5,6 +5,7 @@ import reportReducer from "./features/report.slice.js";
 import productReducer from "./features/product.slice.js";
 import salesReducer from "./features/sales.slice.js";
 import navReducer from "./features/nav.slice.js";
+import billingReducer from "./features/billing.slice.js";
 
 
 export const store = configureStore({
@@ -14,7 +15,9 @@ export const store = configureStore({
         report: reportReducer,
         product: productReducer,
         sales: salesReducer,
-        nav : navReducer
+        nav : navReducer,
+        billing: billingReducer
     }
 });
+
 

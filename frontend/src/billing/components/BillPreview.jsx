@@ -1,7 +1,9 @@
 import { FileText, Download } from "lucide-react";
 import { createPortal } from "react-dom";
+import useBilling from "../useBilling";
 
-const BillPreview = ({ previewBill, handlePrint }) => {
+const BillPreview = () => {
+  const { previewBill, handlePrint } = useBilling();
   return (
     <>
       <div className="bg-white rounded-2xl h-fit border border-slate-200 shadow-sm p-5 sticky top-24">

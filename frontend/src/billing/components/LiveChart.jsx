@@ -20,10 +20,12 @@ import {
     CartesianGrid,
     Tooltip
 } from "recharts";
+import useBilling from "../useBilling";
 
 const LiveChart = () => {
 
-    
+    const { setSilverRate } = useBilling();
+
     const [rates, setRates] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -98,7 +100,11 @@ const LiveChart = () => {
             const res = await getMetalRates();
             if (res.data?.success) {
                 const fetchedData = res.data.data;
+
                 setRates(fetchedData);
+
+                setSilverRate((parseFloat((fetchedData.silver_gram_in_inr) * (1 + (markupPercent / 100))) * 1000).toFixed(0))
+
                 setError(null);
 
                 // Derive active metal prices with standard Indian import duty & taxes (derived from user settings)

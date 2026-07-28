@@ -1,26 +1,11 @@
 import { RotateCcw } from "lucide-react";
+import useBilling from "../useBilling";
 
-const BalancesAndJama = ({
-  lastBalanceAmount,
-  setLastBalanceAmount,
-  lastBalanceFine,
-  setLastBalanceFine,
-  jamaDetails,
-  setJamaDetails,
-  jamaWeight,
-  setJamaWeight,
-  jamaNetWt,
-  setJamaNetWt,
-  jamaTunch,
-  setJamaTunch,
-  jamaAmount,
-  setJamaAmount,
-  computedJamaFine,
-  silverRate,
-  setSilverRate,
-  convertedFineAmount,
-  totals
-}) => {
+const BalancesAndJama = () => {
+
+  const { lastBalanceAmount, setLastBalanceAmount, lastBalanceFine, setLastBalanceFine, jamaDetails,
+    setJamaDetails, jamaWeight, setJamaWeight, jamaNetWt, setJamaNetWt, jamaTunch, setJamaTunch, jamaAmount,
+    setJamaAmount, computedJamaFine, silverRate, setSilverRate, convertedFineAmount, totals } = useBilling();
 
 
   return (
@@ -36,11 +21,11 @@ const BalancesAndJama = ({
         <div className="grid grid-cols-2 gap-4 text-black">
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1">Cash Balance (Amt)</label>
-            <input type="number" value={lastBalanceAmount} placeholder="0" onChange={(e) => setLastBalanceAmount(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
+            <input type="number" name="lastBalanceAmount" value={lastBalanceAmount} placeholder="0" onChange={(e) => setLastBalanceAmount(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1">Fine Balance (g)</label>
-            <input type="number" value={lastBalanceFine} placeholder="0" onChange={(e) => setLastBalanceFine(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
+            <input type="number" name="lastBalanceFine" value={lastBalanceFine} placeholder="0" onChange={(e) => setLastBalanceFine(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
           </div>
         </div>
       </div>
@@ -51,7 +36,7 @@ const BalancesAndJama = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-black">
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1">Silver Rate (Bhaw per kg)</label>
-            <input type="number" value={silverRate} placeholder="e.g. 223600" onChange={(e) => setSilverRate(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
+            <input type="number" name="silverRate" value={silverRate} placeholder="e.g. 223600" onChange={(e) => setSilverRate(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
           </div>
           {parseFloat(silverRate) > 0 && (
             <div className="flex flex-col justify-end pb-1 text-xs font-semibold text-slate-600 space-y-1">
@@ -74,23 +59,23 @@ const BalancesAndJama = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-black">
           <div className="md:col-span-2">
             <label className="block text-xs font-semibold text-slate-500 mb-1">Deposits Details / Description</label>
-            <input type="text" placeholder="e.g. KACHHI/807" value={jamaDetails} onChange={(e) => setJamaDetails(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+            <input type="text" name="jamaDetails" placeholder="e.g. KACHHI/807" value={jamaDetails} onChange={(e) => setJamaDetails(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1">Deposit Weight (g)</label>
-            <input type="number" placeholder="0" value={jamaWeight} onChange={(e) => { setJamaWeight(e.target.value); setJamaNetWt(e.target.value); }} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
+            <input type="number" name="jamaWeight" placeholder="0" value={jamaWeight} onChange={(e) => { setJamaWeight(e.target.value); setJamaNetWt(e.target.value); }} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1">Deposit Net Wt (g)</label>
-            <input type="number" placeholder="0" value={jamaNetWt} onChange={(e) => setJamaNetWt(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
+            <input type="number" name="jamaNetWt" placeholder="0" value={jamaNetWt} onChange={(e) => setJamaNetWt(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1">Deposit Tunch (%)</label>
-            <input type="number" placeholder="0.0" value={jamaTunch} onChange={(e) => setJamaTunch(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
+            <input type="number" name="jamaTunch" placeholder="0.0" value={jamaTunch} onChange={(e) => setJamaTunch(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-1">Deposit Cash Deposit (Amt)</label>
-            <input type="number" placeholder="0" value={jamaAmount} onChange={(e) => setJamaAmount(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
+            <input type="number" name="jamaAmount" placeholder="0" value={jamaAmount} onChange={(e) => setJamaAmount(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono" />
           </div>
         </div>
         {/* Jama calculated fine details */}

@@ -1,27 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
 import { User, Search, Phone, MapPin, Calendar, Clock } from "lucide-react";
+import useBilling from "../useBilling";
 
-const InvoiceInfoForm = ({
-  topHeader,
-  setTopHeader,
-  billTitle,
-  setBillTitle,
-  customerName,
-  setCustomerName,
-  customerPhone,
-  setCustomerPhone,
-  customerAddress,
-  setCustomerAddress,
-  setSelectedCustomerId,
-  billNo,
-  setBillNo,
-  date,
-  setDate,
-  time,
-  setTime,
-  filteredCustomers,
-  handleSelectCustomer
-}) => {
+const InvoiceInfoForm = () => {
+  const {
+    topHeader,
+    setTopHeader,
+    billTitle,
+    setBillTitle,
+    customerName,
+    setCustomerName,
+    customerPhone,
+    setCustomerPhone,
+    customerAddress,
+    setCustomerAddress,
+    setSelectedCustomerId,
+    billNo,
+    setBillNo,
+    date,
+    setDate,
+    time,
+    setTime,
+    filteredCustomers,
+    handleSelectCustomer
+  } = useBilling();
+
   const [custSearchFocused, setCustSearchFocused] = useState(false);
   const custDropdownRef = useRef(null);
 
@@ -49,6 +52,7 @@ const InvoiceInfoForm = ({
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Top Banner Hindi Text</label>
           <input
             type="text"
+            name="topHeader"
             value={topHeader}
             onChange={(e) => setTopHeader(e.target.value)}
             className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-mono"
@@ -58,6 +62,7 @@ const InvoiceInfoForm = ({
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Invoice Document Title</label>
           <input
             type="text"
+            name="billTitle"
             value={billTitle}
             onChange={(e) => setBillTitle(e.target.value)}
             className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-semibold"
@@ -73,6 +78,7 @@ const InvoiceInfoForm = ({
           <div className="relative">
             <input
               type="text"
+              name="customerName"
               placeholder="Search / Add Customer"
               value={customerName}
               onFocus={() => setCustSearchFocused(true)}
@@ -120,6 +126,7 @@ const InvoiceInfoForm = ({
           <div className="relative">
             <input
               type="text"
+              name="customerPhone"
               placeholder="e.g. 91995 XXXXX"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
@@ -134,6 +141,7 @@ const InvoiceInfoForm = ({
           <div className="relative">
             <input
               type="text"
+              name="customerAddress"
               placeholder="e.g. Jamui"
               value={customerAddress}
               onChange={(e) => setCustomerAddress(e.target.value)}
@@ -148,6 +156,7 @@ const InvoiceInfoForm = ({
           <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Bill Number</label>
           <input
             type="text"
+            name="billNo"
             value={billNo}
             onChange={(e) => setBillNo(e.target.value)}
             className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-bold font-mono"
@@ -159,6 +168,7 @@ const InvoiceInfoForm = ({
           <div className="relative">
             <input
               type="date"
+              name="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-mono"
@@ -172,6 +182,7 @@ const InvoiceInfoForm = ({
           <div className="relative">
             <input
               type="text"
+              name="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
               className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-mono"

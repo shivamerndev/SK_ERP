@@ -129,10 +129,10 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
                                 <th className="px-6 py-4">Customer Details</th>
+                                <th className="px-6 py-4 text-center">Quick alert</th>
                                 <th className="px-6 py-4">Outstanding debt</th>
                                 <th className="px-6 py-4">Credit limit</th>
                                 <th className="px-6 py-4 text-center">Loyalty tier</th>
-                                <th className="px-6 py-4 text-center">Quick alert</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -173,6 +173,22 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                             </div>
                                         </td>
 
+                                              <td className="px-6 py-4">
+                                            <div className="flex items-center justify-center gap-2">
+
+                                                <a href={`tel:${c.phone}`} className="p-2 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 text-slate-500 rounded-xl transition-all" title={`Call ${c.fullName} (${c.phone})`}>
+                                                    <PhoneCall className="w-4 h-4" />
+                                                </a>
+
+                                                <button onClick={() => openWhatsApp(c)} disabled={balance <= 0}
+                                                    className={`p-2 border rounded-xl transition-all cursor-pointer ${balance > 0 ? "bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600" : "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed"}`}
+                                                    title={balance > 0 ? "Send Outstanding Debt Reminder on WhatsApp" : "No outstanding debt to remind"}>
+                                                    <img src="whatsapp.svg" alt="" className={"w-4 h-4 " + (balance > 0 ? "" : "cursor-not-allowed opacity-50")} />
+                                                </button>
+
+                                            </div>
+                                        </td>
+
                                         {/* Outstanding Debt */}
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
@@ -207,21 +223,7 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                             </span>
                                         </td>
 
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center justify-center gap-2">
-
-                                                <a href={`tel:${c.phone}`} className="p-2 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 text-slate-500 rounded-xl transition-all" title={`Call ${c.fullName} (${c.phone})`}>
-                                                    <PhoneCall className="w-4 h-4" />
-                                                </a>
-
-                                                <button onClick={() => openWhatsApp(c)} disabled={balance <= 0}
-                                                    className={`p-2 border rounded-xl transition-all cursor-pointer ${balance > 0 ? "bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600" : "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed"}`}
-                                                    title={balance > 0 ? "Send Outstanding Debt Reminder on WhatsApp" : "No outstanding debt to remind"}>
-                                                    <Send className="w-4 h-4" />
-                                                </button>
-
-                                            </div>
-                                        </td>
+                                  
 
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">

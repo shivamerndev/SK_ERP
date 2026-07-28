@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { Plus, Trash2, Calculator } from "lucide-react";
+import useBilling from "../useBilling";
 
-const ItemsWorksheet = ({
-  items,
-  handleRowChange,
-  handleAddRow,
-  handleRemoveRow,
-  products,
-  totals
-}) => {
+const ItemsWorksheet = () => {
+  const {
+    items,
+    handleRowChange,
+    handleAddRow,
+    handleRemoveRow,
+    products,
+    totals
+  } = useBilling();
   const [itemSearchFocused, setItemSearchFocused] = useState(null); // track row index
 
   return (

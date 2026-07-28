@@ -1,21 +1,23 @@
 import React from "react";
 import { CheckCircle, AlertCircle, X, Save } from "lucide-react";
+import useBilling from "../useBilling";
 
-const FinalSettlement = ({
-  totals,
-  lastBalanceAmount,
-  lastBalanceFine,
-  jamaAmount,
-  computedJamaFine,
-  finalBaki,
-  postToLedger,
-  setPostToLedger,
-  selectedCustomerId,
-  handleClearForm,
-  handleSaveInvoice,
-  silverRate,
-  convertedFineAmount
-}) => {
+const FinalSettlement = () => {
+  const {
+    totals,
+    lastBalanceAmount,
+    lastBalanceFine,
+    jamaAmount,
+    computedJamaFine,
+    finalBaki,
+    postToLedger,
+    setPostToLedger,
+    selectedCustomerId,
+    handleClearForm,
+    handleSaveInvoice,
+    silverRate,
+    convertedFineAmount
+  } = useBilling();
   const isSettle = parseFloat(silverRate) > 0;
   const totalFineToSettle = (parseFloat(lastBalanceFine) || 0) + totals.fine - computedJamaFine;
 
@@ -83,7 +85,7 @@ const FinalSettlement = ({
       {/* Form Controls */}
       <div className="grid grid-cols-3 gap-3 mt-8">
 
-        <button type="button" onClick={handleSaveInvoice} className="col-span-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white rounded-xl py-3 text-sm font-bold shadow-md shadow-blue-500/10 transition-colors">
+        <button type="submit" className="col-span-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white rounded-xl py-3 text-sm font-bold shadow-md shadow-blue-500/10 transition-colors">
           <Save className="w-4 h-4" />
           Save & Preview Invoice
         </button>

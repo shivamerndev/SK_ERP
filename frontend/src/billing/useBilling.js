@@ -1,108 +1,69 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { getBillHistory, saveBillHistory, getProductsList } from "./billing.service";
 import { getAllCustomersService } from "../customers/customer.service";
 import { toast } from "react-hot-toast";
+import {
+  updateField,
+  setCustomers as setCustomersAction,
+  setProducts as setProductsAction,
+  setHistory as setHistoryAction,
+  addItemRow,
+  removeItemRow,
+  updateItemRow,
+  clearForm as clearFormAction
+} from "../store/features/billing.slice";
 
-const EMPTY_ROW = {
-  item: "",
-  weight: "",
-  panniDetail: "",
-  less: "",
-  netWt: 0,
-  tunch: "",
-  lab: "",
-  amount: 0,
-  fine: 0
-};
 
-// Safe parser for Panni Detail (e.g. 8*2.7+49*2.3 or 4*2.4)
-const parsePanniDetail = (val) => {
-  const clean = String(val || "").replace(/\s+/g, "");
-  if (!clean) return null;
+const useBilling = (init = false) => {
 
-  try {
-    const terms = clean.split("+");
-    let total = 0;
-    for (let term of terms) {
-      if (term.includes("*")) {
-        const factorParts = term.split("*");
-        if (factorParts.length !== 2) return null;
-        const f1 = parseFloat(factorParts[0]);
-        const f2 = parseFloat(factorParts[1]);
-        if (isNaN(f1) || isNaN(f2)) return null;
-        total += f1 * f2;
-      } else {
-        const val = parseFloat(term);
-        if (isNaN(val)) return null;
-        total += val;
-      }
-    }
-    return Math.round(total);
-  } catch (e) {
-    return null;
-  }
-};
 
-// Labor Amount Calculator: parse expression or scale rate
-const calculateRowLabor = (netWt, lab) => {
-  const clean = String(lab || "").replace(/\s+/g, "");
-  if (!clean) return 0;
+  const dispatch = useDispatch();
 
-  if (clean.includes("*")) {
-    const parts = clean.split("*");
-    if (parts.length === 2) {
-      const a = parseFloat(parts[0]);
-      const b = parseFloat(parts[1]);
-      if (!isNaN(a) && !isNaN(b)) {
-        return Math.round(a * b);
-      }
-    }
-  }
 
-  const r = parseFloat(clean);
-  if (isNaN(r)) return 0;
-  return Math.round((netWt * r) / 1000);
-};
+  const { billNo, custSearchFocused, itemSearchFocused, customerName, customerPhone,
+    customerAddress, selectedCustomerId, customers, products, history, date, time, topHeader,
+    billTitle, items, lastBalanceAmount, lastBalanceFine, jamaDetails, jamaWeight, jamaNetWt,
+    jamaTunch, jamaAmount, silverRate, postToLedger, previewBill } = useSelector((state) => state.billing);
 
-const useBilling = () => {
-  // Data Sources
-  const [customers, setCustomers] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [history, setHistory] = useState([]);
 
-  // Form State - Invoice Metadata
-  const [billNo, setBillNo] = useState("");
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerAddress, setCustomerAddress] = useState("");
-  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  // Helper to create updater functions that update specific Redux state fields
+  const setField = (key) => (val) => dispatch(updateField({ key, value: val }));
+  // Helper to create functions that dispatch direct actions
+  const dispatchAction = (actionCreator) => (val) => dispatch(actionCreator(val));
 
-  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [time, setTime] = useState("");
-  const [topHeader, setTopHeader] = useState("|| SHREE GANESHAYAA NAMAH ||");
-  const [billTitle, setBillTitle] = useState("ROUGH ESTIMATE");
+  const setCustomers = dispatchAction(setCustomersAction);
+  const setProducts = dispatchAction(setProductsAction);
+  const setHistory = dispatchAction(setHistoryAction);
 
-  // Form State - Bill Items Grid
-  const [items, setItems] = useState([{ ...EMPTY_ROW }]);
+  const setBillNo = setField("billNo");
+  const setCustomerName = setField("customerName");
+  const setCustomerPhone = setField("customerPhone");
+  const setCustomerAddress = setField("customerAddress");
+  const setSelectedCustomerId = setField("selectedCustomerId");
 
-  // Form State - Adjustments & Jama
-  const [lastBalanceAmount, setLastBalanceAmount] = useState("");
-  const [lastBalanceFine, setLastBalanceFine] = useState("");
+  const setDate = setField("date");
+  const setTime = setField("time");
+  const setTopHeader = setField("topHeader");
+  const setBillTitle = setField("billTitle");
 
-  const [jamaDetails, setJamaDetails] = useState("");
-  const [jamaWeight, setJamaWeight] = useState("");
-  const [jamaNetWt, setJamaNetWt] = useState("");
-  const [jamaTunch, setJamaTunch] = useState("");
-  const [jamaAmount, setJamaAmount] = useState("");
-  const [silverRate, setSilverRate] = useState("");
+  const setItems = setField("items");
 
-  // Options
-  const [postToLedger, setPostToLedger] = useState(true);
-  const [previewBill, setPreviewBill] = useState(null);
+  const setLastBalanceAmount = setField("lastBalanceAmount");
+  const setLastBalanceFine = setField("lastBalanceFine");
 
-  // Autocomplete UI status
-  const [custSearchFocused, setCustSearchFocused] = useState(false);
-  const [itemSearchFocused, setItemSearchFocused] = useState(null); // row index
+  const setJamaDetails = setField("jamaDetails");
+  const setJamaWeight = setField("jamaWeight");
+  const setJamaNetWt = setField("jamaNetWt");
+  const setJamaTunch = setField("jamaTunch");
+  const setJamaAmount = setField("jamaAmount");
+  const setSilverRate = setField("silverRate");
+
+  const setPostToLedger = setField("postToLedger");
+  const setPreviewBill = setField("previewBill");
+
+  const setCustSearchFocused = setField("custSearchFocused");
+  const setItemSearchFocused = setField("itemSearchFocused");
 
   // Toast Helper using react-hot-toast
   const showToast = (message, type = "success") => {
@@ -117,7 +78,7 @@ const useBilling = () => {
 
   // LOAD SEED/EXTERNAL DATA
   useEffect(() => {
-    
+    if (!init) return;
     setProducts(getProductsList());
 
     // Set current time
@@ -160,7 +121,7 @@ const useBilling = () => {
 
     loadCustomers();
     loadBills();
-  }, []);
+  }, [init]);
 
   // DATA AUTOLOAD ON CUSTOMER SELECT
   const handleSelectCustomer = (cust) => {
@@ -257,73 +218,55 @@ const useBilling = () => {
 
   // INPUT HANDLERS
   const handleRowChange = (index, field, value) => {
-    const updated = [...items];
-    updated[index][field] = value;
-
-    // Trigger auto-less from Panni Detail
-    if (field === "panniDetail") {
-      const autoLess = parsePanniDetail(value);
-      if (autoLess !== null) {
-        updated[index].less = String(autoLess);
-      }
-    }
-
-    // Calculations
-    const w = parseFloat(updated[index].weight) || 0;
-    const l = parseFloat(updated[index].less) || 0;
-    const net = Math.max(0, w - l);
-    updated[index].netWt = net;
-
-    const t = parseFloat(updated[index].tunch) || 0;
-    updated[index].fine = Math.round((net * t) / 100);
-
-    const labVal = updated[index].lab || "";
-    updated[index].amount = calculateRowLabor(net, labVal);
-
-    setItems(updated);
+    dispatch(updateItemRow({ index, field, value }));
   };
 
   const handleAddRow = () => {
-    setItems((prev) => [...prev, { ...EMPTY_ROW }]);
+    dispatch(addItemRow());
   };
 
   const handleRemoveRow = (index) => {
-    if (items.length === 1) {
-      setItems([{ ...EMPTY_ROW }]);
-    } else {
-      setItems((prev) => prev.filter((_, idx) => idx !== index));
-    }
+    dispatch(removeItemRow(index));
   };
 
   const handleClearForm = () => {
-    setCustomerName("");
-    setCustomerPhone("");
-    setCustomerAddress("");
-    setSelectedCustomerId("");
-    setItems([{ ...EMPTY_ROW }]);
-    setLastBalanceAmount("");
-    setLastBalanceFine("");
-    setJamaDetails("");
-    setJamaWeight("");
-    setJamaNetWt("");
-    setJamaTunch("");
-    setJamaAmount("");
-    setSilverRate("");
-
-    // Auto-generate next Bill No
-    const maxNo = history.reduce((acc, curr) => {
-      const val = parseInt(curr.billNo);
-      return !isNaN(val) ? Math.max(acc, val) : acc;
-    }, 0);
-    setBillNo(String(maxNo ? maxNo + 1 : 80));
-
+    dispatch(clearFormAction());
     showToast("Form cleared", "info");
   };
 
   // SAVE & POST OPERATIONS
-  const handleSaveInvoice = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    if (!customerName.trim()) {
+  const handleSaveInvoice = async (formDataObj) => {
+    if (formDataObj && typeof formDataObj.preventDefault === "function") {
+      formDataObj.preventDefault();
+    }
+
+    const dataObj = (formDataObj && typeof formDataObj.preventDefault !== "function") ? formDataObj : {};
+
+    const fBillNo = dataObj.billNo ?? billNo;
+    const fCustomerName = dataObj.customerName ?? customerName;
+    const fCustomerPhone = dataObj.customerPhone ?? customerPhone;
+    const fCustomerAddress = dataObj.customerAddress ?? customerAddress;
+    const fDate = dataObj.date ?? date;
+    const fTime = dataObj.time ?? time;
+    const fTopHeader = dataObj.topHeader ?? topHeader;
+    const fBillTitle = dataObj.billTitle ?? billTitle;
+
+    const fLastBalanceAmount = dataObj.lastBalanceAmount ?? lastBalanceAmount;
+    const fLastBalanceFine = dataObj.lastBalanceFine ?? lastBalanceFine;
+
+    const fJamaDetails = dataObj.jamaDetails ?? jamaDetails;
+    const fJamaWeight = dataObj.jamaWeight ?? jamaWeight;
+    const fJamaNetWt = dataObj.jamaNetWt ?? jamaNetWt;
+    const fJamaTunch = dataObj.jamaTunch ?? jamaTunch;
+    const fJamaAmount = dataObj.jamaAmount ?? jamaAmount;
+    const fSilverRate = dataObj.silverRate ?? silverRate;
+
+    let fPostToLedger = postToLedger;
+    if (dataObj.postToLedger !== undefined) {
+      fPostToLedger = dataObj.postToLedger === "true" || dataObj.postToLedger === "on" || !!dataObj.postToLedger;
+    }
+
+    if (!fCustomerName.trim()) {
       showToast("Customer name is required", "error");
       return;
     }
@@ -333,16 +276,17 @@ const useBilling = () => {
     }
 
     try {
+
       const newBill = {
-        billNo: billNo || String(history.length + 80),
-        customerName: customerName.trim().toUpperCase(),
-        customerPhone: customerPhone,
-        customerAddress: customerAddress.trim(),
+        billNo: fBillNo || String(history.length + 80),
+        customerName: fCustomerName.trim().toUpperCase(),
+        customerPhone: fCustomerPhone,
+        customerAddress: fCustomerAddress.trim(),
         customerId: selectedCustomerId ? Number(selectedCustomerId) : null,
-        date,
-        time,
-        topHeader: topHeader.trim(),
-        title: billTitle.trim(),
+        date: fDate,
+        time: fTime,
+        topHeader: fTopHeader.trim(),
+        title: fBillTitle.trim(),
         items: items.map((row) => ({
           ...row,
           weight: row.weight.toString(),
@@ -352,33 +296,33 @@ const useBilling = () => {
         })),
         totals,
         lastBalance: {
-          amount: parseFloat(lastBalanceAmount) || 0,
-          fine: parseFloat(lastBalanceFine) || 0
+          amount: parseFloat(fLastBalanceAmount) || 0,
+          fine: parseFloat(fLastBalanceFine) || 0
         },
         jamaDetail: {
-          details: jamaDetails.trim(),
-          weight: parseFloat(jamaWeight) || 0,
-          netWt: parseFloat(jamaNetWt || jamaWeight) || 0,
-          tunch: jamaTunch.toString(),
+          details: fJamaDetails.trim(),
+          weight: parseFloat(fJamaWeight) || 0,
+          netWt: parseFloat(fJamaNetWt || fJamaWeight) || 0,
+          tunch: fJamaTunch.toString(),
           fine: computedJamaFine,
-          amount: parseFloat(jamaAmount) || 0
+          amount: parseFloat(fJamaAmount) || 0
         },
         finalBaki,
-        silverRate: parseFloat(silverRate) || 0,
+        silverRate: parseFloat(fSilverRate) || 0,
         convertedFineAmount,
-        postedToUdhaar: postToLedger && !!selectedCustomerId
+        postedToUdhaar: fPostToLedger && !!selectedCustomerId
       };
 
       const res = await saveBillHistory(newBill);
       const savedBill = res.data.data;
 
       // Save to bill history
-      setHistory((prev) => [savedBill, ...prev]);
+      dispatch(updateField({ key: "history", value: [savedBill, ...history] }));
 
       showToast(`Invoice No. ${savedBill.billNo} saved successfully!`);
 
       // Auto print trigger / preview
-      setPreviewBill(savedBill);
+      dispatch(updateField({ key: "previewBill", value: savedBill }));
     } catch (err) {
       console.error(err);
       showToast(err.response?.data?.message || "Failed to save invoice", "error");
@@ -386,81 +330,33 @@ const useBilling = () => {
   };
 
   const handlePrint = (bill) => {
-    setPreviewBill(bill);
+    dispatch(updateField({ key: "previewBill", value: bill }));
     setTimeout(() => {
       window.print();
     }, 100);
   };
 
   return {
+
     // States
-    customers,
-    products,
-    history,
-    billNo,
-    customerName,
-    customerPhone,
-    customerAddress,
-    selectedCustomerId,
-    date,
-    time,
-    topHeader,
-    billTitle,
-    items,
-    lastBalanceAmount,
-    lastBalanceFine,
-    jamaDetails,
-    jamaWeight,
-    jamaNetWt,
-    jamaTunch,
-    jamaAmount,
-    silverRate,
-    postToLedger,
-    previewBill,
-    custSearchFocused,
-    itemSearchFocused,
+    customers, products, history, billNo, customerName, customerPhone, customerAddress, selectedCustomerId,
+    date, time, topHeader, billTitle, items, lastBalanceAmount, lastBalanceFine, jamaDetails, jamaWeight,
+    jamaNetWt, jamaTunch, jamaAmount, silverRate, postToLedger, previewBill, custSearchFocused, itemSearchFocused,
 
     // Setters
-    setBillNo,
-    setCustomerName,
-    setCustomerPhone,
-    setCustomerAddress,
-    setSelectedCustomerId,
-    setDate,
-    setTime,
-    setTopHeader,
-    setBillTitle,
-    setItems,
-    setLastBalanceAmount,
-    setLastBalanceFine,
-    setJamaDetails,
-    setJamaWeight,
-    setJamaNetWt,
-    setJamaTunch,
-    setJamaAmount,
-    setSilverRate,
-    setPostToLedger,
-    setPreviewBill,
-    setCustSearchFocused,
-    setItemSearchFocused,
+    setBillNo, setCustomerName, setCustomerPhone, setCustomerAddress, setSelectedCustomerId, setDate,
+    setTime, setTopHeader, setBillTitle, setItems, setLastBalanceAmount, setLastBalanceFine, setJamaDetails,
+    setJamaWeight, setJamaNetWt, setJamaTunch, setJamaAmount, setSilverRate, setPostToLedger, setPreviewBill,
+    setCustSearchFocused, setItemSearchFocused,
 
     // Computed
-    totals,
-    computedJamaFine,
-    totalFineBeforeSettle,
-    convertedFineAmount,
-    finalBaki,
-    filteredCustomers,
+    totals, computedJamaFine, totalFineBeforeSettle,
+    convertedFineAmount, finalBaki, filteredCustomers,
 
     // Handlers
-    showToast,
-    handleSelectCustomer,
-    handleRowChange,
-    handleAddRow,
-    handleRemoveRow,
-    handleClearForm,
-    handleSaveInvoice,
-    handlePrint
+    showToast, handleSelectCustomer, handleRowChange, handleAddRow, handleRemoveRow, handleClearForm,
+    handleSaveInvoice, handlePrint
+
   };
 };
 
