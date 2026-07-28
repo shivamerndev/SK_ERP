@@ -9,6 +9,7 @@ export const {
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
     MISTRAL_API_KEY,
+    METAL_RATE_API,
     FRONTEND_URL = "http://localhost:5173",
 } = process.env
 
@@ -22,6 +23,7 @@ const checkVariables = {
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
     MISTRAL_API_KEY,
+    METAL_RATE_API,
 }
 
 Object.entries(checkVariables).forEach(([key, value]) => {

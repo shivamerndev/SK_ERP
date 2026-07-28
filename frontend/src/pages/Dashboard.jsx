@@ -35,51 +35,12 @@ import {
 import KpiCards from "../dashboard/components/KpiCards.jsx";
 import ChartArea from "../dashboard/components/ChartArea.jsx";
 import GlassTooltip from "../dashboard/components/GlassTooltip.jsx";
-import { currencyFormatter } from "../utils/currencyFormatter.js";
-
-const salesTrendPresets = {
-  Monthly: [
-    { name: "Jan", "2023": 1200000, "2024": 1400000, "2025": 1500000 },
-    { name: "Feb", "2023": 1300000, "2024": 1600000, "2025": 1700000 },
-    { name: "Mar", "2023": 1500000, "2024": 1800000, "2025": 1900000 },
-    { name: "Apr", "2023": 1400000, "2024": 1700000, "2025": 1800000 },
-    { name: "May", "2023": 2300000, "2024": 2000000, "2025": 2451200 },
-    { name: "Jun", "2023": 1800000, "2024": 1900000, "2025": 2100000 },
-    { name: "Jul", "2023": 1700000, "2024": 2000000, "2025": 2000000 },
-    { name: "Aug", "2023": 1750000, "2024": 2100000, "2025": 2050000 },
-    { name: "Sep", "2023": 1650000, "2024": 1950000, "2025": 1950000 },
-    { name: "Oct", "2023": 1850000, "2024": 2150000, "2025": 2150000 },
-    { name: "Nov", "2023": 1950000, "2024": 2250000, "2025": 2250000 },
-    { name: "Dec", "2023": 2050000, "2024": 2350000, "2025": 2350000 }
-  ],
-  Weekly: [
-    { name: "Week 1", "2023": 310000, "2024": 380000, "2025": 512000 },
-    { name: "Week 2", "2023": 340000, "2024": 420000, "2025": 580000 },
-    { name: "Week 3", "2023": 390000, "2024": 450000, "2025": 620000 },
-    { name: "Week 4", "2023": 420000, "2024": 500000, "2025": 739200 }
-  ],
-  Quarterly: [
-    { name: "Q1", "2023": 4000000, "2024": 4800000, "2025": 5100000 },
-    { name: "Q2", "2023": 5900000, "2024": 5900000, "2025": 6651200 },
-    { name: "Q3", "2023": 5100000, "2024": 6050000, "2025": 6000000 },
-    { name: "Q4", "2023": 5800000, "2024": 6500000, "2025": 6750000 }
-  ]
-};
-
-
-const expenseData = [
-  { name: "Marketing", value: 184500, color: "#3b82f6" },
-  { name: "Salaries", value: 153600, color: "#10b981" },
-  { name: "Rent & Utilities", value: 92300, color: "#f59e0b" },
-  { name: "Software", value: 61500, color: "#06b6d4" },
-  { name: "Others", value: 122100, color: "#8b5cf6" }
-];
 
 
 const Dashboard = () => {
 
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("Overview");
+  const activeTab = "Overview"
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [selectedDateRange, setSelectedDateRange] = useState("Jul 01, 2026 - Jul 31, 2026");
   const [monthlyFilter, setMonthlyFilter] = useState("Monthly");
@@ -148,7 +109,7 @@ const Dashboard = () => {
     );
   };
 
-  // Derive Task Summary data dynamically based on checklist checkboxes
+
   const dynamicTaskSummary = useMemo(() => {
     const counts = tasks.reduce(
       (acc, t) => {
@@ -171,45 +132,26 @@ const Dashboard = () => {
   }, [tasks]);
 
 
-  // Derive Sales Trend data dynamically
-  const currentSalesTrendData = useMemo(() => {
-    return salesTrendPresets[monthlyFilter] || salesTrendPresets.Monthly;
-  }, [monthlyFilter]);
 
-  // Open Customize Layout Modal
   const openLayoutModal = () => {
     setTempLayout({ ...layout });
     setShowCustomizeModal(true);
   };
 
-  // Save layout configurations
+  
   const applyLayoutChanges = () => {
     setLayout({ ...tempLayout });
     setShowCustomizeModal(false);
   };
+
 
   return (
     <div className="flex flex-col gap-6">
       {/* Sub-Header Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          {/* Main Workspace Navigation */}
-          <div className="flex items-center gap-6 mb-1">
-            {["Overview", "Analytics", "Reports"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`pb-2 text-sm font-semibold tracking-tight transition-all border-b-2 cursor-pointer ${activeTab === tab
-                  ? "border-blue-600 text-blue-600 font-bold"
-                  : "border-transparent text-slate-400 hover:text-slate-600"
-                  }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-slate-400 font-medium mt-1">
-            Welcome back, {user?.fullName || "Manager"}! Here's what's happening with your business today.
+          <p className="text-2xl text-slate-900/90 font-bold mt-1">
+            Welcome, {user?.fullName || "Manager"}!
           </p>
         </div>
 
@@ -379,7 +321,7 @@ const Dashboard = () => {
                           dataKey="value"
                         >
                           {dynamicTaskSummary.chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                            <Cell key={`cell-₹{index}`} fill={entry.color} />
                           ))}
                         </Pie>
                       </PieChart>
@@ -431,7 +373,7 @@ const Dashboard = () => {
                         </span>
                       </button>
                       <span
-                        className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${task.status === "Completed"
+                        className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ₹{task.status === "Completed"
                           ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
                           : task.status === "In Progress"
                             ? "bg-blue-50 text-blue-600 border border-blue-100"
@@ -474,8 +416,8 @@ const Dashboard = () => {
                       </div>
                       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div
-                          className={`h-full ${proj.color} rounded-full transition-all duration-500`}
-                          style={{ width: `${proj.progress}%` }}
+                          className={`h-full ₹{proj.color} rounded-full transition-all duration-500`}
+                          style={{ width: `₹{proj.progress}%` }}
                         />
                       </div>
                     </div>
@@ -522,7 +464,7 @@ const Dashboard = () => {
                         <button
                           key={day}
                           onClick={() => setSelectedDay(day)}
-                          className={`relative flex items-center justify-center rounded-full w-5 h-5 mx-auto cursor-pointer transition-colors text-[9px] ${isSelected
+                          className={`relative flex items-center justify-center rounded-full w-5 h-5 mx-auto cursor-pointer transition-colors text-[9px] ₹{isSelected
                             ? "bg-blue-600 text-white font-extrabold"
                             : hasEvent
                               ? "bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"
@@ -554,301 +496,6 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-        </div>
-      )}
-
-
-      {activeTab === "Analytics" && (
-        <div className="flex flex-col gap-6 animate-fade-in">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            {/* Sales Trend Analysis Multi-line Chart */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 lg:col-span-6 flex flex-col justify-between shadow-sm min-h-[350px]">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-base font-bold text-slate-800 tracking-tight">Sales Trend Analysis</h2>
-                  <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                    Historical Annual Comparison
-                  </span>
-                </div>
-
-                <select
-                  value={monthlyFilter}
-                  onChange={(e) => setMonthlyFilter(e.target.value)}
-                  className="text-xs font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-blue-100 cursor-pointer"
-                >
-                  <option value="Monthly">Monthly</option>
-                  <option value="Weekly">Weekly</option>
-                  <option value="Quarterly">Quarterly</option>
-                </select>
-              </div>
-
-              <div className="flex-1 w-full h-[220px] relative mt-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={currentSalesTrendData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      stroke="#94a3b8"
-                      fontSize={10}
-                      fontWeight="bold"
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis
-                      stroke="#94a3b8"
-                      fontSize={10}
-                      fontWeight="bold"
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(v) => (v >= 1000000 ? `$${v / 1000000}M` : `$${v / 1000}k`)}
-                    />
-                    <Tooltip content={<GlassTooltip />} />
-                    <Legend
-                      verticalAlign="top"
-                      height={36}
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{ fontSize: 10, fontWeight: "bold" }}
-                    />
-                    <Line type="monotone" dataKey="2023" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="2024" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="2025" stroke="#06b6d4" strokeWidth={2.5} dot={{ r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Geographical Hotspots Map & Regional Breakdown */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 lg:col-span-6 flex flex-col justify-between shadow-sm min-h-[350px]">
-              <h2 className="text-base font-bold text-slate-800 tracking-tight mb-4">Revenue by Region</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto items-center">
-                {/* Clean SVG Vector Map */}
-                <div className="w-full aspect-[4/3] bg-slate-50/50 rounded-xl border border-slate-100 flex items-center justify-center p-3 relative overflow-hidden">
-                  <svg className="w-full h-full text-slate-200" viewBox="0 0 200 120" fill="currentColor">
-                    {/* North America */}
-                    <path d="M10 20h20l15 15-5 10-15 5-15-15z" className="text-blue-900/15" />
-                    <circle cx="25" cy="30" r="4" className="text-blue-600 animate-pulse" />
-
-                    {/* Europe */}
-                    <path d="M80 15h30l5 15-15 15h-10z" className="text-blue-800/15" />
-                    <circle cx="95" cy="25" r="3.5" className="text-blue-500 animate-pulse" />
-
-                    {/* Asia */}
-                    <path d="M120 15h40l15 35-25 15-20-20z" className="text-blue-600/15" />
-                    <circle cx="145" cy="35" r="3.5" className="text-cyan-500 animate-pulse" />
-
-                    {/* South America */}
-                    <path d="M35 55h20l-15 35h-10z" className="text-blue-500/15" />
-                    <circle cx="45" cy="70" r="3" className="text-teal-500 animate-pulse" />
-
-                    {/* Africa */}
-                    <path d="M80 45h25l5 25-15 25-10-15z" className="text-slate-400/15" />
-                    <circle cx="95" cy="65" r="3" className="text-slate-500 animate-pulse" />
-
-                    {/* Australia */}
-                    <path d="M150 75h20l-5 15-15 5z" className="text-slate-400/15" />
-                    <circle cx="160" cy="82" r="2.5" className="text-slate-400" />
-                  </svg>
-
-                  <span className="absolute bottom-2 right-2.5 text-[8px] font-bold text-slate-400 bg-white/80 border border-slate-100 rounded px-1.5 py-0.5 shadow-sm">
-                    Live Hotspots (Active)
-                  </span>
-                </div>
-
-                {/* Region details list */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1.5 leading-none">
-                    <div className="flex justify-between text-xs font-bold text-slate-700">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#1e3a8a]" />
-                        <span>North America</span>
-                      </div>
-                      <span>
-                        $850,400 <strong className="text-slate-400 font-semibold ml-1.5">34.7%</strong>
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-900 rounded-full" style={{ width: "34.7%" }} />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 leading-none">
-                    <div className="flex justify-between text-xs font-bold text-slate-700">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-                        <span>Europe</span>
-                      </div>
-                      <span>
-                        $620,300 <strong className="text-slate-400 font-semibold ml-1.5">25.3%</strong>
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-600 rounded-full" style={{ width: "25.3%" }} />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 leading-none">
-                    <div className="flex justify-between text-xs font-bold text-slate-700">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-cyan-500" />
-                        <span>Asia Pacific</span>
-                      </div>
-                      <span>
-                        $540,200 <strong className="text-slate-400 font-semibold ml-1.5">22.1%</strong>
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-cyan-500 rounded-full" style={{ width: "22.1%" }} />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 leading-none">
-                    <div className="flex justify-between text-xs font-bold text-slate-700">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-teal-500" />
-                        <span>South America</span>
-                      </div>
-                      <span>
-                        $260,100 <strong className="text-slate-400 font-semibold ml-1.5">10.6%</strong>
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-teal-500 rounded-full" style={{ width: "10.6%" }} />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 leading-none">
-                    <div className="flex justify-between text-xs font-bold text-slate-700">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
-                        <span>Africa</span>
-                      </div>
-                      <span>
-                        $180,200 <strong className="text-slate-400 font-semibold ml-1.5">7.3%</strong>
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-slate-400 rounded-full" style={{ width: "7.3%" }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            {/* Expense Breakdown Donut Chart */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 lg:col-span-6 flex flex-col justify-between shadow-sm min-h-[350px]">
-              <h2 className="text-base font-bold text-slate-800 tracking-tight mb-4">Expense Breakdown</h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 my-auto items-center">
-                <div className="relative w-36 h-36 mx-auto flex-shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Tooltip content={<GlassTooltip />} />
-                      <Pie data={expenseData} innerRadius={48} outerRadius={68} paddingAngle={3} dataKey="value">
-                        {expenseData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[10px] text-slate-400 font-semibold uppercase leading-none">Total</span>
-                    <span className="text-base font-extrabold text-slate-800 mt-1">$614K</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  {expenseData.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs font-semibold text-slate-600">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                        <span>{item.name}</span>
-                      </div>
-                      <span className="text-slate-400">
-                        {((item.value / 614000) * 100).toFixed(0)}%{" "}
-                        <strong className="text-slate-700 ml-1.5">{currencyFormatter(item.value)}</strong>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Profit & Loss Card with Sparkline */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 lg:col-span-6 flex flex-col justify-between shadow-sm min-h-[350px]">
-              <h2 className="text-base font-bold text-slate-800 tracking-tight mb-4">Profit & Loss Summary</h2>
-
-              <div className="flex-1 flex flex-col justify-center gap-3.5 my-auto">
-                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <span className="text-sm font-semibold text-slate-600">Total Revenue</span>
-                  <span className="text-base font-extrabold text-emerald-600">$2,451,200</span>
-                </div>
-
-                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <span className="text-sm font-semibold text-slate-600">Total Expenses</span>
-                  <span className="text-base font-extrabold text-red-500">$614,000</span>
-                </div>
-
-                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <span className="text-sm font-semibold text-slate-600">Net Profit</span>
-                  <span className="text-base font-extrabold text-emerald-600">$1,837,200</span>
-                </div>
-
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm font-semibold text-slate-600">Profit Margin</span>
-                  <span className="text-base font-extrabold text-emerald-600">74.95%</span>
-                </div>
-
-                {/* Animated Profit Sparkline */}
-                <div className="h-10 w-full mt-2.5 overflow-hidden">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={[
-                        { name: "1", value: 25 },
-                        { name: "2", value: 22 },
-                        { name: "3", value: 15 },
-                        { name: "4", value: 10 },
-                        { name: "5", value: 5 }
-                      ]}
-                      margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient id="plGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#10b981" stopOpacity={0.15} />
-                          <stop offset="100%" stopColor="#10b981" stopOpacity={0.0} />
-                        </linearGradient>
-                      </defs>
-                      <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fill="url(#plGrad)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* REPORTS OR OTHER CUSTOM TAB VIEWS BUILDER                 */}
-      {/* ========================================================= */}
-      {activeTab !== "Overview" && activeTab !== "Analytics" && (
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-8 flex flex-col items-center justify-center text-center shadow-sm py-16 animate-fade-in">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center mb-4">
-            <FileText className="w-8 h-8" />
-          </div>
-          <h2 className="text-lg font-bold text-slate-800 tracking-tight mb-2">{activeTab} Template Builder</h2>
-          <p className="text-sm text-slate-400 max-w-sm mb-6">
-            Configure dynamic reports and layouts here. Toggle between Overview and Analytics tabs above to preview components.
-          </p>
-          <button
-            onClick={() => setActiveTab("Overview")}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm hover:shadow transition-all"
-          >
-            Return to Overview
-          </button>
         </div>
       )}
 
@@ -909,6 +556,16 @@ const Dashboard = () => {
                   className="rounded border-slate-300 text-blue-600 focus:ring-blue-100"
                 />
                 Top Customers List
+              </label>
+
+              <label className="flex items-center gap-2.5 text-xs font-bold text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={tempLayout.liveMetals}
+                  onChange={(e) => setTempLayout({ ...tempLayout, liveMetals: e.target.checked })}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-100"
+                />
+                Live Metals Exchange Rates & Calculator
               </label>
 
               <label className="flex items-center gap-2.5 text-xs font-bold text-slate-700 cursor-pointer">

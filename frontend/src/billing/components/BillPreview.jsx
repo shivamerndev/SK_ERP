@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 const BillPreview = ({ previewBill, handlePrint }) => {
   return (
     <>
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sticky top-24">
+      <div className="bg-white rounded-2xl h-fit border border-slate-200 shadow-sm p-5 sticky top-24">
         <div className="flex justify-between items-center border-b border-slate-100 pb-3.5 mb-4">
           <span className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
             <FileText className="w-4 h-4 text-blue-500" />
@@ -22,7 +22,7 @@ const BillPreview = ({ previewBill, handlePrint }) => {
         </div>
 
         {previewBill ? (
-          <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-4 max-h-[550px] overflow-y-auto font-mono text-xs text-slate-600">
+          <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-4  overflow-y-auto font-mono text-xs text-slate-600">
             <div className="text-center font-bold text-slate-700 border-b border-dashed border-slate-200 pb-2">
               <p className="text-[10px]">{previewBill.topHeader}</p>
               <p className="text-sm font-black tracking-wider text-slate-800 mt-0.5">{previewBill.title}</p>

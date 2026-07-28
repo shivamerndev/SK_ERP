@@ -1,10 +1,8 @@
-import { Search, Trash2, X, PhoneCall, MessageSquare, ChevronRight, AlertCircle } from "lucide-react";
+import { Search, Trash2, X, PhoneCall, ChevronRight, AlertCircle, Send } from "lucide-react";
 import { useState } from "react";
-
+import { toast } from "react-hot-toast";
 
 const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, setIsDrawerOpen }) => {
-
-    let filteredCustomers = customers
 
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState("name");
@@ -13,21 +11,18 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
     const [statusFilter, setStatusFilter] = useState("All");
     const [riskFilter, setRiskFilter] = useState("All");
 
+    const openWhatsApp = (c) => {
+        const bal = c.totalLend;
+        if (bal <= 0) return;
 
-    const getBalance = (cust) => {
-        if (!cust.transactions) return 0;
-        return cust.transactions.reduce((sum, tx) => sum + (tx.type === "LENT" ? tx.amount : -tx.amount), 0);
+        const prefilledText = `Dear *${c.fullName.toUpperCase()}*,\n\nThis is a friendly reminder from *SURUCHI JEWELLERS* regarding your outstanding balance of *₹${bal.toLocaleString("en-IN")}*.\n\nPlease clear it at your earliest convenience using UPI, cash, or bank transfer.\n\nThank you for your business!\n_Sent via SURUCHI JEWELLERS_`;
+
+        const phoneClean = c.phone.toLocaleString().replace(/\D/g, "");
+        const finalPhone = phoneClean.length === 10 ? "91" + phoneClean : phoneClean;
+        const url = `https://wa.me/${finalPhone}?text=${encodeURIComponent(prefilledText)}`;
+
+        return window.open(url, "_blank");
     };
-
-    const getRiskCategory = (cust) => {
-        const bal = getBalance(cust);
-        const limit = cust.creditLimit || 1;
-        const ratio = bal / limit;
-        if (ratio >= 0.95) return "Critical";
-        if (ratio >= 0.75) return "Warning";
-        return "Safe";
-    };
-
 
     return (
         <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
@@ -36,18 +31,23 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
                     <div className="relative flex-1 max-w-md">
-
                         <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <Search className="w-4.5 h-4.5" />
                         </span>
 
-                        <input type="text" placeholder="Search by name, phone or email..." className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
+                        <input
+                            type="text"
+                            placeholder="Search by name, phone or email..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                        />
 
-                        {searchQuery && <button onClick={() => setSearchQuery("")} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
-                            <X className="w-4 h-4" />
-                        </button>
-                        }
-
+                        {searchQuery && (
+                            <button onClick={() => setSearchQuery("")} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2 self-start md:self-auto">
@@ -58,13 +58,15 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                             <option value="ltv">Lifetime Lent Value</option>
                             <option value="joined">Join Date</option>
                         </select>
-                        <button onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")} className="p-1.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-600 text-xs font-bold cursor-pointer" title="Toggle Sort Order"> {sortOrder === "asc" ? "ASC ↑" : "DESC ↓"} </button>
+                        <button onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")} className="p-1.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-600 text-xs font-bold cursor-pointer" title="Toggle Sort Order">
+                            {sortOrder === "asc" ? "ASC ↑" : "DESC ↓"}
+                        </button>
                     </div>
 
                 </div>
 
                 {/* Filtering row */}
-                <div className="flex flex-wrap items-center gap-3 pt-2">
+                <div className="flex flex-wrap items-center gap-3 pt-2 relative">
 
                     {/* Filter by Tier */}
                     <div className="flex flex-col gap-1">
@@ -106,15 +108,23 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                             setStatusFilter("All");
                             setRiskFilter("All");
                             setSearchQuery("");
-                        }} className="mt-4 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"><X className="w-3.5 h-3.5" />
+                        }} className="mt-4 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer">
+                            <X className="w-3.5 h-3.5" />
                             Clear Filters
-                        </button>)}
+                        </button>
+                    )}
+
+                    <div className="flex items-center gap-1 absolute select-none right-0 top-0 text-green-600 bg-green-100/90 border border-green-300 px-3 py-2.5 rounded-md text-xs font-semibold cursor-pointer hover:bg-green-200/95 transition-all"
+                    >
+                        <Send className="w-4 h-4" />
+                        <h1>Send To All Debtors</h1>
+                    </div>
                 </div>
             </div>
 
             {/* Directory Table element */}
             <div className="overflow-x-auto">
-                {filteredCustomers.length > 0 ? (
+                {customers.length > 0 ? (
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -128,9 +138,8 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-sm">
                             {customers.map((c) => {
-                                const balance = getBalance(c);
-                                const tier = c.loyality
-                                const risk = getRiskCategory(c);
+                                const balance = c.totalLend;
+                                const tier = (c.loyality || "regular").toUpperCase();
                                 const limitUsage = c.creditLimit ? Math.round((balance / c.creditLimit) * 100) : 0;
 
                                 return (
@@ -153,7 +162,12 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                                         {c.fullName}
                                                     </span>
                                                     <span className="text-[11px] text-slate-400 font-medium">
-                                                        Joined {isNaN(new Date(c.joined).getTime()) ? "Older" : new Date(c.joined).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
+                                                        Joined {(() => {
+                                                            const j = c.joinedAt || c.joined;
+                                                            return (j === "Older" || j === "older" || !j || isNaN(new Date(j).getTime()))
+                                                                ? "Older"
+                                                                : new Date(j).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
+                                                        })()}
                                                     </span>
                                                 </div>
                                             </div>
@@ -163,7 +177,7 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
                                                 <span className={`font-extrabold ${balance > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                                                    ₹{c.totalLend}
+                                                    ₹{balance}
                                                 </span>
                                                 {balance < 0 && <span className="text-[10px] text-emerald-500 font-bold uppercase">Prepayment</span>}
                                             </div>
@@ -174,7 +188,7 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                             <div className="space-y-1.5">
                                                 <div className="flex justify-between text-[11px] font-semibold text-slate-500">
                                                     <span>{limitUsage}% used</span>
-                                                 <span>{((c.creditLimit || 550) / 1000).toFixed(3).replace(/\.?0+$/, "")} kg</span>
+                                                    <span>{((c.creditLimit || 0) / 1000).toFixed(3).replace(/\.?0+$/, "")} kg</span>
                                                 </div>
                                                 <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden relative">
                                                     <div className={`h-full rounded-full transition-all duration-500 ${limitUsage >= 95 ? "bg-rose-500" : limitUsage >= 75 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${Math.min(limitUsage, 100)}%` }} />
@@ -182,11 +196,10 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                             </div>
                                         </td>
 
-
                                         <td className="px-6 py-4 text-center">
                                             <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${tier === "VIP"
                                                 ? "bg-purple-50 text-purple-700 border-purple-200"
-                                                : tier === "Regular"
+                                                : tier === "REGULAR"
                                                     ? "bg-blue-50 text-blue-700 border-blue-200"
                                                     : "bg-slate-100 text-slate-600 border-slate-200"
                                                 }`}>
@@ -197,14 +210,14 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-center gap-2">
 
-                                                <a href={`tel:${c.phone}`} className="p-2 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 text-slate-500 rounded-xl transition-all" title={`Call ${c.name} (${c.phone})`}>
+                                                <a href={`tel:${c.phone}`} className="p-2 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 text-slate-500 rounded-xl transition-all" title={`Call ${c.fullName} (${c.phone})`}>
                                                     <PhoneCall className="w-4 h-4" />
                                                 </a>
 
                                                 <button onClick={() => openWhatsApp(c)} disabled={balance <= 0}
                                                     className={`p-2 border rounded-xl transition-all cursor-pointer ${balance > 0 ? "bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600" : "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed"}`}
                                                     title={balance > 0 ? "Send Outstanding Debt Reminder on WhatsApp" : "No outstanding debt to remind"}>
-                                                    <MessageSquare className="w-4 h-4" />
+                                                    <Send className="w-4 h-4" />
                                                 </button>
 
                                             </div>
@@ -240,12 +253,11 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
 
             {/* Directory Footer info */}
             <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/20 text-xs text-slate-400 font-medium flex items-center justify-between">
-                <span>Showing {filteredCustomers.length} of {customers.length} registered customer accounts</span>
+                <span>Showing {customers.length} of {customers.length} registered customer accounts</span>
                 <span>Syncing in real-time with Ledger data</span>
             </div>
-
         </div>
-    )
-}
+    );
+};
 
-export default CustomerTable
+export default CustomerTable;
