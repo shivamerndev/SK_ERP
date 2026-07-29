@@ -6,7 +6,6 @@ import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import TitleHeader from "../customers/components/TitleHeader";
 import ConfirmModal from "../utils/ConfirmModal";
-import Analytics from "../customers/components/Analytics";
 import StatsGrid from "../customers/components/StatsGrid";
 import CustomerTable from "../customers/components/CustomerTable";
 import SlideDrawer from "../customers/components/SlideDrawer";
@@ -44,14 +43,12 @@ const Customers = () => {
   }, [customers, location.search]);
 
 
-  return (
+  return ( customers &&
     <div className="space-y-4">
 
       <TitleHeader setIsAddOpen={setIsAddOpen} />
 
-      {/* <StatsGrid /> */}
-
-      {/* <Analytics /> */}
+      <StatsGrid customers={customers}/>
 
       <CustomerTable setIsDrawerOpen={setIsDrawerOpen} setSelectedCust={setSelectedCust} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} customers={customers} />
 

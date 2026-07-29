@@ -2,22 +2,18 @@ import { useMemo } from 'react';
 import { Users, TrendingDown, DollarSign, CreditCard, AlertTriangle } from 'lucide-react';
 
 
-const StatsGrid = () => {
+const StatsGrid = ({customers}) => {
 
-    let customers = []
 
     const stats = useMemo(() => {
         let debtors = 0;
         let totalDebt = 0;
         let totalExposure = 0;
         let criticalAlerts = 0;
-        let totalLtv = 0;
 
         customers.forEach(c => {
-            const bal = getBalance(c);
-            const ltv = getLTV(c);
-            totalExposure += Number(c.creditLimit || 0);
-            totalLtv += ltv;
+            const bal = c.totalLend;
+            totalExposure += Number(c.creditLimit || 0);  
 
             if (bal > 0) {
                 debtors++;
@@ -36,12 +32,11 @@ const StatsGrid = () => {
             totalOutstanding: totalDebt,
             totalExposure,
             criticalAlerts,
-            avgLTV: customers.length ? Math.round(totalLtv / customers.length) : 0
         };
-    }, []);
+    }, [customers]);
 
 
-    return (
+    return ( 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
             {/* Stat 1: Total Customers */}

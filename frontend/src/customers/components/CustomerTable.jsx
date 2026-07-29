@@ -73,9 +73,9 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Loyalty Tier</label>
                         <select value={tierFilter} onChange={(e) => setTierFilter(e.target.value)} className="px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-medium focus:outline-none">
                             <option value="All">All Tiers</option>
-                            <option value="VIP">VIP (Limit ≥ ₹15k)</option>
-                            <option value="Regular">Regular (₹5k - ₹15k)</option>
-                            <option value="New">New (Limit &lt; ₹5k)</option>
+                            <option value="VIP">VIP</option>
+                            <option value="Regular">Regular</option>
+                            <option value="New">New</option>
                         </select>
                     </div>
 
@@ -173,7 +173,7 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                             </div>
                                         </td>
 
-                                              <td className="px-6 py-4">
+                                        <td className="px-6 py-4">
                                             <div className="flex items-center justify-center gap-2">
 
                                                 <a href={`tel:${c.phone}`} className="p-2 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 text-slate-500 rounded-xl transition-all" title={`Call ${c.fullName} (${c.phone})`}>
@@ -181,9 +181,9 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                                 </a>
 
                                                 <button onClick={() => openWhatsApp(c)} disabled={balance <= 0}
-                                                    className={`p-2 border rounded-xl transition-all cursor-pointer ${balance > 0 ? "bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600" : "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed"}`}
+                                                    className={`  ${balance > 0 ? "cursor-pointer " : "cursor-not-allowed opacity-50"} p-2 border rounded-xl transition-all ${balance < 0 ? "bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600" : "bg-slate-50 border-slate-100 text-slate-300 "}`}
                                                     title={balance > 0 ? "Send Outstanding Debt Reminder on WhatsApp" : "No outstanding debt to remind"}>
-                                                    <img src="whatsapp.svg" alt="" className={"w-4 h-4 " + (balance > 0 ? "" : "cursor-not-allowed opacity-50")} />
+                                                    <img src="whatsapp.svg" alt="" className="w-4 h-4 " />
                                                 </button>
 
                                             </div>
@@ -223,7 +223,7 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                             </span>
                                         </td>
 
-                                  
+
 
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
@@ -251,12 +251,6 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                         <p className="text-xs text-slate-400 mt-1">Try resetting the loyalty, balance, or risk filter dropdowns above</p>
                     </div>
                 )}
-            </div>
-
-            {/* Directory Footer info */}
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/20 text-xs text-slate-400 font-medium flex items-center justify-between">
-                <span>Showing {customers.length} of {customers.length} registered customer accounts</span>
-                <span>Syncing in real-time with Ledger data</span>
             </div>
         </div>
     );
