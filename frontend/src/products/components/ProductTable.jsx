@@ -29,7 +29,7 @@ const ProductTable = ({
                 Lab (₹)
               </th>
               <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-right w-[11%]">
-                Panni (₹)
+                Panni (g)
               </th>
               <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-center w-[11%]">
                 Actions
@@ -117,7 +117,7 @@ const ProductTable = ({
                       ₹{product.lab}
                     </td>
                     <td className="p-4 px-6 text-right font-semibold text-slate-600 font-mono">
-                      ₹{product.panniDetail}
+                      {product.panniDetail}g
                     </td>
                     <td className="p-4 px-6 text-center">
                       <div className="flex items-center justify-center gap-2">

@@ -146,8 +146,8 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
     setCustomerAddress(cust.notes || cust.address || "");
 
     const cashBal = cust.totalLend || 0;
-    setLastBalanceAmount(cashBal > 0 ? String(cashBal) : "0");
-    setLastBalanceFine("0");
+    setLastBalanceAmount(cashBal > 0 ? String(cashBal) : "");
+    setLastBalanceFine("");
     setCustSearchFocused(false);
   };
 

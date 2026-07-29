@@ -1,18 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
 import {
   Search,
   Plus,
   Trash2,
   X,
-  Check,
   TrendingUp,
   TrendingDown,
   DollarSign,
-  AlertTriangle,
   Download,
   Calendar,
   Clock,
-  CreditCard,
   AlertCircle,
   Filter,
   ChevronDown,
@@ -21,7 +17,6 @@ import {
   Package,
   Printer
 } from "lucide-react";
-import { toast } from "react-hot-toast";
 import {
   ResponsiveContainer,
   BarChart,
@@ -35,553 +30,34 @@ import {
   Area,
   Line
 } from "recharts";
+import { showToast } from "../utils/toast.utils";
+import AddPurchase from "../purchase/components/AddPurchase.jsx";
+import ConfirmModal from "../utils/ConfirmModal.jsx";
+import usePurchase from "../purchase/usePurchase";
+
 
 const Purchases = () => {
 
 
-  const [purchaseRecords, setPurchaseRecords] = useState(() => {
-    const saved = localStorage.getItem("erp_purchase_records");
-    return saved && JSON.parse(saved)
-  });
-
-  const [inventory, setInventory] = useState(() => {
-    const saved = localStorage.getItem("erp_silver_inventory");
-    return saved && JSON.parse(saved);
-  });
-
-  // Daily silver rate for pricing calculations
-  const [silverRate, setSilverRate] = useState(() => {
-    const rate = localStorage.getItem("erp_live_silver_rate");
-    return rate ? parseFloat(rate) : 85.0;
-  });
-
-  // Filters
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [paymentFilter, setPaymentFilter] = useState("All");
-  const [dateRangePreset, setDateRangePreset] = useState("All"); // All, Today, Yesterday, ThisWeek, ThisMonth, Custom
-  const [customStartDate, setCustomStartDate] = useState("");
-  const [customEndDate, setCustomEndDate] = useState("");
-
-  const [sortBy, setSortBy] = useState("date"); // date, weight, cost
-  const [sortOrder, setSortOrder] = useState("desc");
-
-  const [showCharts, setShowCharts] = useState(true);
-
-  // Modals & Panels
-  const [isRecordOpen, setIsRecordOpen] = useState(false);
-  const [selectedPurchase, setSelectedPurchase] = useState(null);
-  const [isBillOpen, setIsBillOpen] = useState(false);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-
-  // Record Purchase Form state
-  const [purchaseForm, setPurchaseForm] = useState({
-    date: new Date().toISOString().split("T")[0],
-    sku: "",
-    supplierName: "",
-    quantity: "",
-    appliedRate: "",
-    paymentMethod: "Bank Transfer"
-  });
-
-  const [selectedDesign, setSelectedDesign] = useState(null);
-  const [formErrors, setFormErrors] = useState({});
-
-
-
-  // ----------------------------------------------------
-  // PERSISTENCE EFFECTS
-  // ----------------------------------------------------
-  useEffect(() => {
-    localStorage.setItem("erp_purchase_records", JSON.stringify(purchaseRecords));
-  }, [purchaseRecords]);
-
-  // Dynamic storage syncing
-  useEffect(() => {
-    const handleStorage = () => {
-      const savedInv = localStorage.getItem("erp_silver_inventory");
-      if (savedInv) setInventory(JSON.parse(savedInv));
-
-      const rate = localStorage.getItem("erp_live_silver_rate");
-      if (rate) setSilverRate(parseFloat(rate));
-    };
-    window.addEventListener("storage", handleStorage);
-    // Poll to keep updated
-    const interval = setInterval(handleStorage, 2000);
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      clearInterval(interval);
-    };
-  }, []);
-
-  // TOAST HANDLER using react-hot-toast
-  const triggerToast = (message, type = "success") => {
-    if (type === "success") {
-      toast.success(message);
-    } else if (type === "error") {
-      toast.error(message);
-    } else {
-      toast(message);
-    }
-  };
-
-  // ----------------------------------------------------
-  // BILL CALCULATOR
-  // ----------------------------------------------------
-  const getSilverCost = (item, rate, qty) => {
-    return item.weight * qty * rate * (item.purity / 1000);
-  };
-
-  const getMakingCost = (item, qty) => {
-    if (item.makingChargeType === "PER_GRAM") {
-      return item.weight * qty * item.makingCharge;
-    }
-    return item.makingCharge * qty;
-  };
-
-  const getCalculatedPurchase = (item, rate, qty) => {
-    if (!item) return { weight: 0, silverCost: 0, makingCost: 0, totalBeforeGST: 0, gst: 0, netTotal: 0 };
-    const weight = item.weight * qty;
-    const silverCost = getSilverCost(item, rate, qty);
-    const makingCost = getMakingCost(item, qty);
-    const totalBeforeGST = silverCost + makingCost;
-    const gst = totalBeforeGST * 0.03; // GST 3%
-    const netTotal = totalBeforeGST + gst;
-
-    return {
-      weight,
-      silverCost: Math.round(silverCost),
-      makingCost: Math.round(makingCost),
-      totalBeforeGST: Math.round(totalBeforeGST),
-      gst: Math.round(gst),
-      netTotal: Math.round(netTotal)
-    };
-  };
-
-  // ----------------------------------------------------
-  // FILTER & SORT DATA
-  // ----------------------------------------------------
-  const filteredPurchases = useMemo(() => {
-    let result = [...purchaseRecords];
-
-    // Search Query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        p =>
-          p.billCode.toLowerCase().includes(q) ||
-          p.sku.toLowerCase().includes(q) ||
-          p.productName.toLowerCase().includes(q) ||
-          p.supplierName.toLowerCase().includes(q)
-      );
-    }
-
-    // Category Filter
-    if (categoryFilter !== "All") {
-      result = result.filter(p => p.category === categoryFilter);
-    }
-
-    // Payment Filter
-    if (paymentFilter !== "All") {
-      result = result.filter(p => p.paymentMethod === paymentFilter);
-    }
-
-    // Date range preset filter
-    if (dateRangePreset !== "All") {
-      const todayStr = new Date().toISOString().split("T")[0];
-      const today = new Date(todayStr);
-
-      result = result.filter(p => {
-        const pDate = new Date(p.date);
-
-        if (dateRangePreset === "Today") {
-          return p.date === todayStr;
-        }
-        if (dateRangePreset === "Yesterday") {
-          const yest = new Date(today);
-          yest.setDate(today.getDate() - 1);
-          const yestStr = yest.toISOString().split("T")[0];
-          return p.date === yestStr;
-        }
-        if (dateRangePreset === "ThisWeek") {
-          const sevenDaysAgo = new Date();
-          sevenDaysAgo.setDate(today.getDate() - 7);
-          return pDate >= sevenDaysAgo && pDate <= today;
-        }
-        if (dateRangePreset === "ThisMonth") {
-          const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-          return pDate >= startOfMonth && pDate <= today;
-        }
-        if (dateRangePreset === "Custom") {
-          if (customStartDate && customEndDate) {
-            return p.date >= customStartDate && p.date <= customEndDate;
-          }
-          if (customStartDate) {
-            return p.date >= customStartDate;
-          }
-          if (customEndDate) {
-            return p.date <= customEndDate;
-          }
-        }
-        return true;
-      });
-    }
-
-    // Sort
-    result.sort((a, b) => {
-      let valA, valB;
-      if (sortBy === "date") {
-        valA = a.date;
-        valB = b.date;
-        if (valA === valB) {
-          return sortOrder === "asc" ? a.cost - b.cost : b.cost - a.cost;
-        }
-      } else if (sortBy === "weight") {
-        valA = a.totalWeight;
-        valB = b.totalWeight;
-      } else if (sortBy === "cost") {
-        valA = a.cost;
-        valB = b.cost;
-      }
-
-      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return result;
-  }, [purchaseRecords, searchQuery, categoryFilter, paymentFilter, dateRangePreset, customStartDate, customEndDate, sortBy, sortOrder]);
-
-  // ----------------------------------------------------
-  // CALCULATE KPI SUMMARIES
-  // ----------------------------------------------------
-  const stats = useMemo(() => {
-    let cost = 0;
-    let weight = 0;
-    let pieces = 0;
-
-    filteredPurchases.forEach(p => {
-      cost += Number(p.cost || 0);
-      weight += Number(p.totalWeight || 0);
-      pieces += Number(p.quantity || 0);
-    });
-
-    const valPerGram = weight ? Math.round(cost / weight) : 0;
-
-    return {
-      totalCost: cost,
-      totalWeight: weight,
-      totalPieces: pieces,
-      valPerGram
-    };
-  }, [filteredPurchases]);
-
-  // ----------------------------------------------------
-  // WEEKLY & MONTHLY PERFORMANCE COMPARISONS
-  // ----------------------------------------------------
-  const comparisons = useMemo(() => {
-    const todayStr = new Date().toISOString().split("T")[0];
-    const today = new Date(todayStr);
-
-    // Weeks
-    const w1Start = new Date();
-    w1Start.setDate(today.getDate() - 7);
-    const w2Start = new Date();
-    w2Start.setDate(today.getDate() - 14);
-
-    let thisWeekCost = 0;
-    let thisWeekWeight = 0;
-    let lastWeekCost = 0;
-    let lastWeekWeight = 0;
-
-    // Months
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-
-    let thisMonthCost = 0;
-    let thisMonthWeight = 0;
-    let lastMonthCost = 0;
-    let lastMonthWeight = 0;
-
-    purchaseRecords.forEach(p => {
-      const pDate = new Date(p.date);
-      const cost = Number(p.cost || 0);
-      const weight = Number(p.totalWeight || 0);
-
-      // Week stats check
-      if (pDate >= w1Start && pDate <= today) {
-        thisWeekCost += cost;
-        thisWeekWeight += weight;
-      } else if (pDate >= w2Start && pDate < w1Start) {
-        lastWeekCost += cost;
-        lastWeekWeight += weight;
-      }
-
-      // Month stats check
-      if (pDate.getFullYear() === currentYear && pDate.getMonth() === currentMonth) {
-        thisMonthCost += cost;
-        thisMonthWeight += weight;
-      } else if (
-        (currentMonth === 0 && pDate.getFullYear() === currentYear - 1 && pDate.getMonth() === 11) ||
-        (currentMonth > 0 && pDate.getFullYear() === currentYear && pDate.getMonth() === currentMonth - 1)
-      ) {
-        lastMonthCost += cost;
-        lastMonthWeight += weight;
-      }
-    });
-
-    const calcChange = (current, previous) => {
-      if (!previous) return current > 0 ? 100 : 0;
-      return Math.round(((current - previous) / previous) * 100);
-    };
-
-    return {
-      week: {
-        cost: thisWeekCost,
-        weight: thisWeekWeight,
-        costChange: calcChange(thisWeekCost, lastWeekCost),
-        weightChange: calcChange(thisWeekWeight, lastWeekWeight),
-        lastCost: lastWeekCost,
-        lastWeight: lastWeekWeight
-      },
-      month: {
-        cost: thisMonthCost,
-        weight: thisMonthWeight,
-        costChange: calcChange(thisMonthCost, lastMonthCost),
-        weightChange: calcChange(thisMonthWeight, lastMonthWeight),
-        lastCost: lastMonthCost,
-        lastWeight: lastMonthWeight
-      }
-    };
-  }, [purchaseRecords]);
-
-  // ----------------------------------------------------
-  // CHART DATA PREPARATIONS
-  // ----------------------------------------------------
-  const chartData = useMemo(() => {
-    // 1. Dual-Axis Purchases Trend (Datewise Cost & Weight)
-    const dateMap = {};
-    filteredPurchases.forEach(p => {
-      if (!dateMap[p.date]) {
-        dateMap[p.date] = { date: p.date, Cost: 0, "Weight (g)": 0 };
-      }
-      dateMap[p.date].Cost += p.cost;
-      dateMap[p.date]["Weight (g)"] += p.totalWeight;
-    });
-
-    const dailyTrendData = Object.values(dateMap)
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .slice(-15);
-
-    // 2. Category Weight & Cost
-    const catMap = {};
-    filteredPurchases.forEach(p => {
-      if (!catMap[p.category]) {
-        catMap[p.category] = { name: p.category, Cost: 0, "Weight (g)": 0 };
-      }
-      catMap[p.category].Cost += p.cost;
-      catMap[p.category]["Weight (g)"] += Math.round(p.totalWeight);
-    });
-
-    const categoryPurchasesData = Object.values(catMap);
-
-    // 3. Top SKUs by Cost
-    const skuMap = {};
-    filteredPurchases.forEach(p => {
-      if (!skuMap[p.sku]) {
-        skuMap[p.sku] = { sku: p.sku, name: p.productName, Cost: 0, "Weight (g)": 0 };
-      }
-      skuMap[p.sku].Cost += p.cost;
-      skuMap[p.sku]["Weight (g)"] += Math.round(p.totalWeight);
-    });
-
-    const topSKUsData = Object.values(skuMap)
-      .sort((a, b) => b.Cost - a.Cost)
-      .slice(0, 5);
-
-    return { dailyTrendData, categoryPurchasesData, topSKUsData };
-  }, [filteredPurchases]);
-
-  // ----------------------------------------------------
-  // SELECT SKU FOR FORM
-  // ----------------------------------------------------
-  const handleSKUChange = (e) => {
-    const skuCode = e.target.value;
-    const item = inventory.find(d => d.sku === skuCode);
-
-    setSelectedDesign(item || null);
-    setPurchaseForm(prev => ({
-      ...prev,
-      sku: skuCode,
-      appliedRate: item ? silverRate : ""
-    }));
-  };
-
-  // ----------------------------------------------------
-  // SUBMIT RECORD NEW PURCHASE
-  // ----------------------------------------------------
-  const handleRecordPurchaseSubmit = (e) => {
-    e.preventDefault();
-    const errors = {};
-    const qty = parseInt(purchaseForm.quantity);
-    const rate = parseFloat(purchaseForm.appliedRate);
-
-    if (!purchaseForm.date) errors.date = "Date is required";
-    if (!purchaseForm.sku) errors.sku = "Select a design SKU from catalog";
-    if (!purchaseForm.supplierName.trim()) errors.supplierName = "Supplier name is required";
-
-    if (isNaN(qty) || qty <= 0) {
-      errors.quantity = "Enter a positive piece quantity";
-    }
-
-    if (isNaN(rate) || rate <= 0) errors.appliedRate = "Enter a valid silver rate";
-
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
-
-    // Calculations
-    const calcs = getCalculatedPurchase(selectedDesign, rate, qty);
-
-    // 1. INCREMENT STOCK IN INVENTORY
-    const updatedInv = inventory.map(item => {
-      if (item.id === selectedDesign.id) {
-        return {
-          ...item,
-          stocks: item.stocks + qty
-        };
-      }
-      return item;
-    });
-    localStorage.setItem("erp_silver_inventory", JSON.stringify(updatedInv));
-    setInventory(updatedInv);
-
-    // 2. LOG CASH OUTFLOW IN FINANCE LEDGER
-    const financeLedger = JSON.parse(localStorage.getItem("erp_general_transactions") || "[]");
-    const financeTx = {
-      id: "gen-" + Date.now(),
-      date: purchaseForm.date,
-      type: "OUTFLOW",
-      category: "Material Purchases",
-      amount: calcs.netTotal,
-      paymentMethod: purchaseForm.paymentMethod,
-      description: `Wholesale Purchase: ${qty}x ${selectedDesign.name} (${selectedDesign.sku}) from ${purchaseForm.supplierName.trim()}`
-    };
-    localStorage.setItem("erp_general_transactions", JSON.stringify([financeTx, ...financeLedger]));
-
-    // 3. CREATE PURCHASE RECORD
-    const newPurchase = {
-      id: "purchase-" + Date.now(),
-      billCode: "PUR-2026-" + Math.floor(Math.random() * 9000 + 1000),
-      date: purchaseForm.date,
-      sku: selectedDesign.sku,
-      productName: selectedDesign.name,
-      category: selectedDesign.category,
-      supplierName: purchaseForm.supplierName.trim(),
-      quantity: qty,
-      weightPerPiece: selectedDesign.weight,
-      totalWeight: calcs.weight,
-      silverRate: rate,
-      makingChargeType: selectedDesign.makingChargeType,
-      makingCharge: selectedDesign.makingCharge,
-      purity: selectedDesign.purity,
-      cost: calcs.netTotal,
-      paymentMethod: purchaseForm.paymentMethod
-    };
-
-    setPurchaseRecords(prev => [newPurchase, ...prev]);
-    setIsRecordOpen(false);
-
-    // Reset Form
-    setPurchaseForm({
-      date: new Date().toISOString().split("T")[0],
-      sku: "",
-      supplierName: "",
-      quantity: "",
-      appliedRate: "",
-      paymentMethod: "Bank Transfer"
-    });
-    setSelectedDesign(null);
-    setFormErrors({});
-    triggerToast(`Bill ${newPurchase.billCode} recorded! Stock incremented & cash flow updated.`);
-  };
-
-  // ----------------------------------------------------
-  // DELETE PURCHASE (Deduct stocks check)
-  // ----------------------------------------------------
-  const handleDeleteConfirm = () => {
-    if (!selectedPurchase) return;
-
-    // Deduct: take stock back out of inventory
-    const updatedInv = inventory.map(item => {
-      if (item.sku === selectedPurchase.sku) {
-        return {
-          ...item,
-          stocks: Math.max(0, item.stocks - selectedPurchase.quantity)
-        };
-      }
-      return item;
-    });
-    localStorage.setItem("erp_silver_inventory", JSON.stringify(updatedInv));
-    setInventory(updatedInv);
-
-    // Remove cash outflow transaction from Finance ledger
-    const financeLedger = JSON.parse(localStorage.getItem("erp_general_transactions") || "[]");
-    const updatedFinance = financeLedger.filter(tx => {
-      const matchText = `PUR-2026-${selectedPurchase.billCode.split("-")[2]}`;
-      return !tx.description.includes(matchText) && tx.amount !== selectedPurchase.cost;
-    });
-    localStorage.setItem("erp_general_transactions", JSON.stringify(updatedFinance));
-
-    // Delete purchase record
-    setPurchaseRecords(prev => prev.filter(p => p.id !== selectedPurchase.id));
-    setIsDeleteConfirmOpen(false);
-    triggerToast(`Bill ${selectedPurchase.billCode} cancelled. Stock deducted & finance reverted.`);
-    setSelectedPurchase(null);
-  };
-
-  // ----------------------------------------------------
-  // EXPORT PURCHASES CSV
-  // ----------------------------------------------------
-  const handleExportCSV = () => {
-    try {
-      let csv = "data:text/csv;charset=utf-8,";
-      csv += "Bill Code,Date,SKU,Product Name,Category,Supplier Vendor,Quantity,Weight per piece(g),Total Net Weight(g),Applied Silver Rate,Valuation(INR),Payment Method\r\n";
-
-      filteredPurchases.forEach(p => {
-        const row = [
-          p.billCode,
-          p.date,
-          p.sku,
-          `"${p.productName}"`,
-          p.category,
-          `"${p.supplierName}"`,
-          p.quantity,
-          p.weightPerPiece,
-          p.totalWeight,
-          p.silverRate,
-          p.cost,
-          p.paymentMethod
-        ];
-        csv += row.join(",") + "\r\n";
-      });
-
-      const encoded = encodeURI(csv);
-      const link = document.createElement("a");
-      link.setAttribute("href", encoded);
-      link.setAttribute("download", `silver_wholesale_purchases_report_${new Date().toISOString().split("T")[0]}.csv`);
-      link.click();
-      triggerToast("CSV purchase statement exported!");
-    } catch (e) {
-      triggerToast("Export failed.", "error");
-    }
-  };
-
+  const { productsList, isLoading,
+    // Filters state
+    searchQuery, setSearchQuery, paymentFilter, setPaymentFilter, dateRangePreset, setDateRangePreset, customStartDate,
+    setCustomStartDate, customEndDate, setCustomEndDate, sortBy, setSortBy, sortOrder, setSortOrder,
+    // UI state
+    showCharts, setShowCharts, isRecordOpen, setIsRecordOpen, selectedPurchase, setSelectedPurchase, isBillOpen,
+    setIsBillOpen, isDeleteConfirmOpen, setIsDeleteConfirmOpen,
+    // Form state
+    purchaseForm, setPurchaseForm,
+    // Computed values
+    calculatedFormValues, filteredPurchases, stats, comparisons, chartData,
+    // Actions
+    handleRecordPurchaseSubmit, handleDeleteConfirm, handleExportCSV
+
+  } = usePurchase();
+
+  
   return (
     <div className="space-y-6">
-
-
 
       {/* Title Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 rounded-2xl text-white shadow-md">
@@ -599,20 +75,6 @@ const Purchases = () => {
           {/* Record Purchase */}
           <button
             onClick={() => {
-              if (inventory.length === 0) {
-                triggerToast("Inventory catalog is empty! Create design SKUs first on the Inventory page.", "error");
-                return;
-              }
-              setPurchaseForm({
-                date: new Date().toISOString().split("T")[0],
-                sku: "",
-                supplierName: "",
-                quantity: "",
-                appliedRate: silverRate,
-                paymentMethod: "Bank Transfer"
-              });
-              setSelectedDesign(null);
-              setFormErrors({});
               setIsRecordOpen(true);
             }}
             className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-blue-500/20 cursor-pointer"
@@ -633,7 +95,7 @@ const Purchases = () => {
         </div>
       </div>
 
-      {/* Date Range Selector & Presets */}
+      {/* Date presets row */}
       <div className="bg-white border border-slate-100 p-4 md:p-6 rounded-2xl shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
@@ -641,7 +103,6 @@ const Purchases = () => {
             <h3 className="text-sm font-bold text-slate-800">Date Range filter (Cost & Weight calculations)</h3>
           </div>
 
-          {/* Date range picker input fields */}
           {dateRangePreset === "Custom" && (
             <div className="flex items-center gap-2 text-xs">
               <div className="flex items-center gap-1">
@@ -666,7 +127,6 @@ const Purchases = () => {
           )}
         </div>
 
-        {/* Date presets row */}
         <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-100/50 pt-3">
           {[
             { label: "All Purchase Logs", val: "All" },
@@ -699,22 +159,20 @@ const Purchases = () => {
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-        {/* KPI 1: Cost */}
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:translate-y-[-2px] transition-transform duration-200">
           <div className="space-y-1">
             <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Purchase Expense</span>
             <h3 className="text-2xl font-extrabold text-slate-800">₹{stats.totalCost.toLocaleString("en-IN")}</h3>
-            <p className="text-[10px] text-slate-400">Net expenditure (3% GST inc)</p>
+            <p className="text-[10px] text-slate-400 font-medium">Net expenditure (3% GST inc)</p>
           </div>
           <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
             <DollarSign className="w-5.5 h-5.5" />
           </div>
         </div>
 
-        {/* KPI 2: Weight purchased */}
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:translate-y-[-2px] transition-transform duration-200">
           <div className="space-y-1">
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Net Silver Weight Bought</span>
+            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Net Weight Bought</span>
             <h3 className="text-2xl font-extrabold text-slate-800">
               {(stats.totalWeight / 1000).toFixed(2)} kg
             </h3>
@@ -725,7 +183,6 @@ const Purchases = () => {
           </div>
         </div>
 
-        {/* KPI 3: Units purchased */}
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:translate-y-[-2px] transition-transform duration-200">
           <div className="space-y-1">
             <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Units Restocked</span>
@@ -737,7 +194,6 @@ const Purchases = () => {
           </div>
         </div>
 
-        {/* KPI 4: Valuation per gram */}
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:translate-y-[-2px] transition-transform duration-200">
           <div className="space-y-1">
             <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Avg Cost per Gram</span>
@@ -751,10 +207,8 @@ const Purchases = () => {
 
       </div>
 
-      {/* Monthly & Weekly Performance Comparison Metrics */}
+      {/* Comparisons */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-        {/* Weekly Comparison */}
         <div className="bg-white p-5 border border-slate-100 rounded-2xl shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
@@ -793,7 +247,6 @@ const Purchases = () => {
           </div>
         </div>
 
-        {/* Monthly Comparison */}
         <div className="bg-white p-5 border border-slate-100 rounded-2xl shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
@@ -831,14 +284,13 @@ const Purchases = () => {
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* Purchases Trend Analysis Graphs Panel */}
+      {/* Graphs */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
         <button
           onClick={() => setShowCharts(!showCharts)}
-          className="w-full flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+          className="w-full flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors text-center cursor-pointer"
         >
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-indigo-600" />
@@ -852,8 +304,6 @@ const Purchases = () => {
 
         {showCharts && (
           <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-
-            {/* Chart 1: Dual-Axis Cost vs Net Weight trend */}
             <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 lg:col-span-2">
               <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Daily Purchase Cost (INR) vs. Net Silver Weight Bought (Grams)</h4>
               <div className="h-72">
@@ -870,9 +320,7 @@ const Purchases = () => {
                       <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10 }} />
                       <YAxis yAxisId="left" label={{ value: "Cost (₹)", angle: -90, position: "insideLeft", fontSize: 10, fill: "#6366f1" }} tick={{ fill: "#6366f1", fontSize: 10 }} />
                       <YAxis yAxisId="right" orientation="right" label={{ value: "Weight (grams)", angle: 90, position: "insideRight", fontSize: 10, fill: "#10b981" }} tick={{ fill: "#10b981", fontSize: 10 }} />
-                      <Tooltip
-                        contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }}
-                      />
+                      <Tooltip contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }} />
                       <Legend wrapperStyle={{ fontSize: 10 }} />
                       <Area yAxisId="left" type="monotone" name="Cost (₹)" dataKey="Cost" fill="url(#colorCost)" stroke="#6366f1" strokeWidth={2} />
                       <Line yAxisId="right" type="monotone" name="Net Weight (g)" dataKey="Weight (g)" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
@@ -884,7 +332,6 @@ const Purchases = () => {
               </div>
             </div>
 
-            {/* Chart 2: Category distribution (Cost & Weight) */}
             <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 flex flex-col justify-between">
               <div>
                 <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Product Category Expenditure</h4>
@@ -906,28 +353,23 @@ const Purchases = () => {
                   )}
                 </div>
               </div>
-              <div className="max-h-24 overflow-y-auto text-[10px] space-y-1.5 border-t border-slate-200/50 pt-2.5">
+              <div className="max-h-24 overflow-y-auto text-[10px] space-y-1.5 border-t border-slate-200/50 pt-2.5 ">
                 {chartData.categoryPurchasesData.map((d, index) => (
                   <div key={index} className="flex items-center justify-between font-semibold">
-                    <span className="text-slate-600 truncate">{d.name} Category:</span>
-                    <span className="text-slate-700">₹{d.Cost.toLocaleString("en-IN")} ({d["Weight (g)"]}g)</span>
+                    <span className="text-slate-600 truncate">{d.name}:</span>
+                    <span className="text-slate-700">₹{Math.round(d.Cost).toLocaleString("en-IN")} ({Math.round(d["Weight (g)"])}g)</span>
                   </div>
                 ))}
               </div>
             </div>
-
           </div>
         )}
       </div>
 
       {/* Directory Table Area */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-
-        {/* Search & Advanced Filters Panel */}
         <div className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/30 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-
-            {/* Search Bar */}
             <div className="relative flex-1 max-w-md">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <Search className="w-4.5 h-4.5" />
@@ -936,20 +378,16 @@ const Purchases = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by bill code, SKU, product, or supplier..."
+                placeholder="Search by bill, items, or supplier..."
                 className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
               />
               {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                >
+                <button onClick={() => setSearchQuery("")} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
-            {/* Quick sorting dropdowns */}
             <div className="flex items-center gap-2 self-start md:self-auto">
               <span className="text-xs text-slate-400 font-semibold uppercase">Sort By:</span>
               <select
@@ -964,37 +402,13 @@ const Purchases = () => {
               <button
                 onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
                 className="p-1.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-600 text-xs font-bold cursor-pointer"
-                title="Toggle Sort Order"
               >
                 {sortOrder === "asc" ? "ASC ↑" : "DESC ↓"}
               </button>
             </div>
-
           </div>
 
-          {/* Filtering row */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
-
-            {/* Filter by Category */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Product Category</label>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-medium focus:outline-none"
-              >
-                <option value="All">All Categories</option>
-                <option value="Rings">Rings</option>
-                <option value="Earrings">Earrings</option>
-                <option value="Bracelets">Bracelets</option>
-                <option value="Chains">Chains</option>
-                <option value="Necklaces">Necklaces</option>
-                <option value="Anklets">Anklets (Payal)</option>
-                <option value="Toe Rings">Toe Rings</option>
-              </select>
-            </div>
-
-            {/* Filter by Payment Method */}
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment channel</label>
               <select
@@ -1009,11 +423,9 @@ const Purchases = () => {
               </select>
             </div>
 
-            {/* Clear Filters (if active) */}
-            {(categoryFilter !== "All" || paymentFilter !== "All" || dateRangePreset !== "All" || searchQuery) && (
+            {(paymentFilter !== "All" || dateRangePreset !== "All" || searchQuery) && (
               <button
                 onClick={() => {
-                  setCategoryFilter("All");
                   setPaymentFilter("All");
                   setDateRangePreset("All");
                   setCustomStartDate("");
@@ -1026,32 +438,31 @@ const Purchases = () => {
                 Clear Filters
               </button>
             )}
-
           </div>
         </div>
 
-        {/* Directory Table element */}
+        {/* Purchase table */}
         <div className="overflow-x-auto">
-          {filteredPurchases.length > 0 ? (
-            <table className="w-full text-left border-collapse">
+          {isLoading ? (
+            <div className="p-12 text-center text-slate-500 font-semibold">Loading purchases from fullstack server...</div>
+          ) : filteredPurchases.length > 0 ? (
+            <table className="w-full text-center border-collapse">
               <thead>
                 <tr className="bg-slate-50/50 border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
                   <th className="px-6 py-4">Date & Bill Code</th>
-                  <th className="px-6 py-4">SKU & Product Name</th>
                   <th className="px-6 py-4">Supplier Vendor</th>
-                  <th className="px-6 py-4 text-center">Quantity (pcs)</th>
+                  <th className="px-6 py-4">Items count</th>
                   <th className="px-6 py-4 text-center">Net Weight (g)</th>
-                  <th className="px-6 py-4 text-center">applied Silver Rate</th>
-                  <th className="px-6 py-4 text-right">Bill Cost</th>
+                  <th className="px-6 py-4 text-center">Bhaw rate (Rs/g)</th>
+                  <th className="px-6 py-4 text-right">Payable Cost</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
                 {filteredPurchases.map((p) => {
+                  const netWeight = p.totals?.netWt || p.totalWeight || 0;
                   return (
-                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors group">
-
-                      {/* Date & Bill */}
+                    <tr key={p._id} className="hover:bg-slate-50/50 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-800 text-xs">{p.billCode}</span>
@@ -1062,49 +473,30 @@ const Purchases = () => {
                         </div>
                       </td>
 
-                      {/* SKU & Product name */}
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col min-w-0">
-                          <span className="font-mono font-bold text-xs text-slate-700">{p.sku}</span>
-                          <span className="text-slate-500 font-medium text-[11px] truncate mt-0.5">{p.productName}</span>
-                        </div>
-                      </td>
-
-                      {/* Supplier Vendor */}
-                      <td className="px-6 py-4 font-semibold text-slate-800 text-xs">
+                      <td className="px-6 py-4 font-semibold text-slate-800 text-xs uppercase">
                         {p.supplierName}
                       </td>
 
-                      {/* Qty bought */}
-                      <td className="px-6 py-4 text-center text-slate-600 font-semibold text-xs">
-                        {p.quantity} pcs
+                      <td className="px-6 py-4 text-slate-600 font-semibold text-xs">
+                        {p.items ? p.items.length : 1} products
                       </td>
 
-                      {/* Weight bought */}
                       <td className="px-6 py-4 text-center font-bold text-slate-700 text-xs">
-                        {p.totalWeight.toFixed(2)} g
+                        {netWeight.toFixed(2)} g
                       </td>
 
-                      {/* Silver rate */}
                       <td className="px-6 py-4 text-center text-slate-500 font-medium text-xs">
-                        ₹{p.silverRate}/g
-                        <span className="block text-[9px] text-slate-400 font-semibold">
-                          Purity {p.purity === 925 ? "92.5%" : `${p.purity / 10}%`}
-                        </span>
+                        ₹{(p.silverRate / 1000).toFixed(2)}/g
                       </td>
 
-                      {/* Cost */}
                       <td className="px-6 py-4 text-right">
                         <span className="font-black text-rose-600 text-xs">
                           ₹{p.cost.toLocaleString("en-IN")}
                         </span>
                       </td>
 
-                      {/* Actions */}
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1">
-
-                          {/* Print Bill */}
                           <button
                             onClick={() => {
                               setSelectedPurchase(p);
@@ -1116,7 +508,6 @@ const Purchases = () => {
                             Bill Voucher
                           </button>
 
-                          {/* Delete/Deduct */}
                           <button
                             onClick={() => {
                               setSelectedPurchase(p);
@@ -1127,434 +518,402 @@ const Purchases = () => {
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-
                         </div>
                       </td>
-
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-          ) : (
-            <div className="flex flex-col items-center justify-center p-12 text-slate-400">
-              <AlertCircle className="w-12 h-12 text-slate-300 mb-2" />
-              <span className="text-base font-semibold">No purchase records found matching the filters</span>
-              <p className="text-xs text-slate-400 mt-1">Try expanding the date range filter above</p>
-            </div>
+          ) : (<div className="flex flex-col items-center justify-center p-12 text-slate-400">
+            <AlertCircle className="w-12 h-12 text-slate-300 mb-2" />
+            <span className="text-base font-semibold">No purchase records found matching the filters</span>
+            <p className="text-xs text-slate-400 mt-1">Try expanding the date range filter above</p>
+          </div>
           )}
         </div>
-
-        {/* Directory Footer info */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/20 text-xs text-slate-400 font-medium flex items-center justify-between">
-          <span>Displaying {filteredPurchases.length} of {purchaseRecords.length} registered restock logs</span>
-          <span>Automatic stock incrementing and expense logging synced</span>
-        </div>
-
       </div>
 
-      {/* --- RECORD NEW PURCHASE MODAL --- */}
+
+
       {isRecordOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden transform scale-100 transition-transform">
-
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
-              <div className="flex items-center gap-2">
-                <Package className="w-5 h-5 text-blue-600" />
-                <h3 className="text-base font-bold text-slate-800">Record Wholesale Batch Restock Bill</h3>
-              </div>
-              <button
-                onClick={() => setIsRecordOpen(false)}
-                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
-              >
-                <X className="w-4.5 h-4.5" />
-              </button>
-            </div>
-
-            {/* Modal Body / Form */}
-            <form onSubmit={handleRecordPurchaseSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-black">
-
-              {/* Date & Supplier */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                {/* Date */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Bill Date *</label>
-                  <input
-                    type="date"
-                    value={purchaseForm.date}
-                    onChange={(e) => setPurchaseForm(prev => ({ ...prev, date: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${formErrors.date ? "border-rose-400" : "border-slate-200"
-                      }`}
-                  />
-                  {formErrors.date && <span className="text-xs font-semibold text-rose-500">{formErrors.date}</span>}
-                </div>
-
-                {/* Supplier Vendor */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Supplier Vendor *</label>
-                  <input
-                    type="text"
-                    value={purchaseForm.supplierName}
-                    onChange={(e) => setPurchaseForm(prev => ({ ...prev, supplierName: e.target.value }))}
-                    placeholder="e.g. Apex Silver Refinery"
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${formErrors.supplierName ? "border-rose-400" : "border-slate-200"
-                      }`}
-                  />
-                  {formErrors.supplierName && <span className="text-xs font-semibold text-rose-500">{formErrors.supplierName}</span>}
-                </div>
-
-              </div>
-
-              {/* Design SKU Selector */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase">Select Catalog Jewelry SKU *</label>
-                <select
-                  value={purchaseForm.sku}
-                  onChange={handleSKUChange}
-                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none text-sm font-semibold bg-white ${formErrors.sku ? "border-rose-400" : "border-slate-200"
-                    }`}
-                >
-                  <option value="">-- Select Design from Inventory --</option>
-                  {inventory.map(item => (
-                    <option key={item.sku} value={item.sku}>
-                      {item.sku} - {item.name} (Stock: {item.stocks} pcs, Weight: {item.weight}g)
-                    </option>
-                  ))}
-                </select>
-                {formErrors.sku && <span className="text-xs font-semibold text-rose-500">{formErrors.sku}</span>}
-              </div>
-
-              {/* Design Attributes Details Panel */}
-              {selectedDesign && (
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <span className="text-slate-400 font-bold uppercase block mb-0.5">Design Weight / piece</span>
-                    <span className="text-slate-700 font-bold block text-sm">{selectedDesign.weight} g</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-bold uppercase block mb-0.5">Silver purity grade</span>
-                    <span className="text-slate-700 font-bold block text-sm">
-                      {selectedDesign.purity === 925 ? "925 Sterling (92.5%)" : `${selectedDesign.purity} Fine`}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-bold uppercase block mb-0.5">Making charges structure</span>
-                    <span className="text-slate-700 font-bold block text-sm">
-                      {selectedDesign.makingChargeType === "PER_GRAM" ? `₹${selectedDesign.makingCharge} / gram` : `₹${selectedDesign.makingCharge} flat per piece`}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-bold uppercase block mb-0.5">Metal Polish / Finish</span>
-                    <span className="text-slate-700 font-bold block text-sm">{selectedDesign.finish}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Qty & Applied Silver Rate */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                {/* Qty to purchase */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Pieces Quantity to Buy *</label>
-                  <input
-                    type="number"
-                    value={purchaseForm.quantity}
-                    onChange={(e) => setPurchaseForm(prev => ({ ...prev, quantity: e.target.value }))}
-                    placeholder="Enter piece count"
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${formErrors.quantity ? "border-rose-400" : "border-slate-200"
-                      }`}
-                  />
-                  {formErrors.quantity && <span className="text-xs font-semibold text-rose-500">{formErrors.quantity}</span>}
-                </div>
-
-                {/* Silver Rate applied */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Purchase Silver Rate (₹/g) *</label>
-                  <input
-                    type="number"
-                    step={0.1}
-                    value={purchaseForm.appliedRate}
-                    onChange={(e) => setPurchaseForm(prev => ({ ...prev, appliedRate: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${formErrors.appliedRate ? "border-rose-400" : "border-slate-200"
-                      }`}
-                  />
-                  {formErrors.appliedRate && <span className="text-xs font-semibold text-rose-500">{formErrors.appliedRate}</span>}
-                </div>
-
-              </div>
-
-              {/* Payment Method */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase">Payment Channel</label>
-                <select
-                  value={purchaseForm.paymentMethod}
-                  onChange={(e) => setPurchaseForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-sm font-semibold bg-white"
-                >
-                  <option value="UPI">UPI</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                </select>
-              </div>
-
-              {/* Cost Calculations previews */}
-              {selectedDesign && purchaseForm.quantity && purchaseForm.appliedRate && (
-                <div className="bg-indigo-50/50 p-4 border border-indigo-100 rounded-xl space-y-2 text-xs">
-                  <div className="flex justify-between items-center text-slate-600 font-medium">
-                    <span>Total Net Weight:</span>
-                    <strong className="text-slate-800">{(selectedDesign.weight * parseInt(purchaseForm.quantity)).toFixed(2)} g</strong>
-                  </div>
-                  <div className="flex justify-between items-center text-slate-600 font-medium">
-                    <span>Dynamic Metal value:</span>
-                    <span className="text-slate-800 font-semibold">
-                      ₹{getCalculatedPurchase(selectedDesign, parseFloat(purchaseForm.appliedRate), parseInt(purchaseForm.quantity)).silverCost.toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-slate-600 font-medium">
-                    <span>Making charges value:</span>
-                    <span className="text-slate-800 font-semibold">
-                      ₹{getCalculatedPurchase(selectedDesign, parseFloat(purchaseForm.appliedRate), parseInt(purchaseForm.quantity)).makingCost.toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-slate-600 font-medium border-b border-indigo-100/50 pb-1.5">
-                    <span>Purchase GST Tax (3%):</span>
-                    <span className="text-slate-800 font-semibold">
-                      ₹{getCalculatedPurchase(selectedDesign, parseFloat(purchaseForm.appliedRate), parseInt(purchaseForm.quantity)).gst.toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center font-bold text-sm text-indigo-700 pt-0.5">
-                    <span>Total Net Restock Cost:</span>
-                    <strong className="text-indigo-700 font-black">
-                      ₹{getCalculatedPurchase(selectedDesign, parseFloat(purchaseForm.appliedRate), parseInt(purchaseForm.quantity)).netTotal.toLocaleString("en-IN")}
-                    </strong>
-                  </div>
-                </div>
-              )}
-
-              {/* Modal Footer actions */}
-              <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setIsRecordOpen(false)}
-                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-sm rounded-xl cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer"
-                >
-                  Post Restock Bill
-                </button>
-              </div>
-
-            </form>
-
-          </div>
-        </div>
+        <AddPurchase
+          purchaseForm={purchaseForm}
+          setPurchaseForm={setPurchaseForm}
+          setIsRecordOpen={setIsRecordOpen}
+          productsList={productsList}
+          calculatedFormValues={calculatedFormValues}
+          handleRecordPurchaseSubmit={handleRecordPurchaseSubmit}
+        />
       )}
 
-      {/* --- CONFIRM DELETE MODAL (Deduct check) --- */}
+
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden p-6 space-y-4">
-
-            <div className="flex items-center gap-3 text-rose-600">
-              <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <h3 className="text-base font-bold text-slate-800">Cancel & Revert Purchase Bill?</h3>
-            </div>
-
-            <p className="text-sm text-slate-500">
-              Are you sure you want to cancel Bill <strong>{selectedPurchase?.billCode}</strong>?
-              <br />
-              <span className="block text-[11px] text-indigo-600 font-bold mt-2">
-                * Restocked stocks of {selectedPurchase?.quantity} pieces of {selectedPurchase?.sku} will be deducted from the inventory catalog.
-              </span>
-              <span className="block text-[11px] text-rose-600 font-bold mt-1">
-                * The ₹{selectedPurchase?.cost.toLocaleString("en-IN")} Outflow record will be deleted from the Finance ledger.
-              </span>
-            </p>
-
-            <div className="flex items-center justify-end gap-2 pt-2 text-xs">
-              <button
-                type="button"
-                onClick={() => setIsDeleteConfirmOpen(false)}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold rounded-xl cursor-pointer"
-              >
-                No, Keep Bill
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteConfirm}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition-all cursor-pointer"
-              >
-                Yes, Revert Bill
-              </button>
-            </div>
-
-          </div>
-        </div>
+        <ConfirmModal
+          title="Delete Purchase"
+          message="Are you sure you want to delete this purchase?"
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => {
+            setIsDeleteConfirmOpen(false);
+            setSelectedPurchase(null);
+          }}
+        />
       )}
+
 
       {/* --- SLIDE OUT DRAWER / BILL VOUCHER VIEW --- */}
-      {isBillOpen && selectedPurchase && (
-        <div className="fixed inset-0 z-40 flex justify-end bg-slate-900/40 backdrop-blur-xs animate-fade-in">
+      {isBillOpen && selectedPurchase && (() => {
+        const silverRate = selectedPurchase.silverRate || 0;
+        const oldBalFine = selectedPurchase.oldBalanceFine || 0;
+        const oldBalAmt = selectedPurchase.oldBalanceAmount || 0;
 
-          {/* Backdrop closer clicker */}
-          <div
-            className="flex-1 cursor-pointer"
-            onClick={() => setIsBillOpen(false)}
-          />
+        const totalLabor = (selectedPurchase.totals?.amount || 0) + oldBalAmt;
+        const ratePerGram = silverRate / 1000;
 
-          {/* Drawer Panel Container */}
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in relative overflow-hidden">
+        const jamaDetails = selectedPurchase.jamaDetails || [];
+        const cashJamaList = selectedPurchase.cashJamaList || [];
 
-            {/* Drawer Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-              <div>
-                <h3 className="text-base font-bold text-slate-800 leading-tight">Wholesale Restock Bill</h3>
-                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Purchase Voucher Slip</span>
-              </div>
-              <button
-                onClick={() => setIsBillOpen(false)}
-                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+        const jamaFineTotal = jamaDetails.reduce((acc, curr) => acc + (curr.fine || 0), 0);
+        const totalFineWeight = (selectedPurchase.totals?.fine || 0) + oldBalFine;
 
-            {/* Drawer Body (Bill Voucher) */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        const outstandingFine = Math.max(0, totalFineWeight - jamaFineTotal);
+        const silverCost = outstandingFine * ratePerGram;
+        const totalBeforeGST = silverCost + totalLabor;
+        const gst = selectedPurchase.cost - totalBeforeGST;
 
-              {/* Receipt Visual design */}
-              <div className="bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-300 space-y-5 relative">
+        return (
+          <div className="fixed inset-0 z-45 flex justify-end bg-slate-900/40 backdrop-blur-xs animate-fade-in">
+            {/* Direct CSS injection for high fidelity printing */}
+            <style>{`
+              @media print {
+                body * {
+                  visibility: hidden !important;
+                }
+                #print-bill-area-container, #print-bill-area-container * {
+                  visibility: visible !important;
+                }
+                #print-bill-area-container {
+                  position: absolute !important;
+                  left: 0 !important;
+                  top: 0 !important;
+                  width: 100% !important;
+                  background: white !important;
+                  color: black !important;
+                  box-shadow: none !important;
+                  border: none !important;
+                  padding: 20px !important;
+                }
+                .no-print-action {
+                  display: none !important;
+                }
+              }
+            `}</style>
 
-                {/* Store Name header */}
-                <div className="text-center pb-4 border-b border-slate-200">
-                  <h4 className="font-extrabold text-slate-800 tracking-tight text-base">SILVER JEWELLERY ERP</h4>
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mt-0.5">Wholesale restock bill</span>
-                  <div className="mt-3 flex justify-center">
-                    <span className="px-3 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-black rounded-full border border-blue-200 uppercase tracking-wider">
-                      {selectedPurchase.billCode}
-                    </span>
-                  </div>
+            <div
+              className="flex-1 cursor-pointer no-print-action"
+              onClick={() => setIsBillOpen(false)}
+            />
+
+            <div className="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col animate-slide-in relative overflow-hidden no-print:w-full no-print:max-w-none">
+
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 no-print-action">
+                <div>
+                  <h3 className="text-base font-bold text-slate-800 leading-tight">Wholesale Restock Bill</h3>
+                  <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Estimate Format Viewer</span>
                 </div>
-
-                {/* Amount display */}
-                <div className="text-center py-2">
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider mb-1">Bill Net Total</span>
-                  <strong className="text-3xl font-black block tracking-tight text-rose-600">
-                    ₹{selectedPurchase.cost.toLocaleString("en-IN")}
-                  </strong>
-                </div>
-
-                {/* Voucher details fields */}
-                <div className="space-y-3.5 text-xs border-t border-slate-200 pt-4">
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Supplier Vendor</span>
-                    <span className="text-slate-800 font-bold text-sm">{selectedPurchase.supplierName}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Bill Date</span>
-                    <span className="text-slate-700 font-semibold">{selectedPurchase.date}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Jewelry SKU</span>
-                    <span className="text-slate-700 font-mono font-bold">{selectedPurchase.sku}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Product Name</span>
-                    <span className="text-slate-700 font-semibold text-right max-w-[200px] truncate">{selectedPurchase.productName}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Purity Stamp</span>
-                    <span className="text-slate-700 font-bold">
-                      {selectedPurchase.purity === 925 ? "925 Sterling (92.5%)" : `${selectedPurchase.purity / 10}% Fine`}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Quantity restocked</span>
-                    <span className="text-slate-700 font-bold">{selectedPurchase.quantity} pieces</span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Net Weight bought</span>
-                    <span className="text-slate-700 font-bold">{selectedPurchase.totalWeight.toFixed(2)} grams</span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Silver Metal rate</span>
-                    <span className="text-slate-700">₹{selectedPurchase.silverRate} / gram</span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Making Charges</span>
-                    <span className="text-slate-700 font-semibold">
-                      {selectedPurchase.makingChargeType === "PER_GRAM" ? `₹${selectedPurchase.makingCharge}/g` : `₹${selectedPurchase.makingCharge} flat`}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center border-t border-slate-200/50 pt-2 text-[10px] text-slate-500 font-medium">
-                    <span>Tax Structure:</span>
-                    <span>3% Wholeseller GST Stamp Included</span>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Payment channel</span>
-                    <span className="text-slate-700 font-bold flex items-center gap-1">
-                      <CreditCard className="w-3.5 h-3.5 text-slate-400" />
-                      {selectedPurchase.paymentMethod}
-                    </span>
-                  </div>
-
-                </div>
-
-                {/* Footer seal */}
-                <div className="text-center pt-2 text-[9px] text-slate-400 font-medium">
-                  Verified Raw Material Intake Confirmation
-                </div>
-
+                <button
+                  onClick={() => setIsBillOpen(false)}
+                  className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
+              {/* Drawer Body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-100/50">
+
+                {/* Printable receipt pad container */}
+                <div
+                  id="print-bill-area-container"
+                  className="bg-[#faf9f5] p-6 sm:p-8 rounded-xl border border-neutral-300 space-y-5 relative shadow-md text-neutral-900 "
+                >
+                  {/* Faded diagonal red watermark stamp */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-[0.06] pointer-events-none select-none z-0">
+                    <div className="border-[6px] border-red-600 text-red-600 font-extrabold px-8 py-3 text-5xl uppercase tracking-widest rotate-[-12deg] rounded-xl">
+                      ROUGH ESTIMATE
+                    </div>
+                  </div>
+
+                  {/* Header stamp / invocation */}
+                  <div className="text-center pb-2 border-b-2 border-double border-neutral-800 relative z-10">
+                    <h4 className="font-bold tracking-widest text-sm text-neutral-950 font-serif">SHREE GANESHAYA NAMAH</h4>
+                    <span className="text-[10px] text-neutral-600 font-bold uppercase tracking-wider block mt-1">
+                      {"<< ROUGH ESTIMATE >>"}
+                    </span>
+                  </div>
+
+                  {/* Metadata fields */}
+                  <div className="flex justify-between items-start text-xs relative z-10 pt-2 ">
+                    <div className="space-y-1">
+                      <div>
+                        <span className="text-neutral-500 font-semibold">SL. NO. - </span>
+                        <strong className="underline text-neutral-950 font-bold">{selectedPurchase.billCode}</strong>
+                      </div>
+                      <div className="pt-2 font-serif text-sm font-black text-neutral-900 tracking-wide uppercase">
+                        {selectedPurchase.supplierName}
+                      </div>
+                    </div>
+                    <div className="text-right space-y-1">
+                      <span className="text-[10px] text-neutral-500 block">2:18 pm</span>
+                      <strong className="text-neutral-900 font-bold">{selectedPurchase.date}</strong>
+                    </div>
+                  </div>
+
+                  {/* Bill grid table */}
+                  <div className="relative z-10 pt-3 overflow-x-auto">
+                    <table className="w-full text-center border-collapse text-[10px] sm:text-xs">
+                      <thead>
+                        <tr className="border-t border-b-2 border-neutral-800 text-neutral-950 font-extrabold">
+                          <th className="py-2 pr-1.5 text-right border-r border-neutral-300 w-[14%]">Amount</th>
+                          <th className="py-2 px-2 text-center border-r border-neutral-300 w-[24%]">Item</th>
+                          <th className="py-2 px-1.5 text-center border-r border-neutral-300 w-[10%]">Weight</th>
+                          <th className="py-2 px-1.5 text-center border-r border-neutral-300 w-[8%]">Less</th>
+                          <th className="py-2 px-1.5 text-center border-r border-neutral-300 w-[11%]">Net Wt.</th>
+                          <th className="py-2 px-1.5 text-center border-r border-neutral-300 w-[12%]">Tunch</th>
+                          <th className="py-2 px-1.5 text-center border-r border-neutral-300 w-[10%]">Lab.</th>
+                          <th className="py-2 pl-2 text-right w-[11%]">Fine</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-300 font-semibold text-neutral-800">
+                        {selectedPurchase.items && selectedPurchase.items.map((item, idx) => (
+                          <tr key={idx} className="border-b border-neutral-200">
+                            <td className="py-2 pr-1.5 text-right font-bold border-r border-neutral-300 text-neutral-950">
+                              {Math.round(item.amount).toLocaleString("en-IN")}
+                            </td>
+                            <td className="py-2 px-2 text-center border-r border-neutral-300 leading-tight">
+                              <span className="font-bold block text-neutral-950">{item.productName}</span>
+                              <span className="text-[9px] text-neutral-500  block mt-0.5">({item.quantity} pcs)</span>
+                            </td>
+                            <td className="py-2 px-1.5 text-center border-r border-neutral-300">
+                              {item.weight.toFixed(2)}
+                            </td>
+                            <td className="py-2 px-1.5 text-center border-r border-neutral-300">
+                              {item.less > 0 ? item.less.toFixed(2) : "-"}
+                            </td>
+                            <td className="py-2 px-1.5 text-center border-r border-neutral-300 font-bold text-neutral-950">
+                              {item.netWeight.toFixed(2)}
+                            </td>
+                            <td className="py-2 px-1.5 text-center border-r border-neutral-300  text-[10px]">
+                              {item.tunch}
+                            </td>
+                            <td className="py-2 px-1.5 text-center border-r border-neutral-300 text-[10px]">
+                              {item.labRateType === "PER_GRAM" ? `${item.labRate}/g` : item.labRateType === "PER_KG" ? `${item.labRate}/kg` : `${item.labRate}`}
+                            </td>
+                            <td className="py-2 pl-2 text-right font-bold text-neutral-950">
+                              {Math.round(item.fine)}
+                            </td>
+                          </tr>
+                        ))}
+
+                        {/* New Total Row */}
+                        <tr className="border-b border-neutral-400 bg-neutral-100/40">
+                          <td className="py-2 pr-1.5 text-right font-extrabold border-r border-neutral-300 text-neutral-900">
+                            {Math.round(selectedPurchase.totals?.amount || 0).toLocaleString("en-IN")}
+                          </td>
+                          <td className="py-2 px-2 text-center font-bold border-r border-neutral-300">New Total</td>
+                          <td className="py-2 px-1.5 text-center font-bold border-r border-neutral-300">{(selectedPurchase.totals?.weight || 0).toFixed(2)}</td>
+                          <td className="py-2 px-1.5 text-center border-r border-neutral-300">{(selectedPurchase.totals?.less || 0).toFixed(2)}</td>
+                          <td className="py-2 px-1.5 text-center font-bold border-r border-neutral-300">{(selectedPurchase.totals?.netWt || 0).toFixed(2)}</td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 pl-2 text-right font-extrabold text-neutral-900">{(selectedPurchase.totals?.fine || 0).toFixed(2)}</td>
+                        </tr>
+
+                        {/* Old Balance Row */}
+                        <tr className="border-b border-neutral-300 text-neutral-600">
+                          <td className="py-2 pr-1.5 text-right border-r border-neutral-300">
+                            {oldBalAmt > 0 ? oldBalAmt.toLocaleString("en-IN") : ""}
+                          </td>
+                          <td className="py-2 px-2 text-center border-r border-neutral-300 text-[10px]">Old Balance (Pending)</td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 pl-2 text-right text-neutral-500">{oldBalFine.toFixed(2)}</td>
+                        </tr>
+
+                        {/* Total Row */}
+                        <tr className="border-b-2 border-neutral-800 bg-neutral-200/20 font-black">
+                          <td className="py-2 pr-1.5 text-right border-r border-neutral-300 text-neutral-950">
+                            {totalLabor.toLocaleString("en-IN")}
+                          </td>
+                          <td className="py-2 px-2 text-center border-r border-neutral-300 text-neutral-950">Total</td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 pl-2 text-right text-neutral-950">{totalFineWeight.toFixed(2)}</td>
+                        </tr>
+
+                        {/* Jama details / Kachhi returns */}
+                        {jamaDetails.length > 0 && (
+                          <tr className="border-none">
+                            <td className="py-1 pr-1.5 border-r border-neutral-300"></td>
+                            <td className="py-1 px-2 text-center font-extrabold text-[9px] text-neutral-500 border-r border-neutral-300 tracking-wider">Jama Detail (Credit Items)</td>
+                            <td className="py-1 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-1 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-1 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-1 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-1 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-1 pl-2 text-right"></td>
+                          </tr>
+                        )}
+
+                        {jamaDetails.map((jama, idx) => (
+                          <tr key={idx} className="border-b border-neutral-200 text-neutral-600">
+                            <td className="py-2 pr-1.5 text-right border-r border-neutral-300 text-neutral-400">-</td>
+                            <td className="py-2 px-2 text-center border-r border-neutral-300 text-[10px]">{jama.description || "KACHHI / Exchange"}</td>
+                            <td className="py-2 px-1.5 text-center border-r border-neutral-300">{jama.weight.toFixed(2)}</td>
+                            <td className="py-2 px-1.5 text-center border-r border-neutral-300">{jama.less > 0 ? jama.less.toFixed(2) : "-"}</td>
+                            <td className="py-2 px-1.5 text-center border-r border-neutral-300">{jama.netWeight.toFixed(2)}</td>
+                            <td className="py-2 px-1.5 text-center border-r border-neutral-300">{jama.tunch}%</td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 pl-2 text-right text-neutral-800">{jama.fine.toFixed(2)}</td>
+                          </tr>
+                        ))}
+
+                        {jamaDetails.length > 0 && (
+                          <tr className="border-b-2 border-neutral-800 bg-neutral-100/40">
+                            <td className="py-2 pr-1.5 text-right border-r border-neutral-300 text-neutral-500">0</td>
+                            <td className="py-2 px-2 text-center border-r border-neutral-300 font-bold">Jama Total</td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 pl-2 text-right text-neutral-800">{jamaFineTotal.toFixed(2)}</td>
+                          </tr>
+                        )}
+
+                        {/* Bhaw Calculation row */}
+                        <tr className="border-b border-neutral-300 bg-amber-50/20 font-black">
+                          <td className="py-2 pr-1.5 text-right border-r border-neutral-300 text-indigo-700">
+                            {Math.round(silverCost).toLocaleString("en-IN")}
+                          </td>
+                          <td className="py-2 px-2 text-center border-r border-neutral-300 leading-tight">
+                            <span className="font-bold text-neutral-900">Bhaw @ {(silverRate / 1000).toFixed(2)}/g</span>
+                            <span className="text-[9px] text-neutral-400 block font-normal ">({silverRate.toLocaleString("en-IN")} Rs. Per Kg.)</span>
+                          </td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 pl-2 text-right text-indigo-700">{outstandingFine.toFixed(2)}</td>
+                        </tr>
+
+                        {/* GST tax */}
+                        <tr className="border-b border-neutral-300 text-neutral-600">
+                          <td className="py-2 pr-1.5 text-right border-r border-neutral-300">
+                            {gst.toLocaleString("en-IN")}
+                          </td>
+                          <td className="py-2 px-2 text-center border-r border-neutral-300 text-[10px]">
+                            GST Stamp Structure (3% Included)
+                          </td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 pl-2 text-right"></td>
+                        </tr>
+
+                        {/* Grand Total */}
+                        <tr className="border-b-2 border-neutral-800 text-neutral-950 font-black text-xs sm:text-sm bg-rose-50/20">
+                          <td className="py-2 pr-1.5 text-right border-r border-neutral-300 text-rose-700">
+                            ₹{selectedPurchase.cost.toLocaleString("en-IN")}
+                          </td>
+                          <td className="py-2 px-2 text-center border-r border-neutral-300 uppercase tracking-wide text-rose-700">Grand Total Net</td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2 pl-2 text-right text-rose-700"></td>
+                        </tr>
+
+                        {/* Cash Jama / Bank Transfer Payments list */}
+                        {cashJamaList.map((cash, idx) => (
+                          <tr key={idx} className="border-b border-neutral-800 font-extrabold bg-emerald-50/30">
+                            <td className="py-2 pr-1.5 text-right border-r border-neutral-300 text-emerald-700">
+                              {cash.amount.toLocaleString("en-IN")}
+                            </td>
+                            <td className="py-2 px-2 text-center border-r border-neutral-300 text-emerald-800 uppercase tracking-wide">
+                              {cash.type.replace("_", " ")} JAMA {cash.description ? `(${cash.description})` : ""}
+                            </td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 px-1.5 border-r border-neutral-300"></td>
+                            <td className="py-2 pl-2 text-right"></td>
+                          </tr>
+                        ))}
+
+                        {/* Final Outstanding row */}
+                        <tr className="font-black text-neutral-950 bg-neutral-200/50">
+                          <td className="py-2.5 pr-1.5 text-right border-r border-neutral-300 text-neutral-950 ">
+                            ₹{(selectedPurchase.finalOutstanding?.amount || 0).toLocaleString("en-IN")}
+                          </td>
+                          <td className="py-2.5 px-2 text-center border-r border-neutral-300 uppercase tracking-widest text-[10px] text-neutral-950">
+                            Final Outstanding
+                          </td>
+                          <td className="py-2.5 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2.5 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2.5 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2.5 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2.5 px-1.5 border-r border-neutral-300"></td>
+                          <td className="py-2.5 pl-2 text-right text-emerald-700 ">
+                            {(selectedPurchase.finalOutstanding?.fine || 0).toFixed(2)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Foot Note stamp */}
+                  <div className="pt-3 border-t border-dashed border-neutral-400 flex justify-between items-center text-[9px] text-neutral-500 font-semibold relative z-10">
+                    <span>* System Generated Estimate Copy</span>
+                    <span className="uppercase">Final Kachhi- 1 Dhada- {(selectedPurchase.totals?.weight || 0).toFixed(0)} Fine- {totalFineWeight.toFixed(0)}</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Drawer Footer Actions */}
+              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2 no-print-action">
+                <button
+                  onClick={() => setIsBillOpen(false)}
+                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-xs rounded-xl cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print Estimate
+                </button>
+              </div>
+
             </div>
-
-            {/* Drawer Footer actions */}
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-
-              <button
-                type="button"
-                onClick={() => {
-                  window.print();
-                }}
-                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
-              >
-                <Printer className="w-4 h-4" />
-                Print Bill
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsBillOpen(false)}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold text-xs rounded-xl cursor-pointer"
-              >
-                Close Bill
-              </button>
-
-            </div>
-
           </div>
-        </div>
-      )}
+        );
+      })()}
 
     </div>
   );

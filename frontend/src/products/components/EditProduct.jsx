@@ -2,6 +2,19 @@ import { Edit, X, Check } from "lucide-react";
 import handleForm from "../../utils/formHandler.utils.js";
 import { useState } from "react";
 
+const parseMathExpression = (expr) => {
+  if (!expr) return 0;
+  try {
+    const clean = String(expr).replace(/\s+/g, "");
+    if (!/^[0-9.+\-*/()]+$/.test(clean)) {
+      return parseFloat(clean) || 0;
+    }
+    const result = new Function(`return (${clean})`)();
+    return typeof result === "number" && !isNaN(result) ? result : 0;
+  } catch (e) {
+    return 0;
+  }
+};
 
 const PRESET_IMAGES = [
     { name: "Necklace 1", url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=150&auto=format&fit=crop&q=60" },
@@ -18,11 +31,11 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
     const [formName, setFormName] = useState(currentProduct?.name || "");
     const [formCategory, setFormCategory] = useState(currentProduct?.category?.toLowerCase() || "payal");
     const [customCategory, setCustomCategory] = useState("");
-    const [formPieces, setFormPieces] = useState(currentProduct?.pieces?.toString() || "");
+    const [formPieces, setFormPieces] = useState(currentProduct?.pieces ? currentProduct.pieces.toString() : "");
     const [formWeight, setFormWeight] = useState(currentProduct?.weight ? currentProduct.weight.join(", ") : "");
-    const [formTunch, setFormTunch] = useState(currentProduct?.tunch?.toString() || "");
-    const [formLab, setFormLab] = useState(currentProduct?.lab?.toString() || "");
-    const [formPanniDetail, setFormPanniDetail] = useState(currentProduct?.panniDetail?.toString() || "");
+    const [formTunch, setFormTunch] = useState(currentProduct?.tunch ? currentProduct.tunch.toString() : "");
+    const [formLab, setFormLab] = useState(currentProduct?.lab ? currentProduct.lab.toString() : "");
+    const [formPanniDetail, setFormPanniDetail] = useState(currentProduct?.panniDetail ? currentProduct.panniDetail.toString() : "");
     const [formImageUrl, setFormImageUrl] = useState(currentProduct?.image || PRESET_IMAGES[0].url);
     const [formErrors, setFormErrors] = useState({});
 
@@ -32,7 +45,7 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
         const errors = {};
         if (!data.name?.trim()) errors.name = "Product name is required";
 
-        const parsedPieces = parseInt(data.pieces);
+        const parsedPieces = data.pieces ? parseInt(data.pieces) : 0;
         if (isNaN(parsedPieces) || parsedPieces < 0) errors.pieces = "Pieces must be a non-negative number";
 
         const weightArr = data.weight ? data.weight.split(",").map(w => parseFloat(w.trim())).filter(w => !isNaN(w)) : [];
@@ -44,7 +57,7 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
         const parsedLab = parseFloat(data.lab);
         if (isNaN(parsedLab) || parsedLab < 0) errors.lab = "Lab must be a positive number";
 
-        const parsedPanni = parseFloat(data.panniDetail);
+        const parsedPanni = data.panniDetail ? parseMathExpression(data.panniDetail) : 0;
         if (isNaN(parsedPanni) || parsedPanni < 0) errors.panniDetail = "Panni detail must be a positive number";
 
         if (data.category === "new" && !data.customCategory?.trim()) {
@@ -210,14 +223,13 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
 
                         {/* PanniDetail */}
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Panni (₹)</label>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Panni (g)</label>
                             <input
-                                type="number"
-                                step="any"
+                                type="text"
                                 name="panniDetail"
                                 value={formPanniDetail}
                                 onChange={(e) => setFormPanniDetail(e.target.value)}
-                                placeholder="e.g. 5"
+                                placeholder="e.g. 5 or 1*2.5 + 1*3"
                                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono"
                             />
                             {formErrors.panniDetail && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.panniDetail}</span>}

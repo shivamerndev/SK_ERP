@@ -1,69 +1,15 @@
 import { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { FileText, History, TrendingUp, Coins, Scale, User } from "lucide-react";
+import { History } from "lucide-react";
 import PrintModal from "../report/components/PrintModal";
 import ReportFilter from "../report/components/ReportFilter";
 import LedgerTable from "../report/components/LedgerTable";
 import SavedInvoices from "../report/components/SavedInvoices";
 import useReport from "../report/hook/useReport";
 import { showToast } from "../utils/toast.utils";
+import TopCustomers from "../report/components/TopCustomers";
+import SummaryCard from "../report/components/SummaryCard";
 
-// Default Seed Bill matching Billing.jsx
-const SEED_BILL = {
-  "_id": "6a66e9b5d52d4f09a7107678",
-  "billNo": "1",
-  "customerName": "VIKASH BHAGAT JI",
-  "customerPhone": 9935345723,
-  "customerAddress": "jamui,Bihar",
-  "customerId": 6,
-  "date": "2026-07-27",
-  "time": "10:38 AM",
-  "topHeader": "|| SHREE GANESHAYAA NAMAH ||",
-  "title": "ROUGH ESTIMATE",
-  "items": [
-    {
-      "item": "ss nice got",
-      "weight": "931",
-      "panniDetail": "",
-      "less": "",
-      "netWt": 931,
-      "tunch": "60",
-      "lab": "800",
-      "amount": 745,
-      "fine": 559,
-      "_id": "6a66e9b5d52d4f09a7107679"
-    }
-  ],
-  "totals": {
-    "weight": 931,
-    "less": 0,
-    "netWt": 931,
-    "amount": 745,
-    "fine": 559
-  },
-  "lastBalance": {
-    "amount": 2197,
-    "fine": 796
-  },
-  "jamaDetail": {
-    "details": "",
-    "weight": 0,
-    "netWt": 0,
-    "tunch": "",
-    "fine": 0,
-    "amount": 200000
-  },
-  "finalBaki": {
-    "amount": 105920,
-    "fine": 0
-  },
-  "silverRate": 223600,
-  "convertedFineAmount": 302978,
-  "postedToUdhaar": true,
-  "createdAt": "2026-07-27T05:16:37.147Z",
-  "updatedAt": "2026-07-27T05:16:37.147Z",
-  "__v": 0
-}
 
 const Reports = () => {
 
@@ -74,14 +20,13 @@ const Reports = () => {
   }, [])
 
 
-  // Filters State
   const [searchQuery, setSearchQuery] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [bakiFilter, setBakiFilter] = useState("all"); // 'all' | 'outstanding_amt' | 'outstanding_fine' | 'no_outstanding'
 
 
-  // Reset Filters
+
   const handleResetFilters = () => {
     setSearchQuery("");
     setStartDate("");
@@ -127,7 +72,7 @@ const Reports = () => {
     });
   }, [history, searchQuery, startDate, endDate, bakiFilter]);
 
-  // Dynamic Dashboard Metrics based on filtered data
+
   const metrics = useMemo(() => {
     let totalInvoices = filteredHistory.length;
     let totalLaborAmt = 0;
@@ -151,7 +96,7 @@ const Reports = () => {
     };
   }, [filteredHistory]);
 
-  // Aggregate Top Clients
+
   const topClients = useMemo(() => {
     const clientsMap = {};
 
@@ -184,7 +129,7 @@ const Reports = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-5 screen-only">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-3 screen-only">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <History className="w-6 h-6 text-indigo-600" />
@@ -196,78 +141,7 @@ const Reports = () => {
         </div>
       </div>
 
-      {/* ANALYTICS SUMMARY CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 screen-only">
-        {/* Total Bills */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Bills</span>
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-              <FileText className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-800">{metrics.totalInvoices}</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Invoices in selected period</p>
-          </div>
-        </div>
-
-        {/* Total Labor Revenue */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Labor Cash</span>
-            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-800">₹{metrics.totalLaborAmt}</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Total compiled labor charges</p>
-          </div>
-        </div>
-
-        {/* Total Fine Weight */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Sales Fine Wt.</span>
-            <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
-              <Scale className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-800">{metrics.totalFineWt}g</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Total sale fine credit weight</p>
-          </div>
-        </div>
-
-        {/* Outstanding cash dues */}
-        <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-xs flex flex-col justify-between hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-rose-500 uppercase tracking-wider font-semibold">Baki Amount</span>
-            <div className="p-2 bg-rose-50 text-rose-600 rounded-lg">
-              <Coins className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-black text-rose-600">₹{metrics.outstandingBakiAmt}</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Unpaid labor balance</p>
-          </div>
-        </div>
-
-        {/* Outstanding fine dues */}
-        <div className="bg-white p-5 rounded-2xl border border-purple-100 shadow-xs flex flex-col justify-between hover:shadow-md transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-purple-500 uppercase tracking-wider font-semibold">Baki Fine</span>
-            <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
-              <Scale className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-black text-purple-600">{metrics.outstandingBakiFine}g</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Unreturned metal fine balance</p>
-          </div>
-        </div>
-      </div>
+      <SummaryCard metrics={metrics} />
 
       <ReportFilter
         searchQuery={searchQuery}
@@ -284,61 +158,8 @@ const Reports = () => {
 
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 screen-only">
-        {/* TOP CLIENTS PANEL */}
-        <div className="xl:col-span-1 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-1.5 text-slate-800 font-bold">
-                <User className="w-4 h-4 text-indigo-500" />
-                <h3 className="text-sm">Top Customer Accounts</h3>
-              </div>
-              <span className="text-[10px] bg-indigo-50 text-indigo-600 font-bold px-2 py-0.5 rounded-full">
-                By Sales Vol.
-              </span>
-            </div>
 
-            {topClients.length > 0 ? (
-              <div className="divide-y divide-slate-100 space-y-3.5">
-                {topClients.map((client, idx) => (
-                  <div key={idx} className="pt-3.5 first:pt-0 flex flex-col justify-between">
-                    <div className="flex items-start justify-between">
-                      <span className="font-black text-slate-800 text-xs truncate max-w-[150px]">
-                        {client.name}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-semibold font-mono">
-                        {client.billsCount} bills
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-2 text-[10px] text-slate-500 font-mono">
-                      <div>
-                        <span className="block text-[8px] uppercase tracking-wider text-slate-400">Total Labor</span>
-                        <span className="font-bold text-emerald-600">₹{Math.round(client.totalLabor)}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="block text-[8px] uppercase tracking-wider text-slate-400">Total Fine</span>
-                        <span className="font-bold text-amber-600">{client.totalFine.toFixed(2)}g</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-dashed border-slate-100 text-[10px] text-slate-500 font-mono">
-                      <div>
-                        <span className="text-rose-500 font-semibold">Baki ₹{Math.round(client.bakiAmount)}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-purple-600 font-semibold">Fine {client.bakiFine.toFixed(2)}g</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10 text-slate-400">
-                <p className="text-xs font-semibold">No transactions aggregate yet.</p>
-              </div>
-            )}
-          </div>
-        </div>
+        <TopCustomers topClients={topClients} />
 
         <SavedInvoices filteredHistory={filteredHistory} />
 
