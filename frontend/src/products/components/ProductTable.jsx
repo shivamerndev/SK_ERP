@@ -1,22 +1,26 @@
-import { Package, Edit, Trash2 } from 'lucide-react';
+import { Package, Edit, Trash2, FileText, RefreshCw } from 'lucide-react';
 import useProduct from "../useProduct"
 import { useEffect } from 'react';
 
 const ProductTable = ({
+  filteredProducts,
   handleOpenEditModal,
-  handleOpenDeleteModal
+  handleOpenDeleteModal,
+  handleOpenAdjustStockModal,
+  handleOpenTagModal,
+  handleClearFilters: parentClearFilters
 }) => {
 
-
-
-
-
-  const { handleClearFilters, handleAllProducts, products: filteredProducts } = useProduct()
-
+  const { handleClearFilters: defaultClearFilters, handleAllProducts, products: allProducts } = useProduct()
 
   useEffect(() => {
-    handleAllProducts();
+    if (filteredProducts === undefined) {
+      handleAllProducts();
+    }
   }, []);
+
+  const displayProducts = filteredProducts !== undefined ? filteredProducts : allProducts;
+  const handleResetFilters = parentClearFilters || defaultClearFilters;
 
 
   return (
@@ -49,7 +53,7 @@ const ProductTable = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filteredProducts.length === 0 ? (
+            {displayProducts.length === 0 ? (
               <tr>
                 <td colSpan="7" className="p-12 text-center text-slate-400">
                   <div className="flex flex-col items-center justify-center gap-3">
@@ -59,7 +63,7 @@ const ProductTable = ({
                       No items match your active filters. Try adjusting your search query or reset filters.
                     </span>
                     <button
-                      onClick={handleClearFilters}
+                      onClick={handleResetFilters}
                       className="mt-2 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100/80 px-4 py-2 rounded-xl font-bold transition-all border border-blue-100 cursor-pointer"
                     >
                       Reset All Filters
@@ -68,7 +72,7 @@ const ProductTable = ({
                 </td>
               </tr>
             ) : (
-              filteredProducts.map((product) => {
+              displayProducts.map((product) => {
                 const totalWeight = Array.isArray(product.weight) ? product.weight.reduce((a, b) => a + b, 0) : 0;
                 const calculatedStatus = product.pieces > 0 ? "Active" : "Inactive";
                 return (
@@ -133,6 +137,26 @@ const ProductTable = ({
                     </td>
                     <td className="p-4 px-6 text-center">
                       <div className="flex items-center justify-center gap-2">
+                        {/* Print Tag Button */}
+                        {handleOpenTagModal && (
+                          <button
+                            onClick={() => handleOpenTagModal(product)}
+                            className="bg-indigo-50/50 text-indigo-600 hover:bg-indigo-100 p-2 rounded-lg transition-all border border-indigo-100/30 hover:border-indigo-200 cursor-pointer"
+                            title="Print Jewelry Tag"
+                          >
+                            <FileText size={16} />
+                          </button>
+                        )}
+                        {/* Adjust Stock Button */}
+                        {handleOpenAdjustStockModal && (
+                          <button
+                            onClick={() => handleOpenAdjustStockModal(product)}
+                            className="bg-emerald-50/50 text-emerald-600 hover:bg-emerald-100 p-2 rounded-lg transition-all border border-emerald-100/30 hover:border-emerald-200 cursor-pointer"
+                            title="Adjust Stock"
+                          >
+                            <RefreshCw size={16} />
+                          </button>
+                        )}
                         {/* Edit Button */}
                         <button
                           onClick={() => handleOpenEditModal(product)}

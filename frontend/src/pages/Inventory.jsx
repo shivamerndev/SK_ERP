@@ -100,6 +100,34 @@ const Inventory = () => {
   const [selectedWeightRange, setSelectedWeightRange] = useState("All Weights");
   const [selectedStockLevel, setSelectedStockLevel] = useState("All Stock");
 
+  const [liveSilverRate, setLiveSilverRate] = useState(() => {
+    const savedRate = localStorage.getItem("erp_live_silver_rate");
+    return savedRate ? parseFloat(savedRate) : 85.0; // ₹85 per gram default
+  });
+
+  const [purityFilter, setPurityFilter] = useState("All"); // All, 925, 900, 999
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [stockFilter, setStockFilter] = useState("All"); // All, Available, LowStock, OutOfStock
+
+  const [sortBy, setSortBy] = useState("name"); // name, weight, stocks, value, tunch
+  const [sortOrder, setSortOrder] = useState("asc");
+
+  const [showCharts, setShowCharts] = useState(true);
+
+  // Modals & Drawers
+  const [isTagOpen, setIsTagOpen] = useState(false);
+  const [isAdjustStockOpen, setIsAdjustStockOpen] = useState(false);
+
+  const [selectedDesign, setSelectedDesign] = useState(null);
+
+  const [adjustForm, setAdjustForm] = useState({
+    type: "ADD", // ADD, REMOVE
+    qty: "",
+    reason: "Purchase Receipt"
+  });
+
+  const [adjustErrors, setAdjustErrors] = useState({});
+
   // Dropdown UI Open States
   const [activeDropdown, setActiveDropdown] = useState(null); // 'category' | 'status' | 'weight' | 'stock' | null
 
@@ -224,6 +252,9 @@ const Inventory = () => {
     setSelectedWeightRange("All Weights");
     setSelectedStockLevel("All Stock");
     setSearchQuery("");
+    setPurityFilter("All");
+    setCategoryFilter("All");
+    setStockFilter("All");
   };
 
   // Checks if any filters are currently applied
@@ -233,54 +264,106 @@ const Inventory = () => {
       selectedStatus !== "All Status" ||
       selectedWeightRange !== "All Weights" ||
       selectedStockLevel !== "All Stock" ||
-      searchQuery !== ""
+      searchQuery !== "" ||
+      purityFilter !== "All" ||
+      categoryFilter !== "All" ||
+      stockFilter !== "All"
     );
-  }, [selectedCategory, selectedStatus, selectedWeightRange, selectedStockLevel, searchQuery]);
+  }, [selectedCategory, selectedStatus, selectedWeightRange, selectedStockLevel, searchQuery, purityFilter, categoryFilter, stockFilter]);
 
   // ----------------------------------------------------
-  // FILTERING LOGIC
+  // FILTERING & SORTING LOGIC
   // ----------------------------------------------------
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      // 1. Search Query Filter
-      if (searchQuery.trim() !== "") {
-        const query = searchQuery.toLowerCase();
-        const matchesName = product.name?.toLowerCase().includes(query);
-        const matchesCat = product.category?.toLowerCase().includes(query);
-        if (!matchesName && !matchesCat) return false;
-      }
+    let result = [...products];
 
-      // 2. Category Filter
-      if (selectedCategory !== "All Categories") {
-        if (product.category?.toLowerCase() !== selectedCategory.toLowerCase()) return false;
-      }
+    // 1. Search Query Filter
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(product =>
+        product.name?.toLowerCase().includes(query) ||
+        product.category?.toLowerCase().includes(query)
+      );
+    }
 
-      // 3. Calculated Status Filter
-      const calculatedStatus = product.pieces > 0 ? "Active" : "Inactive";
-      if (selectedStatus !== "All Status") {
-        if (calculatedStatus !== selectedStatus) return false;
-      }
+    // 2. Category Filter (can be set by query params categoryFilter or selectedCategory)
+    const activeCategory = categoryFilter !== "All" ? categoryFilter : (selectedCategory !== "All Categories" ? selectedCategory : "All");
+    if (activeCategory !== "All") {
+      result = result.filter(product => product.category?.toLowerCase() === activeCategory.toLowerCase());
+    }
 
-      // 4. Weight Filter
-      const totalWeight = Array.isArray(product.weight) ? product.weight.reduce((sum, w) => sum + w, 0) : 0;
-      if (selectedWeightRange !== "All Weights") {
+    // 3. Purity Filter (Tunch standard)
+    if (purityFilter !== "All") {
+      result = result.filter(product => {
+        const purityValue = parseFloat(purityFilter);
+        // Map 925 to 92.5, 900 to 90, 999 to 99.9
+        const targetTunch = purityValue >= 100 ? purityValue / 10 : purityValue;
+        return product.tunch === targetTunch;
+      });
+    }
+
+    // 4. Calculated Status Filter
+    if (selectedStatus !== "All Status") {
+      result = result.filter(product => {
+        const calculatedStatus = product.pieces > 0 ? "Active" : "Inactive";
+        return calculatedStatus === selectedStatus;
+      });
+    }
+
+    // 5. Weight Filter
+    if (selectedWeightRange !== "All Weights") {
+      result = result.filter(product => {
+        const totalWeight = Array.isArray(product.weight) ? product.weight.reduce((sum, w) => sum + w, 0) : 0;
         if (selectedWeightRange === "Under 20g" && totalWeight >= 20) return false;
         if (selectedWeightRange === "20g - 50g" && (totalWeight < 20 || totalWeight > 50)) return false;
         if (selectedWeightRange === "Over 50g" && totalWeight <= 50) return false;
-      }
+        return true;
+      });
+    }
 
-      // 5. Stock Level Filter
-      if (selectedStockLevel !== "All Stock" && selectedStockLevel !== "In Stock") {
+    // 6. Stock Level Filter (Stock status)
+    const activeStockFilter = stockFilter !== "All" ? stockFilter : (selectedStockLevel !== "All Stock" ? selectedStockLevel : "All");
+    if (activeStockFilter !== "All") {
+      result = result.filter(product => {
         const stock = product.pieces || 0;
-        if (selectedStockLevel === "Low Stock" && (stock === 0 || stock >= 5)) return false;
-        if (selectedStockLevel === "Out of Stock" && stock > 0) return false;
-      } else if (selectedStockLevel === "In Stock") {
-        if ((product.pieces || 0) === 0) return false;
+        if ((activeStockFilter === "Low Stock" || activeStockFilter === "LowStock") && (stock === 0 || stock > STOCKS_LIMIT)) return false;
+        if ((activeStockFilter === "Out of Stock" || activeStockFilter === "OutOfStock") && stock > 0) return false;
+        if (activeStockFilter === "In Stock" && stock === 0) return false;
+        if (activeStockFilter === "Available" && stock <= STOCKS_LIMIT) return false;
+        return true;
+      });
+    }
+
+    // 7. Sorting
+    result.sort((a, b) => {
+      let valA, valB;
+      if (sortBy === "name") {
+        valA = (a.name || "").toLowerCase();
+        valB = (b.name || "").toLowerCase();
+      } else if (sortBy === "weight") {
+        valA = Array.isArray(a.weight) ? a.weight.reduce((sum, w) => sum + w, 0) : 0;
+        valB = Array.isArray(b.weight) ? b.weight.reduce((sum, w) => sum + w, 0) : 0;
+      } else if (sortBy === "stocks" || sortBy === "pieces") {
+        valA = a.pieces || 0;
+        valB = b.pieces || 0;
+      } else if (sortBy === "value") {
+        valA = getStockValuation(a, liveSilverRate);
+        valB = getStockValuation(b, liveSilverRate);
+      } else if (sortBy === "tunch") {
+        valA = a.tunch || 0;
+        valB = b.tunch || 0;
+      } else {
+        valA = (a.name || "").toLowerCase();
+        valB = (b.name || "").toLowerCase();
       }
 
-      return true;
+      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
     });
-  }, [products, searchQuery, selectedCategory, selectedStatus, selectedWeightRange, selectedStockLevel]);
+
+    return result;
+  }, [products, searchQuery, selectedCategory, categoryFilter, purityFilter, selectedStatus, selectedWeightRange, stockFilter, selectedStockLevel, sortBy, sortOrder, liveSilverRate]);
 
   // Get categories from active products list for the dropdown filter options
   const categoriesList = useMemo(() => {
@@ -295,75 +378,15 @@ const Inventory = () => {
     setIsDeleteModalOpen(true);
   };
 
+  const handleOpenAdjustStockModal = (product) => {
+    setSelectedDesign(product);
+    setIsAdjustStockOpen(true);
+  };
 
-  const [designs, setDesigns] = useState(() => {
-    const saved = localStorage.getItem("erp_silver_inventory");
-    return saved ? JSON.parse(saved) : INITIAL_DESIGNS;
-  });
-
-  const [liveSilverRate, setLiveSilverRate] = useState(() => {
-    const savedRate = localStorage.getItem("erp_live_silver_rate");
-    return savedRate ? parseFloat(savedRate) : 85.0; // ₹85 per gram default
-  });
-
-  const [purityFilter, setPurityFilter] = useState("All"); // All, 925, 900
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [finishFilter, setFinishFilter] = useState("All");
-  const [stockFilter, setStockFilter] = useState("All"); // All, Available, LowStock, OutOfStock
-
-  const [sortBy, setSortBy] = useState("sku"); // sku, name, weight, stocks, value
-  const [sortOrder, setSortOrder] = useState("asc");
-
-  const [showCharts, setShowCharts] = useState(true);
-
-  // Modals & Drawers
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isTagOpen, setIsTagOpen] = useState(false);
-  const [isAdjustStockOpen, setIsAdjustStockOpen] = useState(false);
-
-  const [selectedDesign, setSelectedDesign] = useState(null);
-
-  // Forms
-  const [addForm, setAddForm] = useState({
-    sku: "",
-    name: "",
-    category: "Rings",
-    purity: 925,
-    weight: "",
-    finish: "High-Polish White",
-    makingChargeType: "PER_GRAM",
-    makingCharge: "",
-    stocks: "",
-    notes: "",
-    imageUrl: ""
-  });
-
-  const [editForm, setEditForm] = useState({
-    id: "",
-    sku: "",
-    name: "",
-    category: "",
-    purity: 925,
-    weight: "",
-    finish: "",
-    makingChargeType: "PER_GRAM",
-    makingCharge: "",
-    stocks: "",
-    notes: "",
-    imageUrl: ""
-  });
-
-  const [adjustForm, setAdjustForm] = useState({
-    type: "ADD", // ADD, REMOVE
-    qty: "",
-    reason: "Purchase Receipt"
-  });
-
-  const [addErrors, setAddErrors] = useState({});
-  const [editErrors, setEditErrors] = useState({});
-  const [adjustErrors, setAdjustErrors] = useState({});
+  const handleOpenTagModal = (product) => {
+    setSelectedDesign(product);
+    setIsTagOpen(true);
+  };
 
 
 
@@ -373,22 +396,18 @@ const Inventory = () => {
   // PERSIST TO LOCAL STORAGE
   // ----------------------------------------------------
   useEffect(() => {
-    localStorage.setItem("erp_silver_inventory", JSON.stringify(designs));
-  }, [designs]);
-
-  useEffect(() => {
     localStorage.setItem("erp_live_silver_rate", liveSilverRate.toString());
   }, [liveSilverRate]);
 
   // Keep selected design synchronized in case of stock adjust
   useEffect(() => {
     if (selectedDesign) {
-      const current = designs.find(d => d.id === selectedDesign.id);
+      const current = products.find(p => String(p._id) === String(selectedDesign._id));
       if (current) {
         setSelectedDesign(current);
       }
     }
-  }, [designs]);
+  }, [products]);
 
   // TOAST HANDLER using react-hot-toast
   const triggerToast = (message, type = "success") => {
@@ -404,50 +423,53 @@ const Inventory = () => {
   // ----------------------------------------------------
   // BUSINESS CALCULATIONS FOR WHOLSELLER STOCKS
   // ----------------------------------------------------
-  const getSilverCost = (item, rate) => {
-    // Metal value = weight * silver rate * purity percentage
-    return item.weight * rate * (item.purity / 1000);
+  const getSilverCost = (product, rate) => {
+    const totalWeight = Array.isArray(product.weight) ? product.weight.reduce((sum, w) => sum + w, 0) : 0;
+    // Metal value = fine weight * silver rate
+    return totalWeight * rate * ((product.tunch || 0) / 100);
   };
 
-  const getMakingCost = (item) => {
-    if (item.makingChargeType === "PER_GRAM") {
-      return item.weight * item.makingCharge;
-    }
-    return item.makingCharge;
+  const getMakingCost = (product) => {
+    const totalWeight = Array.isArray(product.weight) ? product.weight.reduce((sum, w) => sum + w, 0) : 0;
+    // lab is labor rate per kg, so labor cost = totalWeight * (lab / 1000)
+    return totalWeight * ((product.lab || 0) / 1000);
   };
 
-  const getWholesaleUnitCost = (item, rate) => {
-    const costBeforeGST = getSilverCost(item, rate) + getMakingCost(item);
+  const getWholesaleUnitCost = (product, rate) => {
+    const costBeforeGST = getSilverCost(product, rate) + getMakingCost(product);
     // Standard GST on silver ornaments in India is 3%
     return costBeforeGST * 1.03;
   };
 
-  const getStockValuation = (item, rate) => {
-    return item.stocks * getWholesaleUnitCost(item, rate);
+  const getStockValuation = (product, rate) => {
+    return getWholesaleUnitCost(product, rate);
   };
 
-  const getPureSilverWeight = (item) => {
-    return item.stocks * item.weight * (item.purity / 1000);
+  const getPureSilverWeight = (product) => {
+    const totalWeight = Array.isArray(product.weight) ? product.weight.reduce((sum, w) => sum + w, 0) : 0;
+    return totalWeight * ((product.tunch || 0) / 100);
   };
 
   // ----------------------------------------------------
   // CALCULATE SUMMARY KPI STATS
   // ----------------------------------------------------
   const stats = useMemo(() => {
-    let uniqueSKUs = designs.length;
+    let uniqueSKUs = products.length;
     let totalPieces = 0;
     let totalGrossWeight = 0;
     let totalValuation = 0;
     let pureSilverWeight = 0;
     let lowStockCount = 0;
 
-    designs.forEach(d => {
-      totalPieces += Number(d.stocks || 0);
-      totalGrossWeight += Number(d.stocks || 0) * Number(d.weight || 0);
-      totalValuation += getStockValuation(d, liveSilverRate);
-      pureSilverWeight += getPureSilverWeight(d);
+    products.forEach(p => {
+      const pcs = Number(p.pieces || 0);
+      const totalWeight = Array.isArray(p.weight) ? p.weight.reduce((sum, w) => sum + w, 0) : 0;
+      totalPieces += pcs;
+      totalGrossWeight += totalWeight;
+      totalValuation += getStockValuation(p, liveSilverRate);
+      pureSilverWeight += getPureSilverWeight(p);
 
-      if (d.stocks <= STOCKS_LIMIT) {
+      if (pcs <= STOCKS_LIMIT) {
         lowStockCount++;
       }
     });
@@ -460,77 +482,12 @@ const Inventory = () => {
       pureSilverWeight,
       lowStockCount
     };
-  }, [designs, liveSilverRate]);
+  }, [products, liveSilverRate]);
 
   // ----------------------------------------------------
   // FILTERING & SORTING DIRECTORY
   // ----------------------------------------------------
-  const filteredDesigns = useMemo(() => {
-    let result = [...designs];
-
-    // Search SKU / Name
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        d =>
-          d.sku.toLowerCase().includes(q) ||
-          d.name.toLowerCase().includes(q) ||
-          d.category.toLowerCase().includes(q)
-      );
-    }
-
-    // Purity Filter
-    if (purityFilter !== "All") {
-      result = result.filter(d => d.purity === Number(purityFilter));
-    }
-
-    // Category Filter
-    if (categoryFilter !== "All") {
-      result = result.filter(d => d.category === categoryFilter);
-    }
-
-    // Finish Filter
-    if (finishFilter !== "All") {
-      result = result.filter(d => d.finish === finishFilter);
-    }
-
-    // Stock Status
-    if (stockFilter !== "All") {
-      result = result.filter(d => {
-        if (stockFilter === "Available") return d.stocks > STOCKS_LIMIT;
-        if (stockFilter === "LowStock") return d.stocks > 0 && d.stocks <= STOCKS_LIMIT;
-        if (stockFilter === "OutOfStock") return d.stocks <= 0;
-        return true;
-      });
-    }
-
-    // Sorting
-    result.sort((a, b) => {
-      let valA, valB;
-      if (sortBy === "sku") {
-        valA = a.sku.toLowerCase();
-        valB = b.sku.toLowerCase();
-      } else if (sortBy === "name") {
-        valA = a.name.toLowerCase();
-        valB = b.name.toLowerCase();
-      } else if (sortBy === "weight") {
-        valA = a.weight;
-        valB = b.weight;
-      } else if (sortBy === "stocks") {
-        valA = a.stocks;
-        valB = b.stocks;
-      } else if (sortBy === "value") {
-        valA = getStockValuation(a, liveSilverRate);
-        valB = getStockValuation(b, liveSilverRate);
-      }
-
-      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return result;
-  }, [designs, searchQuery, purityFilter, categoryFilter, finishFilter, stockFilter, sortBy, sortOrder, liveSilverRate]);
+  const filteredDesigns = filteredProducts;
 
   // ----------------------------------------------------
   // CHART DATA PREPARATION
@@ -538,25 +495,27 @@ const Inventory = () => {
   const chartData = useMemo(() => {
     // 1. Weight by Category
     const categoryWeight = {};
-    designs.forEach(d => {
-      const gWeight = (d.stocks || 0) * (d.weight || 0);
-      categoryWeight[d.category] = (categoryWeight[d.category] || 0) + Math.round(gWeight);
+    products.forEach(p => {
+      const totalWeight = Array.isArray(p.weight) ? p.weight.reduce((sum, w) => sum + w, 0) : 0;
+      const cat = p.category ? p.category.toLowerCase().trim() : "other";
+      categoryWeight[cat] = (categoryWeight[cat] || 0) + Math.round(totalWeight);
     });
 
     const weightCategoryData = Object.keys(categoryWeight).map(cat => ({
-      name: cat,
+      name: cat.charAt(0).toUpperCase() + cat.slice(1),
       "Total Weight (g)": categoryWeight[cat]
     }));
 
-    // 2. Metal Finishes mix
-    const finishPieces = {};
-    designs.forEach(d => {
-      finishPieces[d.finish] = (finishPieces[d.finish] || 0) + d.stocks;
+    // 2. Purity variety distribution
+    const purityPieces = {};
+    products.forEach(p => {
+      const purityLabel = `${p.tunch || 0}% Tunch`;
+      purityPieces[purityLabel] = (purityPieces[purityLabel] || 0) + (p.pieces || 0);
     });
 
-    const finishVarietyData = Object.keys(finishPieces).map(fin => ({
-      name: fin,
-      Pieces: finishPieces[fin]
+    const purityVarietyData = Object.keys(purityPieces).map(pur => ({
+      name: pur,
+      Pieces: purityPieces[pur]
     }));
 
     // 3. Stock Status breakdown
@@ -564,9 +523,10 @@ const Inventory = () => {
     let lowCount = 0;
     let zeroCount = 0;
 
-    designs.forEach(d => {
-      if (d.stocks <= 0) zeroCount++;
-      else if (d.stocks <= STOCKS_LIMIT) lowCount++;
+    products.forEach(p => {
+      const stocks = p.pieces || 0;
+      if (stocks <= 0) zeroCount++;
+      else if (stocks <= STOCKS_LIMIT) lowCount++;
       else avCount++;
     });
 
@@ -576,8 +536,8 @@ const Inventory = () => {
       { name: "Out of Stock", value: zeroCount, color: "#ef4444" }
     ].filter(d => d.value > 0);
 
-    return { weightCategoryData, finishVarietyData, statusPieData };
-  }, [designs]);
+    return { weightCategoryData, purityVarietyData, statusPieData };
+  }, [products]);
 
   // ----------------------------------------------------
   // SUBMIT ADD DESIGN
@@ -642,58 +602,6 @@ const Inventory = () => {
   };
 
   // ----------------------------------------------------
-  // SUBMIT EDIT DESIGN
-  // ----------------------------------------------------
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    const errors = {};
-    const weightVal = parseFloat(editForm.weight);
-    const chargeVal = parseFloat(editForm.makingCharge);
-    const stockVal = parseInt(editForm.stocks);
-
-    if (!editForm.sku.trim()) {
-      errors.sku = "SKU is required";
-    } else if (designs.some(d => d.sku.toUpperCase() === editForm.sku.toUpperCase().trim() && d.id !== editForm.id)) {
-      errors.sku = "Design SKU code already registered to another item";
-    }
-
-    if (!editForm.name.trim()) errors.name = "Design name is required";
-    if (isNaN(weightVal) || weightVal <= 0) errors.weight = "Weight must be positive";
-    if (isNaN(chargeVal) || chargeVal < 0) errors.makingCharge = "Making charge must be positive";
-    if (isNaN(stockVal) || stockVal < 0) errors.stocks = "Stocks must be positive";
-
-    if (Object.keys(errors).length > 0) {
-      setEditErrors(errors);
-      return;
-    }
-
-    setDesigns(prev => prev.map(d => {
-      if (d.id === editForm.id) {
-        return {
-          ...d,
-          sku: editForm.sku.toUpperCase().trim(),
-          name: editForm.name.trim(),
-          category: editForm.category,
-          purity: Number(editForm.purity),
-          weight: weightVal,
-          finish: editForm.finish,
-          makingChargeType: editForm.makingChargeType,
-          makingCharge: chargeVal,
-          stocks: stockVal,
-          notes: editForm.notes.trim(),
-          imageUrl: editForm.imageUrl.trim() || d.imageUrl
-        };
-      }
-      return d;
-    }));
-
-    setIsEditOpen(false);
-    setEditErrors({});
-    triggerToast(`Design ${editForm.sku} updated successfully.`);
-  };
-
-
-  // ----------------------------------------------------
   // QUICK QUANTITY ADJUSTMENT
   // ----------------------------------------------------
   const handleAdjustStock = (e) => {
@@ -710,26 +618,30 @@ const Inventory = () => {
       return;
     }
 
-    setDesigns(prev => prev.map(d => {
-      if (d.id === selectedDesign.id) {
-        let finalStock = d.stocks;
-        if (adjustForm.type === "ADD") {
-          finalStock += adjustQty;
-        } else {
-          finalStock = Math.max(0, finalStock - adjustQty);
-        }
-        return {
-          ...d,
-          stocks: finalStock
-        };
-      }
-      return d;
-    }));
+    let finalStock = selectedDesign.pieces || 0;
+    if (adjustForm.type === "ADD") {
+      finalStock += adjustQty;
+    } else {
+      finalStock = Math.max(0, finalStock - adjustQty);
+    }
 
-    setIsAdjustStockOpen(false);
-    setAdjustForm({ type: "ADD", qty: "", reason: "Purchase Receipt" });
-    setAdjustErrors({});
-    triggerToast(`Stock quantity modified for ${selectedDesign.sku}.`);
+    handleUpdateProduct(selectedDesign._id, {
+      name: selectedDesign.name,
+      category: selectedDesign.category,
+      pieces: finalStock,
+      weight: selectedDesign.weight,
+      tunch: selectedDesign.tunch,
+      lab: selectedDesign.lab || 0,
+      panniDetail: selectedDesign.panniDetail || 0,
+      image: selectedDesign.image
+    })
+      .then(() => {
+        setIsAdjustStockOpen(false);
+        setAdjustForm({ type: "ADD", qty: "", reason: "Purchase Receipt" });
+        setAdjustErrors({});
+        triggerToast(`Stock quantity modified for ${selectedDesign.name}.`);
+      })
+      .catch(() => {});
   };
 
   // ----------------------------------------------------
@@ -737,40 +649,38 @@ const Inventory = () => {
   // ----------------------------------------------------
   const handleExportJSON = () => {
     try {
-      const dataStr = JSON.stringify(designs, null, 2);
+      const dataStr = JSON.stringify(products, null, 2);
       const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-      const fileName = `silver_wholeseller_inventory_${new Date().toISOString().split('T')[0]}.json`;
+      const fileName = `silver_wholeseller_products_${new Date().toISOString().split('T')[0]}.json`;
 
       const linkElement = document.createElement('a');
       linkElement.setAttribute('href', dataUri);
       linkElement.setAttribute('download', fileName);
       linkElement.click();
-      triggerToast("Inventory backup downloaded!");
+      triggerToast("Product backup downloaded!");
     } catch (e) {
-      triggerToast("Failed to backup stock registry.", "error");
+      triggerToast("Failed to backup products.", "error");
     }
   };
 
   const handleExportCSV = () => {
     try {
       let csvContent = "data:text/csv;charset=utf-8,";
-      csvContent += "SKU,Design Name,Category,Purity(%),Weight(g),Finish,Charge Type,Making Charge,Stocks (pcs),Total Weight(g),Unit Cost(INR),Total Valuation(INR)\r\n";
+      csvContent += "ID,Product Name,Category,Tunch(%),Gross Weight(g),Labor Rate(INR/kg),Pieces (pcs),Unit Cost(INR),Total Valuation(INR)\r\n";
 
-      filteredDesigns.forEach(d => {
-        const uCost = getWholesaleUnitCost(d, liveSilverRate);
-        const tVal = getStockValuation(d, liveSilverRate);
+      filteredProducts.forEach(p => {
+        const uCost = getWholesaleUnitCost(p, liveSilverRate);
+        const tVal = getStockValuation(p, liveSilverRate);
+        const totalWeight = Array.isArray(p.weight) ? p.weight.reduce((sum, w) => sum + w, 0) : 0;
         const row = [
-          d.sku,
-          `"${d.name}"`,
-          d.category,
-          d.purity,
-          d.weight,
-          d.finish,
-          d.makingChargeType,
-          d.makingCharge,
-          d.stocks,
-          d.stocks * d.weight,
-          uCost.toFixed(2),
+          p._id,
+          `"${p.name}"`,
+          p.category,
+          p.tunch,
+          totalWeight,
+          p.lab || 0,
+          p.pieces,
+          (uCost / (p.pieces || 1)).toFixed(2),
           tVal.toFixed(2)
         ];
         csvContent += row.join(",") + "\r\n";
@@ -779,45 +689,60 @@ const Inventory = () => {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `silver_wholesale_stocks_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `silver_wholesale_products_${new Date().toISOString().split('T')[0]}.csv`);
       link.click();
-      triggerToast("CSV stock report exported!");
+      triggerToast("CSV product report exported!");
     } catch (e) {
       triggerToast("CSV export failed.", "error");
     }
   };
 
-  const handleImportJSON = (e) => {
+  const handleImportJSON = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const data = JSON.parse(event.target.result);
         if (!Array.isArray(data)) {
-          triggerToast("Invalid format: Backup must be a list of designs.", "error");
+          triggerToast("Invalid format: Backup must be a list of products.", "error");
           return;
         }
 
         const isValid = data.every(d =>
-          d.id &&
-          d.sku &&
           d.name &&
           d.category &&
-          typeof d.purity === "number" &&
-          typeof d.weight === "number" &&
-          d.finish &&
-          typeof d.stocks === "number"
+          typeof d.tunch === "number" &&
+          Array.isArray(d.weight) &&
+          typeof d.pieces === "number"
         );
 
         if (!isValid) {
-          triggerToast("Structure properties do not match wholesale schema.", "error");
+          triggerToast("Structure properties do not match product schema.", "error");
           return;
         }
 
-        setDesigns(data);
-        triggerToast("Stock registry restored successfully!", "success");
+        // Iteratively create each product in the backend
+        let successCount = 0;
+        for (const item of data) {
+          try {
+            await handleCreateProduct({
+              name: item.name,
+              category: item.category.toLowerCase(),
+              pieces: item.pieces,
+              weight: item.weight,
+              tunch: item.tunch,
+              lab: item.lab || 0,
+              panniDetail: item.panniDetail || 0,
+              image: item.image
+            });
+            successCount++;
+          } catch (err) {
+            console.error("Failed to import product", item.name, err);
+          }
+        }
+        triggerToast(`Restored ${successCount} products successfully!`, "success");
       } catch (err) {
         triggerToast("Failed to parse JSON backup.", "error");
       }
@@ -878,27 +803,11 @@ const Inventory = () => {
           <div className="flex items-center gap-2 mt-2 sm:mt-0">
             {/* Add New Design */}
             <button
-              onClick={() => {
-                setAddForm({
-                  sku: "",
-                  name: "",
-                  category: "Rings",
-                  purity: 925,
-                  weight: "",
-                  finish: "High-Polish White",
-                  makingChargeType: "PER_GRAM",
-                  makingCharge: "",
-                  stocks: "",
-                  notes: "",
-                  imageUrl: ""
-                });
-                setAddErrors({});
-                setIsAddOpen(true);
-              }}
+              onClick={handleOpenAddModal}
               className="flex items-center gap-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-all active:scale-95 cursor-pointer shadow-md shadow-blue-500/10"
             >
               <Plus className="w-4 h-4" />
-              Add Design SKU
+              Add Product
             </button>
 
             {/* Backups */}
@@ -1049,13 +958,13 @@ const Inventory = () => {
               </div>
             </div>
 
-            {/* Chart 2: Finish variety distribution */}
+            {/* Chart 2: Purity variety distribution */}
             <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100">
-              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Stock Pieces Mix by Metal Finish Style</h4>
+              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Stock Pieces Mix by Silver Purity Standard</h4>
               <div className="h-64">
-                {chartData.finishVarietyData.length > 0 ? (
+                {chartData.purityVarietyData && chartData.purityVarietyData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData.finishVarietyData} margin={{ left: -15, right: 10, bottom: 5 }}>
+                    <BarChart data={chartData.purityVarietyData} margin={{ left: -15, right: 10, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 10 }} />
                       <YAxis tick={{ fill: "#64748b", fontSize: 10 }} />
@@ -1138,145 +1047,49 @@ const Inventory = () => {
         />
 
 
-        {/* Search & Advanced Filters Panel */}
-        <div className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/30 space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-
-            {/* Search Bar */}
-            <div className="relative flex-1 max-w-md">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Search className="w-4.5 h-4.5" />
-              </span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search designs by SKU code or name..."
-                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Quick sorting dropdowns */}
-            <div className="flex items-center gap-2 self-start md:self-auto">
-              <span className="text-xs text-slate-400 font-semibold uppercase">Sort By:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/10"
-              >
-                <option value="sku">SKU Code</option>
-                <option value="name">Design Name</option>
-                <option value="weight">Piece Weight</option>
-                <option value="stocks">Stock Quantity</option>
-                <option value="value">Stock Valuation</option>
-              </select>
-              <button
-                onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
-                className="p-1.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-600 text-xs font-bold cursor-pointer"
-                title="Toggle Sort Order"
-              >
-                {sortOrder === "asc" ? "ASC ↑" : "DESC ↓"}
-              </button>
-            </div>
-
+        {/* Advanced Sorting & Purity Panel */}
+        <div className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/30 flex flex-wrap items-center justify-between gap-4">
+          
+          {/* Quick sorting dropdowns */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 font-semibold uppercase">Sort By:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/10 cursor-pointer"
+            >
+              <option value="name">Product Name</option>
+              <option value="weight">Piece Weight</option>
+              <option value="stocks">Stock Pieces</option>
+              <option value="value">Stock Valuation</option>
+              <option value="tunch">Purity Standard</option>
+            </select>
+            <button
+              onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+              className="p-1.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-600 text-xs font-bold cursor-pointer"
+              title="Toggle Sort Order"
+            >
+              {sortOrder === "asc" ? "ASC ↑" : "DESC ↓"}
+            </button>
           </div>
 
-          {/* Filtering row */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-
-            {/* Filter by Category */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jewelry Category</label>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-medium focus:outline-none"
-              >
-                <option value="All">All Categories</option>
-                <option value="Rings">Rings</option>
-                <option value="Earrings">Earrings</option>
-                <option value="Bracelets">Bracelets</option>
-                <option value="Chains">Chains</option>
-                <option value="Necklaces">Necklaces</option>
-                <option value="Anklets">Anklets (Payal)</option>
-                <option value="Toe Rings">Toe Rings</option>
-              </select>
-            </div>
-
-            {/* Filter by Purity */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Silver Purity</label>
-              <select
-                value={purityFilter}
-                onChange={(e) => setPurityFilter(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-medium focus:outline-none"
-              >
-                <option value="All">All Purities</option>
-                <option value="925">925 Sterling (92.5%)</option>
-                <option value="900">900 Coin Silver (90.0%)</option>
-                <option value="999">999 Fine Silver (99.9%)</option>
-              </select>
-            </div>
-
-            {/* Filter by Finish */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Metal Finish Style</label>
-              <select
-                value={finishFilter}
-                onChange={(e) => setFinishFilter(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-medium focus:outline-none"
-              >
-                <option value="All">All Finishes</option>
-                <option value="Oxidized Antique">Oxidized Antique</option>
-                <option value="High-Polish White">High-Polish White</option>
-                <option value="Rhodium Plated">Rhodium Plated</option>
-                <option value="Gold Vermeil">Gold Vermeil</option>
-                <option value="Pure Silver Polish">Pure Silver Polish</option>
-              </select>
-            </div>
-
-            {/* Stock Level Alerts */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Warehouse Level</label>
-              <select
-                value={stockFilter}
-                onChange={(e) => setStockFilter(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-medium focus:outline-none"
-              >
-                <option value="All">All Stock Levels</option>
-                <option value="Available">Sufficient (&gt;10 pcs)</option>
-                <option value="LowStock">Low Stock (1-10 pcs)</option>
-                <option value="OutOfStock">Out of Stock (0 pcs)</option>
-              </select>
-            </div>
-
-            {/* Clear Filters (if active) */}
-            {(categoryFilter !== "All" || purityFilter !== "All" || finishFilter !== "All" || stockFilter !== "All" || searchQuery) && (
-              <button
-                onClick={() => {
-                  setCategoryFilter("All");
-                  setPurityFilter("All");
-                  setFinishFilter("All");
-                  setStockFilter("All");
-                  setSearchQuery("");
-                }}
-                className="mt-4 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-                Clear Filters
-              </button>
-            )}
-
+          {/* Filter by Purity */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 font-semibold uppercase">Purity:</span>
+            <select
+              value={purityFilter}
+              onChange={(e) => setPurityFilter(e.target.value)}
+              className="px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-700 text-xs font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="All">All Purities</option>
+              <option value="925">92.5% Sterling</option>
+              <option value="900">90.0% Coin Silver</option>
+              <option value="999">99.9% Fine Silver</option>
+            </select>
           </div>
+          
         </div>
+
 
 
 
@@ -1302,16 +1115,19 @@ const Inventory = () => {
 
         {/* Directory Table element */}
         <div className="overflow-x-auto">
-          {filteredDesigns.length > 0 ? (
+          {filteredProducts.length > 0 ? (
             <ProductTable
-              filteredProducts={filteredDesigns}
+              filteredProducts={filteredProducts}
               handleOpenEditModal={handleOpenEditModal}
               handleOpenDeleteModal={handleOpenDeleteModal}
+              handleOpenAdjustStockModal={handleOpenAdjustStockModal}
+              handleOpenTagModal={handleOpenTagModal}
+              handleClearFilters={handleClearFilters}
             />
           ) : (
             <div className="flex flex-col items-center justify-center p-12 text-slate-400">
               <AlertCircle className="w-12 h-12 text-slate-300 mb-2" />
-              <span className="text-base font-semibold">No jewelry designs found matching filters</span>
+              <span className="text-base font-semibold">No products found matching filters</span>
               <p className="text-xs text-slate-400 mt-1">Try resetting search or dropdown filters above</p>
             </div>
           )}
@@ -1319,7 +1135,7 @@ const Inventory = () => {
 
         {/* Directory Footer info */}
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/20 text-xs text-slate-400 font-medium flex items-center justify-between">
-          <span>Displaying {filteredDesigns.length} of {designs.length} unique catalog designs</span>
+          <span>Displaying {filteredProducts.length} of {products.length} unique products</span>
           <span>Calculations depend on daily Silver Metal base rate: ₹{liveSilverRate}/gram</span>
         </div>
 
@@ -1354,7 +1170,7 @@ const Inventory = () => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
               <div className="flex flex-col">
                 <h3 className="text-base font-bold text-slate-800 leading-tight">Adjust Stock Quantity</h3>
-                <span className="text-[10px] text-indigo-600  font-bold mt-0.5">{selectedDesign.sku} • {selectedDesign.name}</span>
+                <span className="text-[10px] text-indigo-600  font-bold mt-0.5">{selectedDesign.category?.toUpperCase()} • {selectedDesign.name}</span>
               </div>
               <button
                 onClick={() => setIsAdjustStockOpen(false)}
@@ -1370,7 +1186,7 @@ const Inventory = () => {
               {/* Current Stocks Display */}
               <div className="flex items-center justify-between bg-slate-50 p-3.5 border border-slate-100 rounded-xl text-xs font-bold text-slate-700">
                 <span>Current Pieces in Stock:</span>
-                <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg border border-indigo-100 text-sm font-black">{selectedDesign.stocks} pcs</span>
+                <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg border border-indigo-100 text-sm font-black">{selectedDesign.pieces} pcs</span>
               </div>
 
               {/* Adjust Type Switcher */}
@@ -1494,7 +1310,7 @@ const Inventory = () => {
               {/* Jewelry Stamp */}
               <div className="text-right">
                 <span className="inline-block px-2 py-0.5 bg-indigo-600 text-white font-black text-[9px] rounded uppercase tracking-wider">
-                  {selectedDesign.purity === 925 ? "92.5 Sterling" : `${selectedDesign.purity} Fine`}
+                  {selectedDesign.tunch === 92.5 ? "92.5 Sterling" : `${selectedDesign.tunch}% Tunch`}
                 </span>
               </div>
 
@@ -1510,7 +1326,7 @@ const Inventory = () => {
                     />
                   ))}
                 </div>
-                <span className=" text-[9px] text-slate-500 font-bold mt-1 tracking-widest">{selectedDesign.sku}</span>
+                <span className=" text-[9px] text-slate-500 font-bold mt-1 tracking-widest">{selectedDesign._id?.slice(-8).toUpperCase()}</span>
               </div>
 
               {/* Tag detail specs */}
@@ -1522,19 +1338,24 @@ const Inventory = () => {
 
                 <div className="flex justify-between border-b border-slate-200/50 pb-1.5 text-[11px] font-semibold text-slate-500">
                   <span>Gross Weight:</span>
-                  <span className="text-slate-800 font-extrabold">{selectedDesign.weight.toFixed(2)} g</span>
+                  <span className="text-slate-800 font-extrabold">{(Array.isArray(selectedDesign.weight) ? selectedDesign.weight.reduce((a, b) => a + b, 0) : 0).toFixed(2)} g</span>
+                </div>
+
+                <div className="flex justify-between border-b border-slate-200/50 pb-1.5 text-[11px] font-semibold text-slate-500">
+                  <span>Pieces:</span>
+                  <span className="text-slate-800 font-extrabold">{selectedDesign.pieces} pcs</span>
                 </div>
 
                 <div className="flex justify-between border-b border-slate-200/50 pb-1.5 text-[11px] font-semibold text-slate-500">
                   <span>Pure Silver:</span>
                   <span className="text-slate-800 font-extrabold">
-                    {(selectedDesign.weight * (selectedDesign.purity / 1000)).toFixed(2)} g
+                    {getPureSilverWeight(selectedDesign).toFixed(2)} g
                   </span>
                 </div>
 
                 <div className="flex justify-between border-b border-slate-200/50 pb-1.5 text-[11px] font-semibold text-slate-500">
-                  <span>Metal Finish:</span>
-                  <span className="text-slate-800 font-bold">{selectedDesign.finish}</span>
+                  <span>Labor Charge:</span>
+                  <span className="text-slate-800 font-bold">₹{selectedDesign.lab || 0}/kg</span>
                 </div>
 
                 <div className="flex justify-between border-b border-slate-200/50 pb-1.5 text-[11px] font-semibold text-slate-500">
@@ -1545,7 +1366,7 @@ const Inventory = () => {
                 <div className="flex justify-between pt-1 font-bold">
                   <span className="text-[11px] text-slate-600">Wholesale Valuation:</span>
                   <span className="text-sm text-indigo-600 font-black">
-                    ₹{Math.round(getWholesaleUnitCost(selectedDesign, liveSilverRate)).toLocaleString("en-IN")}
+                    ₹{Math.round(getStockValuation(selectedDesign, liveSilverRate)).toLocaleString("en-IN")}
                   </span>
                 </div>
                 <span className="block text-[8px] text-slate-400 text-center font-medium leading-none mt-1">Calculated unit price contains 3% wholeseller GST stamp</span>
