@@ -14,6 +14,7 @@ function customerValidator(customerData) {
         loyality: joi.string().valid("vip", "regular", "new").default("vip"),
         shopName: joi.string().allow("").trim(),
         address: joi.string().allow("").trim(),
+        creditLimit: joi.number().min(0).empty('').default(0),
         joinedAt: joi.alternatives().try(
             joi.string().valid("older", "Older"),
             joi.date()

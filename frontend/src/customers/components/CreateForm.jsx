@@ -35,9 +35,15 @@ import useCustomer from "../useCustomer.js";
 
 const CreateForm = ({ onClose }) => {
 
-    const { handleCreateCustomer } = useCustomer()
-
+    const { handleCreateCustomer } = useCustomer();
     const [isOlder, setIsOlder] = useState(false);
+
+    const handleSubmit = async (data) => {
+        const success = await handleCreateCustomer(data);
+        if (success) {
+            onClose();
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
@@ -57,7 +63,7 @@ const CreateForm = ({ onClose }) => {
                     </button>
                 </div>
 
-                <form onSubmit={handleForm(handleCreateCustomer)} className="p-6 space-y-4">
+                <form onSubmit={handleForm(handleSubmit)} className="p-6 space-y-4">
 
                     {/* Full Name */}
                     <div className="flex flex-col gap-1.5">
@@ -118,6 +124,19 @@ const CreateForm = ({ onClose }) => {
                             type="text"
                             name="address"
                             placeholder="e.g. Sikandra, Bihar"
+                            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                        />
+                    </div>
+
+                    {/* Credit Limit */}
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-slate-500 uppercase">Credit Limit (in grams)</label>
+                        <input
+                            type="number"
+                            name="creditLimit"
+                            placeholder="e.g. 10000"
+                            defaultValue="0"
+                            min="0"
                             className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
                         />
                     </div>

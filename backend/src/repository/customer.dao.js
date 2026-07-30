@@ -2,8 +2,8 @@ import Customer from "../models/customer.model.js"
 
 
 const createCustomer = async (customerData) => {
-    const customer = await Customer.create(customerData).lean()
-    return customer
+    const customer = await Customer.create(customerData)
+    return customer.toObject ? customer.toObject() : customer
 }
 
 

@@ -9,9 +9,20 @@ const useCustomer = () => {
 
 
   const handleCreateCustomer = async (customerData) => {
-
-    const res = await createCustomerService(customerData)
-    console.log(res.data)
+    try {
+      const res = await createCustomerService(customerData)
+      if (res.data?.success || res.status === 201) {
+        toast.success(res.data?.message || "Customer created successfully!");
+        handleAllCustomers();
+        return true;
+      } else {
+        toast.error(res.data?.message || "Failed to create customer");
+        return false;
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+      return false;
+    }
   }
 
   const handleAllCustomers = async () => {
