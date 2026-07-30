@@ -30,6 +30,10 @@ import {
   IndianRupeeIcon
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { financeService } from "../finance/finance.service";
+import { purchaseService } from "../purchase/purchase.service";
+import { getBillHistory } from "../billing/billing.service";
+import { getAllCustomersService } from "../customers/customer.service";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -131,19 +135,26 @@ const CATEGORIES = {
   ]
 };
 
+const EXPENSE_CATEGORIES = [
+  "Shop Rent",
+  "Utility Bills",
+  "Salary / Wages",
+  "Tea & Refreshments",
+  "Travel & Transport",
+  "Maintenance & Repairs",
+  "Taxes",
+  "Others"
+];
+
 const Finance = () => {
   // ----------------------------------------------------
   // STATE MANAGEMENT
   // ----------------------------------------------------
-  const [generalTransactions, setGeneralTransactions] = useState(() => {
-    const saved = localStorage.getItem("erp_general_transactions");
-    return saved ? JSON.parse(saved) : INITIAL_GENERAL_TRANSACTIONS;
-  });
-
-  const [udhaarCustomers, setUdhaarCustomers] = useState(() => {
-    const saved = localStorage.getItem("erp_udhaar_customers");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [expenses, setExpenses] = useState([]);
+  const [purchases, setPurchases] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [udhaarCustomers, setUdhaarCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -171,7 +182,7 @@ const Finance = () => {
   const [addForm, setAddForm] = useState({
     date: new Date().toISOString().split("T")[0],
     type: "OUTFLOW",
-    category: "Inventory Purchase",
+    category: "Shop Rent",
     amount: "",
     paymentMethod: "UPI",
     description: ""
@@ -191,35 +202,34 @@ const Finance = () => {
   const [addErrors, setAddErrors] = useState({});
   const [editErrors, setEditErrors] = useState({});
 
-
-
   const fileInputRef = useRef(null);
 
   // ----------------------------------------------------
-  // PERSISTENCE & AUTO SYNC EFFECT
+  // FETCH FINANCE DATA FROM SERVER
   // ----------------------------------------------------
-  useEffect(() => {
-    localStorage.setItem("erp_general_transactions", JSON.stringify(generalTransactions));
-  }, [generalTransactions]);
+  const fetchFinanceData = async () => {
+    setLoading(true);
+    try {
+      const [expenseRes, purchaseRes, salesRes, customerRes] = await Promise.all([
+        financeService.getExpenses(),
+        purchaseService.getPurchases(),
+        getBillHistory(),
+        getAllCustomersService()
+      ]);
+      setExpenses(expenseRes.data?.data || []);
+      setPurchases(purchaseRes.data?.data || []);
+      setSales(salesRes.data?.data || []);
+      setUdhaarCustomers(customerRes.data?.data || []);
+    } catch (err) {
+      console.error(err);
+      triggerToast("Failed to load finance ledger data", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Keep customer data synchronized from local storage
   useEffect(() => {
-    const handleStorageChange = () => {
-      const savedUdhaar = localStorage.getItem("erp_udhaar_customers");
-      if (savedUdhaar) {
-        setUdhaarCustomers(JSON.parse(savedUdhaar));
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
-    // Poll localstorage periodically just to make sure they match
-    const interval = setInterval(() => {
-      handleStorageChange();
-    }, 2000);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      clearInterval(interval);
-    };
+    fetchFinanceData();
   }, []);
 
   // TOAST HANDLER using react-hot-toast
@@ -237,37 +247,67 @@ const Finance = () => {
   // LEDGER STATE CONSOLIDATION
   // ----------------------------------------------------
   const consolidatedTransactions = useMemo(() => {
-    // 1. Map general ledger entries
-    const generalList = generalTransactions.map(tx => ({
-      ...tx,
+    // 1. Map manual expenses entries (stored in db)
+    const generalList = expenses.map(tx => ({
+      id: tx._id,
+      date: tx.date,
+      type: "OUTFLOW",
+      category: tx.category,
+      amount: Number(tx.amount || 0),
+      paymentMethod: tx.paymentMethod || "UPI",
+      description: tx.description,
       isAutoImported: false
     }));
 
-    // 2. Map Udhaar customer payments (PAID transactions represent cash inflows)
+    // 2. Map purchases entries
+    const purchasesList = purchases.map(pur => ({
+      id: pur.billCode || pur._id,
+      date: pur.date,
+      type: "OUTFLOW",
+      category: "Inventory Purchase",
+      amount: Number(pur.cost || 0),
+      paymentMethod: pur.paymentMethod || "Bank Transfer",
+      description: `Stock Purchase: ${pur.supplierName} (${pur.billCode || 'N/A'})`,
+      isAutoImported: true
+    }));
+
+    // 3. Map sales entries
+    const salesList = sales.map(bill => ({
+      id: bill.billNo || bill._id,
+      date: bill.date,
+      type: "INFLOW",
+      category: "Direct Sales",
+      amount: Number(bill.jamaDetail?.amount || 0),
+      paymentMethod: "Cash",
+      description: `Direct Counter Sale: Bill #${bill.billNo} - ${bill.customerName}`,
+      isAutoImported: true
+    }));
+
+    // 4. Map Udhaar customer payments (PAID transactions represent cash inflows)
     const udhaarList = [];
     udhaarCustomers.forEach(cust => {
       if (cust.transactions) {
         cust.transactions.forEach(tx => {
           if (tx.type === "PAID") {
             udhaarList.push({
-              id: tx.id,
+              id: tx._id || tx.id,
               date: tx.date,
               type: "INFLOW",
               category: "Credit Settlement",
-              amount: tx.amount,
+              amount: Number(tx.amount || 0),
               paymentMethod: tx.method || "UPI",
-              description: `Udhaar Payment received: ${cust.name} (${tx.description})`,
+              description: `Udhaar Payment received: ${cust.fullName || cust.name} (${tx.description || 'Settlement'})`,
               isAutoImported: true,
-              customerName: cust.name,
-              customerId: cust.id
+              customerName: cust.fullName || cust.name,
+              customerId: cust._id || cust.id
             });
           }
         });
       }
     });
 
-    return [...generalList, ...udhaarList];
-  }, [generalTransactions, udhaarCustomers]);
+    return [...generalList, ...purchasesList, ...salesList, ...udhaarList];
+  }, [expenses, purchases, sales, udhaarCustomers]);
 
   // ----------------------------------------------------
   // STATISTICS CALCULATION
@@ -467,7 +507,7 @@ const Finance = () => {
   // ----------------------------------------------------
   // SUBMIT RECORD TRANSACTION
   // ----------------------------------------------------
-  const handleAddSubmit = (e) => {
+  const handleAddSubmit = async (e) => {
     e.preventDefault();
     const errors = {};
     const amt = parseFloat(addForm.amount);
@@ -481,63 +521,63 @@ const Finance = () => {
       return;
     }
 
-    const newTx = {
-      id: "gen-" + Date.now(),
-      date: addForm.date,
-      type: addForm.type,
-      category: addForm.category,
-      amount: amt,
-      paymentMethod: addForm.paymentMethod,
-      description: addForm.description.trim()
-    };
-
-    setGeneralTransactions(prev => [newTx, ...prev]);
-    setIsAddOpen(false);
-
-    // Reset form to default OUTFLOW
-    setAddForm({
-      date: new Date().toISOString().split("T")[0],
-      type: "OUTFLOW",
-      category: "Inventory Purchase",
-      amount: "",
-      paymentMethod: "UPI",
-      description: ""
-    });
-    setAddErrors({});
-    triggerToast(`Transaction recorded: ${newTx.description}`);
-  };
-
-  // Toggle type triggers dynamic category reset
-  const handleAddTypeChange = (type) => {
-    const defaultCat = type === "INFLOW" ? CATEGORIES.INFLOW[0] : CATEGORIES.OUTFLOW[0];
-    setAddForm(prev => ({
-      ...prev,
-      type,
-      category: defaultCat
-    }));
+    try {
+      const payload = {
+        date: addForm.date,
+        category: addForm.category,
+        amount: amt,
+        paymentMethod: addForm.paymentMethod,
+        description: addForm.description.trim()
+      };
+      
+      const res = await financeService.createExpense(payload);
+      if (res.data?.data) {
+        setExpenses(prev => [res.data.data, ...prev]);
+        setIsAddOpen(false);
+        setAddForm({
+          date: new Date().toISOString().split("T")[0],
+          type: "OUTFLOW",
+          category: "Shop Rent",
+          amount: "",
+          paymentMethod: "UPI",
+          description: ""
+        });
+        setAddErrors({});
+        triggerToast(`Expense recorded: ${payload.description}`);
+      }
+    } catch (err) {
+      console.error(err);
+      triggerToast(err.response?.data?.message || "Failed to record expense", "error");
+    }
   };
 
   // ----------------------------------------------------
   // QUICK ADD SHORTCUTS
   // ----------------------------------------------------
-  const quickLog = (shortcutName, type, category, amount, method, desc) => {
-    const newTx = {
-      id: "gen-" + Date.now(),
-      date: new Date().toISOString().split("T")[0],
-      type,
-      category,
-      amount,
-      paymentMethod: method,
-      description: desc
-    };
-    setGeneralTransactions(prev => [newTx, ...prev]);
-    triggerToast(`Logged Shortcut: ${shortcutName} (₹${amount})`);
+  const quickLog = async (shortcutName, category, amount, method, desc) => {
+    try {
+      const payload = {
+        date: new Date().toISOString().split("T")[0],
+        category,
+        amount,
+        paymentMethod: method,
+        description: desc
+      };
+      const res = await financeService.createExpense(payload);
+      if (res.data?.data) {
+        setExpenses(prev => [res.data.data, ...prev]);
+        triggerToast(`Logged Shortcut: ${shortcutName} (₹${amount})`);
+      }
+    } catch (err) {
+      console.error(err);
+      triggerToast("Failed to log shortcut", "error");
+    }
   };
 
   // ----------------------------------------------------
   // EDIT TRANSACTION SUBMIT
   // ----------------------------------------------------
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
     const errors = {};
     const amt = parseFloat(editForm.amount);
@@ -551,62 +591,58 @@ const Finance = () => {
       return;
     }
 
-    setGeneralTransactions(prev => prev.map(tx => {
-      if (tx.id === editForm.id) {
-        return {
-          ...tx,
-          date: editForm.date,
-          type: editForm.type,
-          category: editForm.category,
-          amount: amt,
-          paymentMethod: editForm.paymentMethod,
-          description: editForm.description.trim()
-        };
+    try {
+      const payload = {
+        date: editForm.date,
+        category: editForm.category,
+        amount: amt,
+        paymentMethod: editForm.paymentMethod,
+        description: editForm.description.trim()
+      };
+
+      const res = await financeService.updateExpense(editForm.id, payload);
+      if (res.data?.data) {
+        setExpenses(prev => prev.map(tx => tx._id === editForm.id ? res.data.data : tx));
+        setIsEditOpen(false);
+        setEditErrors({});
+        triggerToast("Expense transaction updated.");
       }
-      return tx;
-    }));
-
-    setIsEditOpen(false);
-    setEditErrors({});
-    triggerToast("Ledger transaction updated.");
-  };
-
-  const handleEditTypeChange = (type) => {
-    const defaultCat = type === "INFLOW" ? CATEGORIES.INFLOW[0] : CATEGORIES.OUTFLOW[0];
-    setEditForm(prev => ({
-      ...prev,
-      type,
-      category: defaultCat
-    }));
+    } catch (err) {
+      console.error(err);
+      triggerToast(err.response?.data?.message || "Failed to update expense", "error");
+    }
   };
 
   // ----------------------------------------------------
   // DELETE GENERAL TRANSACTION
   // ----------------------------------------------------
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!selectedTx) return;
-    setGeneralTransactions(prev => prev.filter(tx => tx.id !== selectedTx.id));
-    setIsDeleteConfirmOpen(false);
-    setIsDrawerOpen(false);
-    triggerToast("Transaction entry deleted.");
-    setSelectedTx(null);
+    try {
+      await financeService.deleteExpense(selectedTx.id);
+      setExpenses(prev => prev.filter(tx => tx._id !== selectedTx.id));
+      setIsDeleteConfirmOpen(false);
+      setIsDrawerOpen(false);
+      triggerToast("Expense entry deleted.");
+      setSelectedTx(null);
+    } catch (err) {
+      console.error(err);
+      triggerToast(err.response?.data?.message || "Failed to delete expense", "error");
+    }
   };
 
-  // ----------------------------------------------------
-  // EXPORT / BACKUPS
-  // ----------------------------------------------------
-  // 1. Export as JSON
+  // 1. Export Expenses as JSON
   const handleExportJSON = () => {
     try {
-      const dataStr = JSON.stringify(generalTransactions, null, 2);
+      const dataStr = JSON.stringify(expenses, null, 2);
       const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-      const exportFileDefaultName = `general_cashflow_backup_${new Date().toISOString().split('T')[0]}.json`;
+      const exportFileDefaultName = `other_expenses_backup_${new Date().toISOString().split('T')[0]}.json`;
 
       const linkElement = document.createElement('a');
       linkElement.setAttribute('href', dataUri);
       linkElement.setAttribute('download', exportFileDefaultName);
       linkElement.click();
-      triggerToast("General ledger JSON exported successfully!");
+      triggerToast("Expenses JSON exported successfully!");
     } catch (e) {
       triggerToast("JSON export failed.", "error");
     }
@@ -644,45 +680,6 @@ const Finance = () => {
     }
   };
 
-  // 3. Import JSON Backup
-  const handleImportJSON = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const importedData = JSON.parse(event.target.result);
-        if (!Array.isArray(importedData)) {
-          triggerToast("Invalid file: Must be an array of transactions.", "error");
-          return;
-        }
-
-        // Schema validation
-        const isValid = importedData.every(tx =>
-          tx.id &&
-          tx.date &&
-          tx.type &&
-          tx.category &&
-          typeof tx.amount === "number" &&
-          tx.paymentMethod
-        );
-
-        if (!isValid) {
-          triggerToast("File properties do not match ledger schema.", "error");
-          return;
-        }
-
-        setGeneralTransactions(importedData);
-        triggerToast("General ledger backup restored!");
-      } catch (err) {
-        triggerToast("Failed to parse JSON file.", "error");
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = null; // reset
-  };
-
   // Get dynamic background for categories
   const getCategoryColor = (cat) => {
     if (cat === "Credit Settlement") return "bg-emerald-50 text-emerald-700 border-emerald-100";
@@ -693,6 +690,15 @@ const Finance = () => {
     if (cat === "Tea & Refreshments") return "bg-orange-50 text-orange-700 border-orange-100";
     return "bg-slate-100 text-slate-700 border-slate-200";
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <RefreshCw className="w-10 h-10 text-indigo-600 animate-spin" />
+        <p className="text-slate-500 font-medium text-sm animate-pulse">Loading cash flow register...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -718,7 +724,7 @@ const Finance = () => {
               setAddForm({
                 date: new Date().toISOString().split("T")[0],
                 type: "OUTFLOW",
-                category: "Inventory Purchase",
+                category: "Shop Rent",
                 amount: "",
                 paymentMethod: "UPI",
                 description: ""
@@ -729,7 +735,7 @@ const Finance = () => {
             className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-blue-500/20 cursor-pointer"
           >
             <Plus className="w-4.5 h-4.5" />
-            Record Cash Entry
+            Record Expense
           </button>
 
           {/* Backup Database */}
@@ -745,28 +751,11 @@ const Finance = () => {
           {/* Export JSON */}
           <button
             onClick={handleExportJSON}
-            title="Backup General Transactions to JSON"
+            title="Backup Expenses to JSON"
             className="flex items-center gap-1.5 px-3 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-sm font-medium rounded-xl border border-slate-700 transition-all cursor-pointer"
           >
             JSON Backup
           </button>
-
-          {/* Import JSON */}
-          <button
-            onClick={() => fileInputRef.current.click()}
-            title="Restore General Transactions from JSON"
-            className="flex items-center gap-1.5 px-3 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-sm font-medium rounded-xl border border-slate-700 transition-all cursor-pointer"
-          >
-            <Upload className="w-4 h-4" />
-            Import Backup
-          </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImportJSON}
-            accept=".json"
-            className="hidden"
-          />
         </div>
       </div>
 
@@ -963,12 +952,12 @@ const Finance = () => {
       <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-yellow-500" />
-          <h3 className="text-sm font-bold text-slate-800">Quick Shop Logs (Click-to-Add Expense/Sale)</h3>
+          <h3 className="text-sm font-bold text-slate-800">Quick Shop Logs (Click-to-Add Other Expenses)</h3>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 
           <button
-            onClick={() => quickLog("Tea & Snacks", "OUTFLOW", "Tea & Refreshments", 100, "Cash", "Tea & snacks for customer & staff")}
+            onClick={() => quickLog("Tea & Snacks", "Tea & Refreshments", 100, "Cash", "Tea & snacks for customer & staff")}
             className="p-3 bg-orange-50 hover:bg-orange-100 border border-orange-100 text-left rounded-xl transition-all cursor-pointer group active:scale-98"
           >
             <span className="block text-[10px] font-bold text-orange-700 uppercase tracking-wider">TEA / SNACKS</span>
@@ -977,7 +966,7 @@ const Finance = () => {
           </button>
 
           <button
-            onClick={() => quickLog("Electricity Bill", "OUTFLOW", "Utility Bills", 3500, "UPI", "Showroom electricity utility bill payment")}
+            onClick={() => quickLog("Electricity Bill", "Utility Bills", 3500, "UPI", "Showroom electricity utility bill payment")}
             className="p-3 bg-sky-50 hover:bg-sky-100 border border-sky-100 text-left rounded-xl transition-all cursor-pointer group active:scale-98"
           >
             <span className="block text-[10px] font-bold text-sky-700 uppercase tracking-wider">ELECTRIC BILL</span>
@@ -986,21 +975,21 @@ const Finance = () => {
           </button>
 
           <button
-            onClick={() => quickLog("Direct Cash Sale", "INFLOW", "Direct Sales", 5000, "Cash", "Cash Counter: Direct showroom cash sale")}
+            onClick={() => quickLog("Staff Travel", "Travel & Transport", 200, "UPI", "Local conveyance for staff delivery")}
             className="p-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 text-left rounded-xl transition-all cursor-pointer group active:scale-98"
           >
-            <span className="block text-[10px] font-bold text-indigo-700 uppercase tracking-wider">DAILY CASH SALE</span>
-            <strong className="block text-slate-800 text-sm mt-0.5">₹5,000 Inflow</strong>
-            <span className="text-[10px] text-slate-400 block mt-1 group-hover:text-slate-600 transition-colors">Log direct cash register sale</span>
+            <span className="block text-[10px] font-bold text-indigo-700 uppercase tracking-wider">STAFF TRAVEL</span>
+            <strong className="block text-slate-800 text-sm mt-0.5">₹200 Outflow</strong>
+            <span className="text-[10px] text-slate-400 block mt-1 group-hover:text-slate-600 transition-colors">Log UPI travel expense</span>
           </button>
 
           <button
-            onClick={() => quickLog("Jewelry Stock Buy", "OUTFLOW", "Inventory Purchase", 15000, "Bank Transfer", "Purchased jewelry stock inventory from supplier")}
+            onClick={() => quickLog("Shop Maintenance", "Maintenance & Repairs", 1200, "Cash", "Showroom cleaning/maintenance charges")}
             className="p-3 bg-amber-50 hover:bg-amber-100 border border-amber-100 text-left rounded-xl transition-all cursor-pointer group active:scale-98"
           >
-            <span className="block text-[10px] font-bold text-amber-700 uppercase tracking-wider">STOCK JEWELRY BUY</span>
-            <strong className="block text-slate-800 text-sm mt-0.5">₹15,000 Outflow</strong>
-            <span className="text-[10px] text-slate-400 block mt-1 group-hover:text-slate-600 transition-colors">Supplier net banking transfer</span>
+            <span className="block text-[10px] font-bold text-amber-700 uppercase tracking-wider">SHOP MAINTENANCE</span>
+            <strong className="block text-slate-800 text-sm mt-0.5">₹1,200 Outflow</strong>
+            <span className="text-[10px] text-slate-400 block mt-1 group-hover:text-slate-600 transition-colors">Supplier maintenance pay</span>
           </button>
 
         </div>
@@ -1357,33 +1346,6 @@ const Finance = () => {
             {/* Modal Body / Form */}
             <form onSubmit={handleAddSubmit} className="p-6 space-y-4">
 
-              {/* Type Switcher */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase">Cashflow Direction</label>
-                <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => handleAddTypeChange("INFLOW")}
-                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${addForm.type === "INFLOW"
-                      ? "bg-emerald-500 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50"
-                      }`}
-                  >
-                    INFLOW (+ Cash In)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAddTypeChange("OUTFLOW")}
-                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${addForm.type === "OUTFLOW"
-                      ? "bg-rose-500 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50"
-                      }`}
-                  >
-                    OUTFLOW (- Cash Out)
-                  </button>
-                </div>
-              </div>
-
               {/* Grid 1: Date & Category */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
@@ -1408,15 +1370,9 @@ const Finance = () => {
                     onChange={(e) => setAddForm(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-semibold"
                   >
-                    {addForm.type === "INFLOW" ? (
-                      CATEGORIES.INFLOW.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))
-                    ) : (
-                      CATEGORIES.OUTFLOW.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))
-                    )}
+                    {EXPENSE_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -1515,33 +1471,6 @@ const Finance = () => {
             {/* Modal Body / Form */}
             <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
 
-              {/* Type Switcher */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase">Cashflow Direction</label>
-                <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => handleEditTypeChange("INFLOW")}
-                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${editForm.type === "INFLOW"
-                      ? "bg-emerald-500 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50"
-                      }`}
-                  >
-                    INFLOW (+ Cash In)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleEditTypeChange("OUTFLOW")}
-                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${editForm.type === "OUTFLOW"
-                      ? "bg-rose-500 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50"
-                      }`}
-                  >
-                    OUTFLOW (- Cash Out)
-                  </button>
-                </div>
-              </div>
-
               {/* Grid 1: Date & Category */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
@@ -1566,15 +1495,9 @@ const Finance = () => {
                     onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-semibold"
                   >
-                    {editForm.type === "INFLOW" ? (
-                      CATEGORIES.INFLOW.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))
-                    ) : (
-                      CATEGORIES.OUTFLOW.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))
-                    )}
+                    {EXPENSE_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
                 </div>
 

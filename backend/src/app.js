@@ -10,6 +10,7 @@ import dashboardRouter from "./routes/dashboard.routes.js";
 import productRouter from "./routes/product.routes.js";
 import navRouter from "./routes/nav.routes.js";
 import purchaseRouter from "./routes/purchase.routes.js";
+import expenseRouter from "./routes/expense.routes.js";
 
 import errorMiddleware from "./middlewares/reject.middleware.js";
 import responseMiddleware from "./middlewares/response.middleware.js";
@@ -42,6 +43,7 @@ app.use("/api/v1/dashboard", dashboardRouter);
 app.use("/api/v1/product", productRouter);
 app.use("/api/v1/purchases", purchaseRouter);
 app.use("/api/v1/search", navRouter);
+app.use("/api/v1/expenses", expenseRouter);
 
 app.use(express.static(path.resolve("dist")));
 

@@ -68,8 +68,7 @@ const getKpiMetrics = async (range) => {
   // Revenue calculation helper
   const calculateRevenueForBills = (bills) => {
     return bills.reduce((acc, bill) => {
-      const rate = bill.silverRate > 0 ? bill.silverRate : latestSilverRate;
-      const revenue = (bill.totals?.amount || 0) + ((bill.totals?.fine || 0) * rate) / 1000;
+      const revenue = (bill.totals?.amount || 0);
       return acc + revenue;
     }, 0);
   };
@@ -123,8 +122,7 @@ const getKpiMetrics = async (range) => {
 
   // Revenue sparkline
   const revenueSparkline = generateSparkline(currentBills, (b) => {
-    const rate = b.silverRate > 0 ? b.silverRate : latestSilverRate;
-    return (b.totals?.amount || 0) + ((b.totals?.fine || 0) * rate) / 1000;
+    return (b.totals?.amount || 0);
   });
 
   // Orders sparkline
