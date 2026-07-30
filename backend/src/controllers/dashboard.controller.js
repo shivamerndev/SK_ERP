@@ -14,6 +14,12 @@ const getKpis = asyncHandler(async (req, res) => {
   return res.success(200, "KPI Metrics Fetched Successfully", metrics);
 });
 
+const getLowerGridData = asyncHandler(async (req, res) => {
+  const { range } = req.query;
+  const metrics = await dashboardService.getLowerGridMetrics(range);
+  return res.success(200, "Lower Grid Metrics Fetched Successfully", metrics);
+});
+
 const getMetalRates = asyncHandler(async (req, res) => {
   const now = Date.now();
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
@@ -104,4 +110,4 @@ const getMetalRates = asyncHandler(async (req, res) => {
   }
 });
 
-export { getKpis, getMetalRates };
+export { getKpis, getMetalRates, getLowerGridData };

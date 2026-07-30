@@ -1,5 +1,6 @@
 import Billing from "../models/billing.model.js";
 import Customer from "../models/customer.model.js";
+import Product from "../models/product.model.js";
 
 const getKpiMetrics = async (range) => {
   let start = new Date();
@@ -178,6 +179,120 @@ const getKpiMetrics = async (range) => {
   };
 };
 
+const getLowerGridMetrics = async (range) => {
+  let start = new Date();
+  let end = new Date();
+  let isPreset = false;
+
+  const now = new Date();
+
+  if (range && range.includes(" - ")) {
+    try {
+      const parts = range.split(" - ");
+      start = new Date(parts[0]);
+      end = new Date(parts[1]);
+    } catch (e) {
+      console.error("Error parsing custom range:", e);
+      isPreset = true;
+    }
+  } else {
+    isPreset = true;
+  }
+
+  if (isPreset) {
+    const rangeLower = (range || "").toLowerCase();
+    if (rangeLower.includes("last 30 days")) {
+      start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      end = now;
+    } else if (rangeLower.includes("this quarter")) {
+      const currentMonth = now.getMonth();
+      const quarterStartMonth = Math.floor(currentMonth / 3) * 3;
+      start = new Date(now.getFullYear(), quarterStartMonth, 1);
+      end = now;
+    } else if (rangeLower.includes("year to date")) {
+      start = new Date(now.getFullYear(), 0, 1);
+      end = now;
+    } else {
+      // default fallback: last 30 days
+      start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      end = now;
+    }
+  }
+
+  // Set start of day and end of day
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  // 1. Inventory Summary (STOCKS_LIMIT = 10)
+  const totalItems = await Product.countDocuments({});
+  const inStock = await Product.countDocuments({ pieces: { $gt: 10 } });
+  const lowStock = await Product.countDocuments({ pieces: { $gt: 0, $lte: 10 } });
+  const outOfStock = await Product.countDocuments({ pieces: { $lte: 0 } });
+
+  const inStockPercent = totalItems > 0 ? Number(((inStock / totalItems) * 100).toFixed(1)) : 0;
+  const lowStockPercent = totalItems > 0 ? Number(((lowStock / totalItems) * 100).toFixed(1)) : 0;
+  const outOfStockPercent = totalItems > 0 ? Number(((outOfStock / totalItems) * 100).toFixed(1)) : 0;
+
+  // 2. Top Performed Product aggregation from Billing
+  const topProductsRaw = await Billing.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: start, $lte: end }
+      }
+    },
+    { $unwind: "$items" },
+    {
+      $group: {
+        _id: "$items.item",
+        salesCount: { $sum: 1 },
+        totalRevenue: { $sum: "$items.amount" }
+      }
+    },
+    { $sort: { salesCount: -1 } },
+    { $limit: 4 }
+  ]);
+
+  let topProducts = [];
+  if (topProductsRaw.length > 0) {
+    const maxSales = topProductsRaw[0].salesCount || 1;
+    const colors = ["bg-emerald-500", "bg-blue-500", "bg-purple-500", "bg-orange-500"];
+    topProducts = topProductsRaw.map((p, idx) => ({
+      name: p._id,
+      progress: Math.round((p.salesCount / maxSales) * 100),
+      color: colors[idx % colors.length]
+    }));
+  } else {
+    // Fallback: Top products in inventory by stock pieces
+    const topStockProducts = await Product.find({})
+      .sort({ pieces: -1 })
+      .limit(4)
+      .lean();
+    if (topStockProducts.length > 0) {
+      const maxPieces = topStockProducts[0].pieces || 1;
+      const colors = ["bg-emerald-500", "bg-blue-500", "bg-purple-500", "bg-orange-500"];
+      topProducts = topStockProducts.map((p, idx) => ({
+        name: p.name,
+        progress: Math.round((p.pieces / maxPieces) * 100),
+        color: colors[idx % colors.length]
+      }));
+    }
+  }
+
+  return {
+    inventorySummary: {
+      totalItems,
+      inStock,
+      lowStock,
+      outOfStock,
+      inStockPercent,
+      lowStockPercent,
+      outOfStockPercent
+    },
+    topPerformedProducts: topProducts
+  };
+};
+
 export default {
-  getKpiMetrics
+  getKpiMetrics,
+  getLowerGridMetrics
 };
