@@ -16,9 +16,24 @@ const getAllCustomers = async () => {
     return customers
 }
 
+const deleteCustomer = async (customerId) => {
+    const response = await customerRepo.deleteCustomer(customerId)
+    return response
+}
+
+const addTransaction = async (customerId, txData) => {
+    const response = await customerRepo.addTransaction(customerId, txData)
+    return response
+}
+
+const deleteTransaction = async (customerId, txId) => {
+    const response = await customerRepo.deleteTransaction(customerId, txId)
+    return response
+}
+
 const searchCustomers = async (query) => {
     const customers = await customerRepo.searchCustomers(query)
     return customers
 }
 
-export default { createCustomer, getAllCustomers, searchCustomers }
+export default { createCustomer, getAllCustomers, deleteCustomer, addTransaction, deleteTransaction, searchCustomers }

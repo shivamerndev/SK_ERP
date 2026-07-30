@@ -9,7 +9,7 @@ const createBill = async (billData) => {
   if (bill.postedToUdhaar && bill.customerId) {
     const spentInc = bill.totals?.amount || 0;
     const lendInc = bill.finalBaki?.amount || 0;
-    await customerRepo.updateCustomerBalances(bill.customerId, spentInc, lendInc);
+    await customerRepo.updateCustomerBalances(bill.customerId, spentInc, lendInc, bill);
   }
 
   return bill;
@@ -37,7 +37,7 @@ const deleteBill = async (billId) => {
   if (bill.postedToUdhaar && bill.customerId) {
     const spentDec = -(bill.totals?.amount || 0);
     const lendDec = -(bill.finalBaki?.amount || 0);
-    await customerRepo.updateCustomerBalances(bill.customerId, spentDec, lendDec);
+    await customerRepo.updateCustomerBalances(bill.customerId, spentDec, lendDec, bill);
   }
 
   return response;

@@ -1,4 +1,4 @@
-import { DollarSign, Scale, FileText } from "lucide-react";
+import { Scale, FileText, IndianRupeeIcon } from "lucide-react";
 
 const KpiStats = ({ stats }) => {
   return (
@@ -13,7 +13,7 @@ const KpiStats = ({ stats }) => {
           <p className="text-[10px] text-slate-400">Sum of cash labor charges</p>
         </div>
         <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-          <DollarSign className="w-5.5 h-5.5" />
+          <IndianRupeeIcon className="w-5.5 h-5.5" />
         </div>
       </div>
 

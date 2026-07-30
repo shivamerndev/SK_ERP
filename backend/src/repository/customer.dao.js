@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Customer from "../models/customer.model.js"
 
 
@@ -8,7 +9,7 @@ const createCustomer = async (customerData) => {
 
 
 const getAllCustomers = async () => {
-    const customers = await Customer.find().select("fullName loyality phone totalLend totalSpent address").lean()
+    const customers = await Customer.find().lean()
     return customers
 }
 
@@ -26,14 +27,79 @@ const getCustomerById = async (customerId) => {
 }
 
 
-const updateCustomerBalances = async (customerId, spentInc, lendInc) => {
+const deleteCustomer = async (customerId) => {
+    const response = await Customer.findByIdAndDelete(customerId)
+    return response
+}
+
+
+const updateCustomerBalances = async (customerId, spentInc, lendInc, billInfo = null) => {
+    const updateQuery = {
+        $inc: { totalSpent: spentInc, totalLend: lendInc }
+    };
+
+    if (billInfo) {
+        if (lendInc > 0) {
+            updateQuery.$push = {
+                transactions: {
+                    _id: new mongoose.Types.ObjectId(),
+                    date: billInfo.date,
+                    type: "LENT",
+                    amount: lendInc,
+                    description: `Lent via Bill No. ${billInfo.billNo}`,
+                    billId: billInfo._id
+                }
+            };
+        } else if (lendInc < 0) {
+            updateQuery.$pull = {
+                transactions: { billId: billInfo._id }
+            };
+        }
+    }
+
     const customer = await Customer.findByIdAndUpdate(
         customerId,
-        { $inc: { totalSpent: spentInc, totalLend: lendInc } },
+        updateQuery,
         { new: true }
     ).lean()
     return customer
 }
+
+
+const addTransaction = async (customerId, txData) => {
+    const incAmount = txData.type === "LENT" ? txData.amount : -txData.amount;
+    const customer = await Customer.findByIdAndUpdate(
+        customerId,
+        {
+            $push: { transactions: txData },
+            $inc: { totalLend: incAmount }
+        },
+        { new: true }
+    ).lean();
+    return customer;
+}
+
+
+const deleteTransaction = async (customerId, txId) => {
+    const customer = await Customer.findById(customerId).lean();
+    if (!customer) return null;
+
+    const tx = customer.transactions.find(t => String(t._id) === String(txId));
+    if (!tx) return customer;
+
+    const decAmount = tx.type === "LENT" ? -tx.amount : tx.amount;
+
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+        customerId,
+        {
+            $pull: { transactions: { _id: txId } },
+            $inc: { totalLend: decAmount }
+        },
+        { new: true }
+    ).lean();
+    return updatedCustomer;
+}
+
 
 const searchCustomers = async (query) => {
     const regex = new RegExp(query, "i");
@@ -43,9 +109,9 @@ const searchCustomers = async (query) => {
             { address: regex },
             { shopName: regex }
         ]
-    }).select("fullName loyality phone totalLend totalSpent address shopName").lean();
+    }).lean();
     return customers;
 }
 
 
-export default { createCustomer, getAllCustomers, findCustomer, getCustomerById, updateCustomerBalances, searchCustomers }
+export default { createCustomer, getAllCustomers, findCustomer, getCustomerById, deleteCustomer, updateCustomerBalances, addTransaction, deleteTransaction, searchCustomers }

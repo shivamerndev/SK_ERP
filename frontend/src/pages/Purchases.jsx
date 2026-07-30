@@ -15,7 +15,8 @@ import {
   Scale,
   Sparkles,
   Package,
-  Printer
+  Printer,
+  IndianRupeeIcon
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -55,7 +56,7 @@ const Purchases = () => {
 
   } = usePurchase();
 
-  
+
   return (
     <div className="space-y-6">
 
@@ -166,7 +167,7 @@ const Purchases = () => {
             <p className="text-[10px] text-slate-400 font-medium">Net expenditure (3% GST inc)</p>
           </div>
           <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <DollarSign className="w-5.5 h-5.5" />
+            <IndianRupeeIcon className="w-5.5 h-5.5" />
           </div>
         </div>
 

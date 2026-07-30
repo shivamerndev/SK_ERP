@@ -30,7 +30,8 @@ import {
   RefreshCw,
   Box,
   Sliders,
-  Scale
+  Scale,
+  IndianRupeeIcon
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import {
@@ -641,7 +642,7 @@ const Inventory = () => {
         setAdjustErrors({});
         triggerToast(`Stock quantity modified for ${selectedDesign.name}.`);
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   // ----------------------------------------------------
@@ -910,7 +911,7 @@ const Inventory = () => {
             <p className="text-[10px] text-slate-400">At live ₹{liveSilverRate}/g rate</p>
           </div>
           <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <DollarSign className="w-6 h-6" />
+            <IndianRupeeIcon className="w-6 h-6" />
           </div>
         </div>
 
@@ -1049,7 +1050,7 @@ const Inventory = () => {
 
         {/* Advanced Sorting & Purity Panel */}
         <div className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/30 flex flex-wrap items-center justify-between gap-4">
-          
+
           {/* Quick sorting dropdowns */}
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400 font-semibold uppercase">Sort By:</span>
@@ -1087,7 +1088,7 @@ const Inventory = () => {
               <option value="999">99.9% Fine Silver</option>
             </select>
           </div>
-          
+
         </div>
 
 

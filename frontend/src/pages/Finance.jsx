@@ -26,7 +26,8 @@ import {
   Layers,
   Sparkles,
   RefreshCw,
-  Wallet
+  Wallet,
+  IndianRupeeIcon
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import {
@@ -807,7 +808,7 @@ const Finance = () => {
           </div>
           <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold ${stats.netFlow >= 0 ? "bg-blue-50 text-blue-600" : "bg-rose-100 text-rose-600 animate-pulse"
             }`}>
-            <DollarSign className="w-6 h-6" />
+            <IndianRupeeIcon className="w-6 h-6" />
           </div>
         </div>
 
@@ -1285,8 +1286,8 @@ const Finance = () => {
                               setIsEditOpen(true);
                             }}
                             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${tx.isAutoImported
-                                ? "text-slate-200 cursor-not-allowed"
-                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+                              ? "text-slate-200 cursor-not-allowed"
+                              : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
                               }`}
                             title={tx.isAutoImported ? "Payments synced from Customers can only be edited there." : "Edit Entry"}
                           >
@@ -1301,8 +1302,8 @@ const Finance = () => {
                               setIsDeleteConfirmOpen(true);
                             }}
                             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${tx.isAutoImported
-                                ? "text-slate-200 cursor-not-allowed"
-                                : "text-slate-300 hover:text-rose-600 hover:bg-rose-50"
+                              ? "text-slate-200 cursor-not-allowed"
+                              : "text-slate-300 hover:text-rose-600 hover:bg-rose-50"
                               }`}
                             title={tx.isAutoImported ? "Payments synced from Customers can only be deleted there." : "Delete Entry"}
                           >
@@ -1364,8 +1365,8 @@ const Finance = () => {
                     type="button"
                     onClick={() => handleAddTypeChange("INFLOW")}
                     className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${addForm.type === "INFLOW"
-                        ? "bg-emerald-500 text-white shadow-sm"
-                        : "text-slate-600 hover:bg-slate-50"
+                      ? "bg-emerald-500 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50"
                       }`}
                   >
                     INFLOW (+ Cash In)
@@ -1374,8 +1375,8 @@ const Finance = () => {
                     type="button"
                     onClick={() => handleAddTypeChange("OUTFLOW")}
                     className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${addForm.type === "OUTFLOW"
-                        ? "bg-rose-500 text-white shadow-sm"
-                        : "text-slate-600 hover:bg-slate-50"
+                      ? "bg-rose-500 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50"
                       }`}
                   >
                     OUTFLOW (- Cash Out)
@@ -1522,8 +1523,8 @@ const Finance = () => {
                     type="button"
                     onClick={() => handleEditTypeChange("INFLOW")}
                     className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${editForm.type === "INFLOW"
-                        ? "bg-emerald-500 text-white shadow-sm"
-                        : "text-slate-600 hover:bg-slate-50"
+                      ? "bg-emerald-500 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50"
                       }`}
                   >
                     INFLOW (+ Cash In)
@@ -1532,8 +1533,8 @@ const Finance = () => {
                     type="button"
                     onClick={() => handleEditTypeChange("OUTFLOW")}
                     className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${editForm.type === "OUTFLOW"
-                        ? "bg-rose-500 text-white shadow-sm"
-                        : "text-slate-600 hover:bg-slate-50"
+                      ? "bg-rose-500 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50"
                       }`}
                   >
                     OUTFLOW (- Cash Out)
@@ -1815,8 +1816,8 @@ const Finance = () => {
                   setIsDeleteConfirmOpen(true);
                 }}
                 className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${selectedTx.isAutoImported
-                    ? "bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200"
-                    : "bg-rose-50 hover:bg-rose-100 hover:text-rose-700 text-rose-600"
+                  ? "bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200"
+                  : "bg-rose-50 hover:bg-rose-100 hover:text-rose-700 text-rose-600"
                   }`}
                 title={selectedTx.isAutoImported ? "Udhaar collection transaction logs must be removed from the customer statement ledger." : "Delete Entry"}
               >

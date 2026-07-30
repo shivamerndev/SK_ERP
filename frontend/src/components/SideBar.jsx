@@ -18,7 +18,11 @@ import {
     ChevronLeft,
     ChevronRight,
     ChevronDown,
-    LogOut
+    LogOut,
+    IndianRupeeIcon,
+    Send,
+    ShoppingBag,
+    Notebook
 } from "lucide-react";
 
 
@@ -47,7 +51,7 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
         {
             name: "Sales",
             path: "/sales",
-            icon: <DollarSign className="w-5 h-5" />,
+            icon: <ShoppingBag className="w-5 h-5" />,
         },
         {
             name: "Purchases",
@@ -62,7 +66,7 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
         {
             name: "Finance",
             path: "/finance",
-            icon: <CreditCard className="w-5 h-5" />,
+            icon: <IndianRupeeIcon className="w-5 h-5" />
         },
         {
             name: "Customers",
@@ -72,7 +76,7 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
         {
             name: "Billing",
             path: "/billing",
-            icon: <Factory className="w-5 h-5" />,
+            icon: <Notebook className="w-5 h-5" />,
         },
         {
             name: "Reports",
@@ -96,12 +100,10 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
-    // Keep sidebar closed on route change on mobile
     useEffect(() => {
         setIsMobileSidebarOpen(false);
     }, [location, setIsMobileSidebarOpen]);
 
-    // Handle screen resize to detect mobile devices
     useEffect(() => {
         const handleResize = () => {
             setIsMobile(window.innerWidth < 1024); // lg breakpoint is 1024px
@@ -111,11 +113,9 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    // The sidebar displays collapsed only if we are on desktop, it's set to collapsed, and the user is not hovering
     const isCollapsed = !isMobile && isSidebarCollapsed && !isHovered;
 
     return <>
-        {/* Mobile Sidebar Overlay */}
         {isMobileSidebarOpen && (
             <div
                 className="fixed inset-0 z-45 bg-slate-900/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"
@@ -123,7 +123,6 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             />
         )}
 
-        {/* Left Sidebar */}
         <aside
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -132,16 +131,14 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
                 ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
                 ${isCollapsed ? "w-20" : "w-64"}`}
         >
-            {/* Brand Logo & Header */}
             <div className={`flex items-center px-5 py-5 border-b border-slate-800/80 ${isCollapsed ? "justify-center" : "justify-between"}`}>
                 <div className={`flex items-center gap-3 transition-all duration-200 ${isCollapsed ? "justify-center" : ""}`}>
-                    {/* Logo Avatar */}
-                    <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-extrabold text-lg flex-shrink-0 shadow-md shadow-blue-500/20">
-                        E
+                    <div className="w-9 h-9 rounded-md bg-blue-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md shadow-blue-500/20">
+                        SK
                     </div>
                     {!isCollapsed && (
                         <div className="flex flex-col">
-                            <span className="font-bold text-white text-base leading-tight tracking-tight">ERP Suite</span>
+                            <span className="font-bold text-white text-base leading-tight tracking-tight">SK-ERP</span>
                             <span className="text-[10px] text-slate-400 font-medium tracking-wide">Smart Business Solution</span>
                         </div>
                     )}

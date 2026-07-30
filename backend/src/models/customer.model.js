@@ -2,6 +2,41 @@ import mongoose from "mongoose";
 import Counter from "./counter.model.js";
 
 
+const transactionSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: () => new mongoose.Types.ObjectId()
+    },
+    date: {
+      type: String,
+      required: true
+    },
+    type: {
+      type: String,
+      enum: ["LENT", "PAID"],
+      required: true
+    },
+    amount: {
+      type: Number,
+      required: true
+    },
+    description: {
+      type: String,
+      default: ""
+    },
+    method: {
+      type: String,
+      enum: ["UPI", "Cash", "Card", "Bank Transfer"]
+    },
+    billId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Billing"
+    }
+  },
+  { timestamps: true }
+);
+
 const customerSchema = new mongoose.Schema(
   {
     _id: {
@@ -24,6 +59,16 @@ const customerSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Phone number is required"],
     },
+    email: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    notes: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     totalSpent: {
       type: Number,
       default: 0,
@@ -34,7 +79,7 @@ const customerSchema = new mongoose.Schema(
     },
     creditLimit: {
       type: Number,
-      default: 0
+      default: 500
     },
     loyality: {
       type: String,
@@ -44,7 +89,8 @@ const customerSchema = new mongoose.Schema(
     joinedAt: {
       type: mongoose.Schema.Types.Mixed,
       default: "Older",
-    }
+    },
+    transactions: [transactionSchema]
   },
   { timestamps: true }
 );

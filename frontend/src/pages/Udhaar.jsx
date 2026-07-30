@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useSelector } from "react-redux";
+import { allCustomers } from "../store/features/customer.slice";
+import useCustomer from "../customers/useCustomer";
 import { toast } from "react-hot-toast";
 import {
   Search,
-  Plus,
+  IndianRupeeIcon,
   UserPlus,
   ArrowUpRight,
   ArrowDownRight,
@@ -139,25 +142,56 @@ const INITIAL_CUSTOMERS = [
 ];
 
 const Udhaar = () => {
-  // ----------------------------------------------------
-  // STATES
-  // ----------------------------------------------------
-  const [customers, setCustomers] = useState(() => {
-    const saved = localStorage.getItem("erp_udhaar_customers");
-    return saved ? JSON.parse(saved) : INITIAL_CUSTOMERS;
-  });
+  const {
+    handleAllCustomers,
+    handleCreateCustomer,
+    handleDeleteCustomer,
+    handleRecordTransaction,
+    handleDeleteTransaction
+  } = useCustomer();
+
+  const dbCustomers = useSelector(allCustomers) || [];
+
+  useEffect(() => {
+    handleAllCustomers();
+  }, []);
+
+  const customers = useMemo(() => {
+    return dbCustomers.map((c) => {
+      const mappedTransactions = (c.transactions || []).map((t) => ({
+        ...t,
+        id: t._id,
+        date: t.date,
+        type: t.type,
+        amount: t.amount,
+        description: t.description || "",
+        method: t.method || ""
+      }));
+      return {
+        ...c,
+        id: c._id,
+        name: c.fullName,
+        phone: String(c.phone),
+        email: c.email || "N/A",
+        creditLimit: c.creditLimit || 0,
+        joined: c.joinedAt || c.createdAt || new Date().toISOString().split("T")[0],
+        notes: c.notes || "No notes provided.",
+        transactions: mappedTransactions
+      };
+    });
+  }, [dbCustomers]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All, Debtor, Cleared
   const [riskFilter, setRiskFilter] = useState("All"); // All, Safe, Warning, Critical
   const [activeDropdown, setActiveDropdown] = useState(null); // filter dropdown toggle
-  
+
   // Modal states
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
   const [isRecordTxOpen, setIsRecordTxOpen] = useState(false);
   const [txType, setTxType] = useState("LENT"); // LENT or PAID
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
-  
+
   // Drawer / Detailed statement state
   const [drawerCustomer, setDrawerCustomer] = useState(null);
 
@@ -184,13 +218,6 @@ const Udhaar = () => {
   // Refs for clicking outside dropdowns
   const dropdownRef = useRef(null);
 
-  // ----------------------------------------------------
-  // PERSISTENCE EFFECT
-  // ----------------------------------------------------
-  useEffect(() => {
-    localStorage.setItem("erp_udhaar_customers", JSON.stringify(customers));
-  }, [customers]);
-
   // Click outside listener for custom dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -205,7 +232,7 @@ const Udhaar = () => {
   // ----------------------------------------------------
   // HELPERS & DERIVED VALUES
   // ----------------------------------------------------
-  
+
   // Helper to add toast notification using react-hot-toast
   const addNotification = (message, type = "info") => {
     if (type === "success") {
@@ -223,7 +250,7 @@ const Udhaar = () => {
       // Calculate balance: LENT transactions add to balance, PAID subtract
       let totalLent = 0;
       let totalPaid = 0;
-      
+
       c.transactions.forEach((t) => {
         if (t.type === "LENT") {
           totalLent += t.amount;
@@ -231,10 +258,10 @@ const Udhaar = () => {
           totalPaid += t.amount;
         }
       });
-      
+
       const balance = totalLent - totalPaid;
       const utilization = c.creditLimit > 0 ? (balance / c.creditLimit) * 100 : 0;
-      
+
       // Determine risk status
       let riskStatus = "Safe";
       if (balance > 0) {
@@ -352,12 +379,12 @@ const Udhaar = () => {
   // ----------------------------------------------------
   // CHART DATA GENERATION
   // ----------------------------------------------------
-  
+
   // 1. Monthly Lending vs Recovery trend (6-Month scale)
   const trendChartData = useMemo(() => {
     const months = ["Feb", "Mar", "Apr", "May", "Jun", "Jul"];
     const monthIndex = { "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun", "07": "Jul" };
-    
+
     // Initialize months structure
     const monthlyStats = months.map(m => ({ month: m, Lent: 0, Recovered: 0 }));
 
@@ -406,7 +433,7 @@ const Udhaar = () => {
   // ----------------------------------------------------
   // EVENT HANDLERS & FORM SUBMISSIONS
   // ----------------------------------------------------
-  
+
   // Reset filter selections
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -415,7 +442,7 @@ const Udhaar = () => {
   };
 
   // Add Customer Form Validation & Action
-  const handleAddCustomer = (e) => {
+  const handleAddCustomer = async (e) => {
     e.preventDefault();
     const errors = {};
     if (!newCustName.trim()) errors.name = "Customer name is required";
@@ -431,28 +458,26 @@ const Udhaar = () => {
       return;
     }
 
-    const newCustomer = {
-      id: "cust-" + Date.now(),
-      name: newCustName.trim(),
+    const newCustomerData = {
+      fullName: newCustName.trim(),
       phone: newCustPhone.trim(),
-      email: newCustEmail.trim() || "N/A",
+      email: newCustEmail.trim() || "",
       creditLimit: parseFloat(newCustLimit),
-      joined: new Date().toISOString().split("T")[0],
-      notes: newCustNotes.trim() || "No notes provided.",
-      transactions: []
+      joinedAt: new Date().toISOString().split("T")[0],
+      notes: newCustNotes.trim() || ""
     };
 
-    setCustomers((prev) => [newCustomer, ...prev]);
-    setIsAddCustomerOpen(false);
-    addNotification(`Added customer "${newCustomer.name}" successfully`, "success");
-    
-    // Reset Form
-    setNewCustName("");
-    setNewCustPhone("");
-    setNewCustEmail("");
-    setNewCustLimit(10000);
-    setNewCustNotes("");
-    setCustFormErrors({});
+    const success = await handleCreateCustomer(newCustomerData);
+    if (success) {
+      setIsAddCustomerOpen(false);
+      // Reset Form
+      setNewCustName("");
+      setNewCustPhone("");
+      setNewCustEmail("");
+      setNewCustLimit(10000);
+      setNewCustNotes("");
+      setCustFormErrors({});
+    }
   };
 
   // Lending Autocomplete / Multiple items adding helper
@@ -496,7 +521,7 @@ const Udhaar = () => {
   }, [selectedLendItems, txType, lendItemsTotal]);
 
   // Submit Transaction
-  const handleRecordTransaction = (e) => {
+  const onRecordTransactionSubmit = async (e) => {
     e.preventDefault();
     const errors = {};
     if (!selectedCustomerId) errors.customer = "Please select a customer";
@@ -510,7 +535,7 @@ const Udhaar = () => {
     }
 
     // Check Credit Limit alert if Lending
-    const targetCust = enrichedCustomers.find(c => c.id === selectedCustomerId);
+    const targetCust = enrichedCustomers.find(c => String(c.id) === String(selectedCustomerId));
     if (txType === "LENT" && targetCust) {
       const potentialNewBalance = targetCust.balance + parseFloat(txAmount);
       if (potentialNewBalance > targetCust.creditLimit) {
@@ -519,14 +544,13 @@ const Udhaar = () => {
       }
     }
 
-    // If there are errors (ignoring credit limit warning, which is only a note, not block, but let's make it a warning unless user is okay)
+    // If there are errors (ignoring credit limit warning)
     if (Object.keys(errors).filter(key => key !== 'limitWarning').length > 0) {
       setTxFormErrors(errors);
       return;
     }
 
-    const newTx = {
-      id: "tx-" + Date.now(),
+    const txData = {
       date: txDate,
       type: txType,
       amount: parseFloat(txAmount),
@@ -534,30 +558,14 @@ const Udhaar = () => {
       ...(txType === "PAID" ? { method: txMethod } : {})
     };
 
-    // Update customer list
-    setCustomers((prev) =>
-      prev.map((c) => {
-        if (c.id === selectedCustomerId) {
-          return {
-            ...c,
-            transactions: [...c.transactions, newTx]
-          };
-        }
-        return c;
-      })
-    );
-
-    setIsRecordTxOpen(false);
-    addNotification(
-      `Recorded ${txType === "LENT" ? "credit lend of" : "payment receipt of"} $${newTx.amount} for ${targetCust?.name}`,
-      txType === "LENT" ? "info" : "success"
-    );
-
-    // Reset Form states
-    setTxAmount("");
-    setTxDesc("");
-    setSelectedLendItems([]);
-    setTxFormErrors({});
+    const success = await handleRecordTransaction(selectedCustomerId, txData);
+    if (success) {
+      setIsRecordTxOpen(false);
+      setTxAmount("");
+      setTxDesc("");
+      setSelectedLendItems([]);
+      setTxFormErrors({});
+    }
   };
 
   // Quick Action: open Record Tx with pre-filled customer and type
@@ -572,32 +580,22 @@ const Udhaar = () => {
   };
 
   // Delete transaction logic (inside drawer statement timeline)
-  const handleDeleteTransaction = (customerId, txId) => {
+  const onDeleteTransactionClick = async (customerId, txId) => {
     if (window.confirm("Are you sure you want to delete this transaction from the ledger?")) {
-      setCustomers((prev) =>
-        prev.map((c) => {
-          if (c.id === customerId) {
-            return {
-              ...c,
-              transactions: c.transactions.filter((tx) => tx.id !== txId)
-            };
-          }
-          return c;
-        })
-      );
-      addNotification("Transaction deleted from ledger", "danger");
+      await handleDeleteTransaction(customerId, txId);
     }
   };
 
   // Delete customer account
-  const handleDeleteCustomer = (customerId) => {
-    const target = customers.find(c => c.id === customerId);
+  const onDeleteCustomerClick = async (customerId) => {
+    const target = customers.find(c => String(c.id) === String(customerId));
     if (window.confirm(`Are you sure you want to remove the ledger account of "${target?.name}"? All transaction logs will be permanently deleted.`)) {
-      setCustomers((prev) => prev.filter((c) => c.id !== customerId));
-      if (drawerCustomer && drawerCustomer.id === customerId) {
-        setDrawerCustomer(null);
+      const success = await handleDeleteCustomer(customerId);
+      if (success) {
+        if (drawerCustomer && String(drawerCustomer.id) === String(customerId)) {
+          setDrawerCustomer(null);
+        }
       }
-      addNotification(`Deleted customer "${target?.name}"`, "danger");
     }
   };
 
@@ -616,7 +614,7 @@ Thank you for your continued support!
     // Encode message
     const encodedText = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/91${customer.phone}?text=${encodedText}`;
-    
+
     // Open in new window
     window.open(whatsappUrl, "_blank");
     addNotification(`WhatsApp reminder initialized for ${customer.name}`, "success");
@@ -662,11 +660,11 @@ Thank you for your continued support!
             </thead>
             <tbody>
               ${(() => {
-                let currentBal = 0;
-                return customer.transactions.map((tx) => {
-                  if (tx.type === "LENT") currentBal += tx.amount;
-                  else currentBal -= tx.amount;
-                  return `
+        let currentBal = 0;
+        return customer.transactions.map((tx) => {
+          if (tx.type === "LENT") currentBal += tx.amount;
+          else currentBal -= tx.amount;
+          return `
                     <tr>
                       <td>${new Date(tx.date).toLocaleDateString()}</td>
                       <td>${tx.type}</td>
@@ -676,8 +674,8 @@ Thank you for your continued support!
                       <td class="text-right">$${currentBal.toFixed(2)}</td>
                     </tr>
                   `;
-                }).join("");
-              })()}
+        }).join("");
+      })()}
               <tr class="total">
                 <td colspan="3">Outstanding Net Balance</td>
                 <td colspan="3" class="text-right">$${customer.balance.toFixed(2)}</td>
@@ -693,7 +691,7 @@ Thank you for your continued support!
 
   return (
     <div className="flex flex-col gap-6 select-none animate-fade-in pb-16">
-      
+
 
 
       {/* ----------------------------------------------------
@@ -719,7 +717,7 @@ Thank you for your continued support!
             <ArrowUpRight size={18} />
             <span>Lend Items (Credit)</span>
           </button>
-          
+
           <button
             onClick={() => {
               setSelectedCustomerId("");
@@ -760,7 +758,7 @@ Thank you for your continued support!
             </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600">
-            <DollarSign size={24} />
+            <IndianRupeeIcon size={24} />
           </div>
         </div>
 
@@ -835,19 +833,19 @@ Thank you for your continued support!
               <AreaChart data={trendChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorLent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15}/>
-                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorRecovered" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.15}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' }} 
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' }}
                   labelClassName="font-semibold text-slate-800"
                 />
                 <Area type="monotone" dataKey="Lent" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#colorLent)" name="Lent ($)" />
@@ -863,7 +861,7 @@ Thank you for your continued support!
             <h3 className="text-base font-bold text-slate-800">Outstanding Aging & Risk</h3>
             <span className="text-xs text-slate-400">Ledger breakdown by account risk level</span>
           </div>
-          
+
           {ageingChartData.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400">
               <Activity size={32} className="text-slate-300 mb-2" />
@@ -888,9 +886,9 @@ Thank you for your continued support!
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       formatter={(val) => [`$${val.toLocaleString()}`, "Outstanding"]}
-                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }} 
+                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -921,7 +919,7 @@ Thank you for your continued support!
           4. CUSTOMER LEDGER WORKBENCH (TOOLBAR & TABLE)
           ---------------------------------------------------- */}
       <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm" ref={dropdownRef}>
-        
+
         {/* Filters Toolbar */}
         <div className="p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -956,11 +954,10 @@ Thank you for your continued support!
             <div className="relative">
               <button
                 onClick={() => setActiveDropdown(activeDropdown === "status" ? null : "status")}
-                className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
-                  statusFilter !== "All"
-                    ? "border-indigo-500 ring-2 ring-indigo-500/10 text-indigo-700 bg-indigo-50/20"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                }`}
+                className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${statusFilter !== "All"
+                  ? "border-indigo-500 ring-2 ring-indigo-500/10 text-indigo-700 bg-indigo-50/20"
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
               >
                 <span>Balance: {statusFilter}</span>
                 <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === "status" ? "rotate-180" : ""}`} />
@@ -988,11 +985,10 @@ Thank you for your continued support!
             <div className="relative">
               <button
                 onClick={() => setActiveDropdown(activeDropdown === "risk" ? null : "risk")}
-                className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
-                  riskFilter !== "All"
-                    ? "border-indigo-500 ring-2 ring-indigo-500/10 text-indigo-700 bg-indigo-50/20"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                }`}
+                className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${riskFilter !== "All"
+                  ? "border-indigo-500 ring-2 ring-indigo-500/10 text-indigo-700 bg-indigo-50/20"
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
               >
                 <span>Risk: {riskFilter}</span>
                 <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === "risk" ? "rotate-180" : ""}`} />
@@ -1056,10 +1052,10 @@ Thank you for your continued support!
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredCustomers.map((cust) => {
-                  const avatarColor = cust.balance > 0 
-                    ? cust.riskStatus === "Critical" ? "bg-rose-100 text-rose-700" 
+                  const avatarColor = cust.balance > 0
+                    ? cust.riskStatus === "Critical" ? "bg-rose-100 text-rose-700"
                       : cust.riskStatus === "Warning" ? "bg-amber-100 text-amber-700"
-                      : "bg-orange-100 text-orange-700"
+                        : "bg-orange-100 text-orange-700"
                     : "bg-emerald-100 text-emerald-700";
 
                   const initial = cust.name.charAt(0).toUpperCase();
@@ -1093,7 +1089,7 @@ Thank you for your continued support!
                               <CheckCircle size={14} /> Clear Ledger
                             </span>
                           )}
-                          <span className="text-[10px] text-slate-400">Limit: ${cust.creditLimit.toLocaleString()}</span>
+                          <span className="text-[10px] text-slate-400">Limit: ₹{cust.creditLimit.toLocaleString()}</span>
                         </div>
                       </td>
 
@@ -1106,13 +1102,12 @@ Thank you for your continued support!
                           </div>
                           <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-500 ${
-                                cust.riskStatus === "Critical"
-                                  ? "bg-rose-500"
-                                  : cust.riskStatus === "Warning"
+                              className={`h-full rounded-full transition-all duration-500 ${cust.riskStatus === "Critical"
+                                ? "bg-rose-500"
+                                : cust.riskStatus === "Warning"
                                   ? "bg-amber-500"
                                   : "bg-emerald-500"
-                              }`}
+                                }`}
                               style={{ width: `${Math.min(cust.utilization, 100)}%` }}
                             />
                           </div>
@@ -1129,25 +1124,23 @@ Thank you for your continued support!
                       {/* Risk Badge */}
                       <td className="py-4 px-5">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            cust.balance === 0
-                              ? "bg-slate-50 text-slate-400 border border-slate-200/50"
-                              : cust.riskStatus === "Critical"
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${cust.balance === 0
+                            ? "bg-slate-50 text-slate-400 border border-slate-200/50"
+                            : cust.riskStatus === "Critical"
                               ? "bg-rose-50 text-rose-700 border border-rose-100"
                               : cust.riskStatus === "Warning"
-                              ? "bg-amber-50 text-amber-700 border border-amber-100"
-                              : "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                          }`}
+                                ? "bg-amber-50 text-amber-700 border border-amber-100"
+                                : "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                            }`}
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            cust.balance === 0 
-                              ? "bg-slate-300"
-                              : cust.riskStatus === "Critical"
+                          <span className={`w-1.5 h-1.5 rounded-full ${cust.balance === 0
+                            ? "bg-slate-300"
+                            : cust.riskStatus === "Critical"
                               ? "bg-rose-500"
                               : cust.riskStatus === "Warning"
-                              ? "bg-amber-500"
-                              : "bg-emerald-500"
-                          }`} />
+                                ? "bg-amber-500"
+                                : "bg-emerald-500"
+                            }`} />
                           {cust.balance === 0 ? "Settled" : cust.riskStatus}
                         </span>
                       </td>
@@ -1162,7 +1155,7 @@ Thank you for your continued support!
                           >
                             <ArrowUpRight size={16} />
                           </button>
-                          
+
                           <button
                             onClick={() => openQuickTx(cust.id, "PAID")}
                             title="Receive cash payment"
@@ -1182,7 +1175,7 @@ Thank you for your continued support!
                           )}
 
                           <button
-                            onClick={() => handleDeleteCustomer(cust.id)}
+                            onClick={() => onDeleteCustomerClick(cust.id)}
                             title="Delete customer ledger"
                             className="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 transition-colors cursor-pointer"
                           >
@@ -1222,13 +1215,12 @@ Thank you for your continued support!
             {/* Drawer Header */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg ${
-                  drawerCustomer.balance > 0 
-                    ? drawerCustomer.riskStatus === "Critical" ? "bg-rose-100 text-rose-700"
-                      : drawerCustomer.riskStatus === "Warning" ? "bg-amber-100 text-amber-700"
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg ${drawerCustomer.balance > 0
+                  ? drawerCustomer.riskStatus === "Critical" ? "bg-rose-100 text-rose-700"
+                    : drawerCustomer.riskStatus === "Warning" ? "bg-amber-100 text-amber-700"
                       : "bg-orange-100 text-orange-700"
-                    : "bg-emerald-100 text-emerald-700"
-                }`}>
+                  : "bg-emerald-100 text-emerald-700"
+                  }`}>
                   {drawerCustomer.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex flex-col">
@@ -1265,7 +1257,7 @@ Thank you for your continued support!
 
             {/* Drawer Body Scroll Container */}
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-              
+
               {/* Account Quick Stats Dashboard */}
               <div className="grid grid-cols-3 gap-3 bg-slate-50 border border-slate-200/50 rounded-2xl p-4">
                 <div className="flex flex-col">
@@ -1297,13 +1289,12 @@ Thank you for your continued support!
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden mb-1.5">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      drawerCustomer.riskStatus === "Critical"
-                        ? "bg-rose-500"
-                        : drawerCustomer.riskStatus === "Warning"
+                    className={`h-full rounded-full transition-all duration-500 ${drawerCustomer.riskStatus === "Critical"
+                      ? "bg-rose-500"
+                      : drawerCustomer.riskStatus === "Warning"
                         ? "bg-amber-500"
                         : "bg-emerald-500"
-                    }`}
+                      }`}
                     style={{ width: `${Math.min(drawerCustomer.utilization, 100)}%` }}
                   />
                 </div>
@@ -1377,15 +1368,15 @@ Thank you for your continued support!
                     {/* Reverse map to show newest first */}
                     {[...drawerCustomer.transactions].reverse().map((tx, idx) => {
                       const isLent = tx.type === "LENT";
-                      const typeIconColor = isLent 
-                        ? "bg-rose-50 text-rose-600 border border-rose-100" 
+                      const typeIconColor = isLent
+                        ? "bg-rose-50 text-rose-600 border border-rose-100"
                         : "bg-emerald-50 text-emerald-600 border border-emerald-100";
-                      
+
                       const dateObj = new Date(tx.date);
-                      const displayDate = dateObj.toLocaleDateString("en-US", { 
-                        month: "short", 
-                        day: "numeric", 
-                        year: "numeric" 
+                      const displayDate = dateObj.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric"
                       });
 
                       return (
@@ -1398,7 +1389,7 @@ Thank you for your continued support!
                           <div className="border border-slate-100 hover:border-slate-200/80 rounded-2xl p-4 bg-slate-50/20 hover:bg-slate-50/40 transition-colors relative">
                             {/* Delete specific transaction button */}
                             <button
-                              onClick={() => handleDeleteTransaction(drawerCustomer.id, tx.id)}
+                              onClick={() => onDeleteTransactionClick(drawerCustomer.id, tx.id)}
                               className="absolute top-4 right-4 opacity-0 group-hover/timeline:opacity-100 text-slate-400 hover:text-rose-600 p-1 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
                               title="Delete transaction log"
                             >
@@ -1471,9 +1462,8 @@ Thank you for your continued support!
                     setNewCustName(e.target.value);
                     if (custFormErrors.name) setCustFormErrors({ ...custFormErrors, name: null });
                   }}
-                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 transition-all font-medium text-slate-700 ${
-                    custFormErrors.name ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
-                  }`}
+                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 transition-all font-medium text-slate-700 ${custFormErrors.name ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
+                    }`}
                 />
                 {custFormErrors.name && <span className="text-[11px] text-rose-500 font-semibold">{custFormErrors.name}</span>}
               </div>
@@ -1489,9 +1479,8 @@ Thank you for your continued support!
                     setNewCustPhone(e.target.value);
                     if (custFormErrors.phone) setCustFormErrors({ ...custFormErrors, phone: null });
                   }}
-                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 transition-all font-medium text-slate-700 ${
-                    custFormErrors.phone ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
-                  }`}
+                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 transition-all font-medium text-slate-700 ${custFormErrors.phone ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
+                    }`}
                 />
                 {custFormErrors.phone && <span className="text-[11px] text-rose-500 font-semibold">{custFormErrors.phone}</span>}
               </div>
@@ -1522,9 +1511,8 @@ Thank you for your continued support!
                     setNewCustLimit(e.target.value);
                     if (custFormErrors.limit) setCustFormErrors({ ...custFormErrors, limit: null });
                   }}
-                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 transition-all font-medium text-slate-700 ${
-                    custFormErrors.limit ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
-                  }`}
+                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 transition-all font-medium text-slate-700 ${custFormErrors.limit ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
+                    }`}
                 />
                 {custFormErrors.limit && <span className="text-[11px] text-rose-500 font-semibold">{custFormErrors.limit}</span>}
               </div>
@@ -1569,7 +1557,7 @@ Thank you for your continued support!
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setIsRecordTxOpen(false)} />
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full z-10 overflow-hidden">
-            
+
             {/* Modal Header containing Mode tabs */}
             <div className="border-b border-slate-100 flex flex-col bg-slate-50/50">
               <div className="p-5 flex items-center justify-between pb-3">
@@ -1590,27 +1578,25 @@ Thank you for your continued support!
                     setTxType("LENT");
                     setTxFormErrors({});
                   }}
-                  className={`flex-1 py-3 text-sm font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer border-b-2 ${
-                    txType === "LENT"
-                      ? "border-rose-600 text-rose-700 bg-rose-50/10"
-                      : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"
-                  }`}
+                  className={`flex-1 py-3 text-sm font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer border-b-2 ${txType === "LENT"
+                    ? "border-rose-600 text-rose-700 bg-rose-50/10"
+                    : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"
+                    }`}
                 >
                   <ArrowUpRight size={16} />
                   LEND PRODUCTS (Credit extended)
                 </button>
-                
+
                 <button
                   type="button"
                   onClick={() => {
                     setTxType("PAID");
                     setTxFormErrors({});
                   }}
-                  className={`flex-1 py-3 text-sm font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer border-b-2 ${
-                    txType === "PAID"
-                      ? "border-emerald-600 text-emerald-700 bg-emerald-50/10"
-                      : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"
-                  }`}
+                  className={`flex-1 py-3 text-sm font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer border-b-2 ${txType === "PAID"
+                    ? "border-emerald-600 text-emerald-700 bg-emerald-50/10"
+                    : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"
+                    }`}
                 >
                   <ArrowDownRight size={16} />
                   RECEIVE PAYMENT (Cash in)
@@ -1619,8 +1605,8 @@ Thank you for your continued support!
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleRecordTransaction} className="p-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
-              
+            <form onSubmit={onRecordTransactionSubmit} className="p-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+
               {/* Select Customer */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Select Customer</label>
@@ -1630,9 +1616,8 @@ Thank you for your continued support!
                     setSelectedCustomerId(e.target.value);
                     if (txFormErrors.customer) setTxFormErrors({ ...txFormErrors, customer: null });
                   }}
-                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 font-medium text-slate-700 transition-all ${
-                    txFormErrors.customer ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
-                  }`}
+                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 font-medium text-slate-700 transition-all ${txFormErrors.customer ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
+                    }`}
                 >
                   <option value="">-- Choose Customer --</option>
                   {enrichedCustomers.map((c) => (
@@ -1651,7 +1636,7 @@ Thank you for your continued support!
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Pick Lent Products from Stock</span>
                     <span className="text-[10px] text-slate-400 font-semibold">Selects items automatically</span>
                   </div>
-                  
+
                   {/* Stock Grid list */}
                   <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto p-1.5 border border-slate-100 rounded-xl bg-white">
                     {SHOP_PRODUCTS.map((prod) => (
@@ -1713,11 +1698,10 @@ Thank you for your continued support!
                     const potential = currCust.balance + (parseFloat(txAmount) || 0);
                     const over = potential > currCust.creditLimit;
                     return (
-                      <div className={`p-3 rounded-xl border text-xs font-semibold flex items-start gap-2 ${
-                        over 
-                          ? "bg-rose-50 text-rose-800 border-rose-100" 
-                          : "bg-emerald-50 text-emerald-800 border-emerald-100"
-                      }`}>
+                      <div className={`p-3 rounded-xl border text-xs font-semibold flex items-start gap-2 ${over
+                        ? "bg-rose-50 text-rose-800 border-rose-100"
+                        : "bg-emerald-50 text-emerald-800 border-emerald-100"
+                        }`}>
                         <AlertCircle size={16} className={`shrink-0 ${over ? "text-rose-500" : "text-emerald-500"}`} />
                         <div className="flex-1 flex flex-col gap-0.5">
                           {over ? (
@@ -1749,9 +1733,8 @@ Thank you for your continued support!
                     setTxAmount(e.target.value);
                     if (txFormErrors.amount) setTxFormErrors({ ...txFormErrors, amount: null });
                   }}
-                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 font-semibold text-slate-700 transition-all ${
-                    txFormErrors.amount ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
-                  }`}
+                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 font-semibold text-slate-700 transition-all ${txFormErrors.amount ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
+                    }`}
                 />
                 {txFormErrors.amount && <span className="text-[11px] text-rose-500 font-semibold">{txFormErrors.amount}</span>}
               </div>
@@ -1777,11 +1760,10 @@ Thank you for your continued support!
                         key={method}
                         type="button"
                         onClick={() => setTxMethod(method)}
-                        className={`py-2 text-xs font-bold border rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                          txMethod === method
-                            ? "border-emerald-600 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-600/10"
-                            : "border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-600"
-                        }`}
+                        className={`py-2 text-xs font-bold border rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${txMethod === method
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-600/10"
+                          : "border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-600"
+                          }`}
                       >
                         {method === "Card" && <CreditCard size={14} />}
                         <span>{method}</span>
@@ -1804,9 +1786,8 @@ Thank you for your continued support!
                     setTxDesc(e.target.value);
                     if (txFormErrors.desc) setTxFormErrors({ ...txFormErrors, desc: null });
                   }}
-                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 font-medium text-slate-700 transition-all ${
-                    txFormErrors.desc ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
-                  }`}
+                  className={`px-4 py-2.5 text-sm bg-slate-50/30 border rounded-xl outline-none focus:bg-white focus:ring-2 font-medium text-slate-700 transition-all ${txFormErrors.desc ? "border-rose-400 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500"
+                    }`}
                 />
                 {txFormErrors.desc && <span className="text-[11px] text-rose-500 font-semibold">{txFormErrors.desc}</span>}
               </div>
@@ -1822,9 +1803,8 @@ Thank you for your continued support!
                 </button>
                 <button
                   type="submit"
-                  className={`px-5 py-2.5 font-bold text-sm text-white rounded-xl transition-all shadow-md cursor-pointer ${
-                    txType === "LENT" ? "bg-rose-600 hover:bg-rose-700" : "bg-emerald-600 hover:bg-emerald-700"
-                  }`}
+                  className={`px-5 py-2.5 font-bold text-sm text-white rounded-xl transition-all shadow-md cursor-pointer ${txType === "LENT" ? "bg-rose-600 hover:bg-rose-700" : "bg-emerald-600 hover:bg-emerald-700"
+                    }`}
                 >
                   Record {txType === "LENT" ? "Lend credit" : "Payment"}
                 </button>

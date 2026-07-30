@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { Users, TrendingDown, DollarSign, CreditCard, AlertTriangle } from 'lucide-react';
+import { Users, TrendingDown, DollarSign, CreditCard, AlertTriangle, IndianRupeeIcon } from 'lucide-react';
 
 
-const StatsGrid = ({customers}) => {
+const StatsGrid = ({ customers }) => {
 
 
     const stats = useMemo(() => {
@@ -13,7 +13,7 @@ const StatsGrid = ({customers}) => {
 
         customers.forEach(c => {
             const bal = c.totalLend;
-            totalExposure += Number(c.creditLimit || 0);  
+            totalExposure += Number(c.creditLimit || 0);
 
             if (bal > 0) {
                 debtors++;
@@ -36,7 +36,7 @@ const StatsGrid = ({customers}) => {
     }, [customers]);
 
 
-    return ( 
+    return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
             {/* Stat 1: Total Customers */}
@@ -73,7 +73,7 @@ const StatsGrid = ({customers}) => {
                     <p className="text-[11px] text-slate-400">Unsettled Udhaar ledger</p>
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-                    <DollarSign className="w-6 h-6" />
+                    <IndianRupeeIcon className="w-6 h-6" />
                 </div>
             </div>
 

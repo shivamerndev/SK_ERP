@@ -1,6 +1,12 @@
 import { useDispatch } from "react-redux";
 import { setCustomers } from "../store/features/customer.slice";
-import { createCustomerService, getAllCustomersService } from "./customer.service";
+import { 
+  createCustomerService, 
+  getAllCustomersService, 
+  deleteCustomerService, 
+  recordTransactionService, 
+  deleteTransactionService 
+} from "./customer.service";
 import { toast } from "react-hot-toast";
 
 const useCustomer = () => {
@@ -26,8 +32,63 @@ const useCustomer = () => {
   }
 
   const handleAllCustomers = async () => {
-    const res = await getAllCustomersService()
-    dispatch(setCustomers(res.data.data))
+    try {
+      const res = await getAllCustomersService()
+      dispatch(setCustomers(res.data.data))
+    } catch (error) {
+      console.error("Failed to fetch customers:", error)
+    }
+  }
+
+  const handleDeleteCustomer = async (id) => {
+    try {
+      const res = await deleteCustomerService(id)
+      if (res.data?.success || res.status === 200) {
+        toast.success(res.data?.message || "Customer deleted successfully!");
+        handleAllCustomers();
+        return true;
+      } else {
+        toast.error(res.data?.message || "Failed to delete customer");
+        return false;
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+      return false;
+    }
+  }
+
+  const handleRecordTransaction = async (customerId, txData) => {
+    try {
+      const res = await recordTransactionService(customerId, txData)
+      if (res.data?.success || res.status === 200) {
+        toast.success(res.data?.message || "Transaction recorded successfully!");
+        handleAllCustomers();
+        return true;
+      } else {
+        toast.error(res.data?.message || "Failed to record transaction");
+        return false;
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+      return false;
+    }
+  }
+
+  const handleDeleteTransaction = async (customerId, txId) => {
+    try {
+      const res = await deleteTransactionService(customerId, txId)
+      if (res.data?.success || res.status === 200) {
+        toast.success(res.data?.message || "Transaction deleted successfully!");
+        handleAllCustomers();
+        return true;
+      } else {
+        toast.error(res.data?.message || "Failed to delete transaction");
+        return false;
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+      return false;
+    }
   }
 
 
@@ -88,6 +149,9 @@ const useCustomer = () => {
   return {
     handleCreateCustomer,
     handleAllCustomers,
+    handleDeleteCustomer,
+    handleRecordTransaction,
+    handleDeleteTransaction,
     handleExport,
     handleImport
   }
