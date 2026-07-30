@@ -3,17 +3,17 @@ import handleForm from "../../utils/formHandler.utils.js";
 import { useState } from "react";
 
 const parseMathExpression = (expr) => {
-  if (!expr) return 0;
-  try {
-    const clean = String(expr).replace(/\s+/g, "");
-    if (!/^[0-9.+\-*/()]+$/.test(clean)) {
-      return parseFloat(clean) || 0;
+    if (!expr) return 0;
+    try {
+        const clean = String(expr).replace(/\s+/g, "");
+        if (!/^[0-9.+\-*/()]+$/.test(clean)) {
+            return parseFloat(clean) || 0;
+        }
+        const result = new Function(`return (${clean})`)();
+        return typeof result === "number" && !isNaN(result) ? result : 0;
+    } catch (e) {
+        return 0;
     }
-    const result = new Function(`return (${clean})`)();
-    return typeof result === "number" && !isNaN(result) ? result : 0;
-  } catch (e) {
-    return 0;
-  }
 };
 
 const PRESET_IMAGES = [
@@ -91,7 +91,7 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
     };
 
 
-    return (<div className="fixed h-[85vh] inset-0  backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all">
+    return (<div className="fixed h-screen inset-0  backdrop-blur-md flex items-center justify-center z-50 p-4 transition-all">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-scale-up">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
                             value={formWeight}
                             onChange={(e) => setFormWeight(e.target.value)}
                             placeholder="e.g. 10.5, 12.3, 9.8"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
                         />
                         {formErrors.weight && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.weight}</span>}
                     </div>
@@ -201,7 +201,7 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
                                 value={formTunch}
                                 onChange={(e) => setFormTunch(e.target.value)}
                                 placeholder="e.g. 90"
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
                             />
                             {formErrors.tunch && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.tunch}</span>}
                         </div>
@@ -216,7 +216,7 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
                                 value={formLab}
                                 onChange={(e) => setFormLab(e.target.value)}
                                 placeholder="e.g. 15"
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
                             />
                             {formErrors.lab && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.lab}</span>}
                         </div>
@@ -230,7 +230,7 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
                                 value={formPanniDetail}
                                 onChange={(e) => setFormPanniDetail(e.target.value)}
                                 placeholder="e.g. 5 or 1*2.5 + 1*3"
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
                             />
                             {formErrors.panniDetail && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.panniDetail}</span>}
                         </div>

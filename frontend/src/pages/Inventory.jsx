@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
+
 import {
   Search,
   Plus,
@@ -44,103 +46,256 @@ import {
   PieChart,
   Pie
 } from "recharts";
+import ProductTable from "../products/components/ProductTable";
+import useProduct from "../products/useProduct";
+import FilterToolbar from "../products/components/FilterToolbar";
+import ConfirmModal from "../utils/ConfirmModal";
+import EditProduct from "../products/components/EditProduct";
+import AddProduct from "../products/components/AddProduct";
+import Header from "../products/components/Header";
 
-// ----------------------------------------------------
-// INITIAL SEED DESIGNS (Silver Jewelry Wholesaler Catalog)
-// ----------------------------------------------------
-const INITIAL_DESIGNS = [
-  {
-    id: "dsn-1",
-    sku: "SLV-PY-001",
-    name: "Sterling Bridal Payal (Anklet)",
-    category: "Anklets",
-    purity: 925, // 925 Sterling
-    weight: 42.5, // grams per piece
-    finish: "Oxidized Antique",
-    makingChargeType: "PER_GRAM",
-    makingCharge: 12, // ₹12 per gram
-    stocks: 25, // pieces
-    imageUrl: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=150&auto=format&fit=crop&q=60",
-    notes: "Heavy traditional design. Highly popular in wedding season."
-  },
-  {
-    id: "dsn-2",
-    sku: "SLV-RG-002",
-    name: "Oxidized Floral Band Ring",
-    category: "Rings",
-    purity: 925,
-    weight: 6.8,
-    finish: "Oxidized Antique",
-    makingChargeType: "PER_GRAM",
-    makingCharge: 15, // ₹15 per gram
-    stocks: 150,
-    imageUrl: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=150&auto=format&fit=crop&q=60",
-    notes: "Lightweight unisex design. Sells in bulk packs of 10."
-  },
-  {
-    id: "dsn-3",
-    sku: "SLV-KD-003",
-    name: "Classic Rajasthani Kada (Bracelet)",
-    category: "Bracelets",
-    purity: 925,
-    weight: 35.0,
-    finish: "High-Polish White",
-    makingChargeType: "PER_GRAM",
-    makingCharge: 10,
-    stocks: 45,
-    imageUrl: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=150&auto=format&fit=crop&q=60",
-    notes: "Screw lock mechanism. Solid silver weight."
-  },
-  {
-    id: "dsn-4",
-    sku: "SLV-CH-004",
-    name: "Unisex Curb Link Chain",
-    category: "Chains",
-    purity: 925,
-    weight: 18.2,
-    finish: "Rhodium Plated",
-    makingChargeType: "PER_GRAM",
-    makingCharge: 8,
-    stocks: 80,
-    imageUrl: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=150&auto=format&fit=crop&q=60",
-    notes: "Tarnish resistant Rhodium shield. 20-inch standard length."
-  },
-  {
-    id: "dsn-5",
-    sku: "SLV-TR-005",
-    name: "Traditional Adjustable Bichhiya (Toe Rings)",
-    category: "Toe Rings",
-    purity: 900, // 90% Coin silver
-    weight: 4.5,
-    finish: "Pure Silver Polish",
-    makingChargeType: "FLAT_PIECE",
-    makingCharge: 40, // ₹40 flat making charge per piece
-    stocks: 300,
-    imageUrl: "https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=150&auto=format&fit=crop&q=60",
-    notes: "Sold in pairs. Fast moving daily wear ornament."
-  },
-  {
-    id: "dsn-6",
-    sku: "SLV-ER-006",
-    name: "Sterling Filigree Jhumkas",
-    category: "Earrings",
-    purity: 925,
-    weight: 12.4,
-    finish: "Gold Vermeil",
-    makingChargeType: "FLAT_PIECE",
-    makingCharge: 250, // ₹250 flat gold plating charge
-    stocks: 8, // Low Stock Alert
-    imageUrl: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=150&auto=format&fit=crop&q=60",
-    notes: "18K Gold Plated Sterling Silver base. High premium craftsmanship."
-  }
+const STOCKS_LIMIT = 10
+
+const DEFAULT_CATEGORIES = ["bichiya", "got", "earring", "ring", "bracelet", "payal", "kangan", "katori", "necklace", "watches"];
+
+
+const PRESET_IMAGES = [
+  { name: "Necklace 1", url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=150&auto=format&fit=crop&q=60" },
+  { name: "Necklace 2", url: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=150&auto=format&fit=crop&q=60" },
+  { name: "Watch Gold", url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&auto=format&fit=crop&q=60" },
+  { name: "Ring Diamond", url: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=150&auto=format&fit=crop&q=60" },
+  { name: "Earrings Pearl", url: "https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=150&auto=format&fit=crop&q=60" },
+  { name: "Bracelet Charm", url: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=150&auto=format&fit=crop&q=60" }
 ];
 
-const STOCKS_LIMIT = 10; // Wholesale low stock trigger
+
 
 const Inventory = () => {
+
+  const { products = [], handleAllProducts, handleCreateProduct, handleUpdateProduct, handleDeleteProduct } = useProduct();
+  const location = useLocation();
+
+  useEffect(() => {
+    handleAllProducts();
+  }, []);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedCategory = searchParams.get("category") || "All Categories";
+
+  const setSelectedCategory = (category) => {
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      if (category && category !== "All Categories") {
+        newParams.set("category", category);
+      } else {
+        newParams.delete("category");
+      }
+      return newParams;
+    });
+  };
+
+  const [selectedStatus, setSelectedStatus] = useState("All Status");
+  const [selectedWeightRange, setSelectedWeightRange] = useState("All Weights");
+  const [selectedStockLevel, setSelectedStockLevel] = useState("All Stock");
+
+  // Dropdown UI Open States
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'category' | 'status' | 'weight' | 'stock' | null
+
+  // CRUD Modals State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState(null);
+
+  const [formName, setFormName] = useState("");
+  const [formCategory, setFormCategory] = useState("payal");
+  const [customCategory, setCustomCategory] = useState("");
+  const [formPieces, setFormPieces] = useState("");
+  const [formWeight, setFormWeight] = useState("");
+  const [formTunch, setFormTunch] = useState("");
+  const [formLab, setFormLab] = useState("");
+  const [formPanniDetail, setFormPanniDetail] = useState("");
+  const [formImageUrl, setFormImageUrl] = useState(PRESET_IMAGES[0].url);
+  const [formErrors, setFormErrors] = useState({});
+
+  const allCategories = useMemo(() => {
+    const list = new Set([
+      ...DEFAULT_CATEGORIES,
+      ...products.map((p) => p.category?.toLowerCase()?.trim())
+    ]);
+    return Array.from(list).filter(Boolean).sort();
+  }, [products]);
+
+  // Notification Toast State
+  const [notifications, setNotifications] = useState([]);
+  const [showNotificationsList, setShowNotificationsList] = useState(false);
+
+  const dropdownRef = useRef(null);
+  const notificationRef = useRef(null);
+
+  // Click Outside Event listener to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setActiveDropdown(null);
+      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotificationsList(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // ----------------------------------------------------
-  // STATE MANAGEMENT
+  // ACTIONS / LOGIC
   // ----------------------------------------------------
+  const addNotification = (message, type = "info") => {
+    const id = Date.now();
+    const newNotif = { id, message, type, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    setNotifications((prev) => [newNotif, ...prev].slice(0, 10)); // Limit to last 10
+  };
+
+  const handleOpenAddModal = () => {
+    setFormName("");
+    setFormCategory(allCategories[0] || "payal");
+    setCustomCategory("");
+    setFormPieces("0");
+    setFormWeight("");
+    setFormTunch("0");
+    setFormLab("0");
+    setFormPanniDetail("0");
+    setFormImageUrl(PRESET_IMAGES[0].url);
+    setFormErrors({});
+    setIsAddModalOpen(true);
+  };
+
+  const handleOpenEditModal = (product) => {
+    setCurrentProduct(product);
+    setFormName(product.name);
+    setFormCategory(product.category?.toLowerCase() || "payal");
+    setCustomCategory("");
+    setFormPieces(product.pieces?.toString() || "0");
+    setFormWeight(Array.isArray(product.weight) ? product.weight.join(", ") : "");
+    setFormTunch(product.tunch?.toString() || "0");
+    setFormLab(product.lab?.toString() || "0");
+    setFormPanniDetail(product.panniDetail?.toString() || "0");
+    setFormImageUrl(product.image || PRESET_IMAGES[0].url);
+    setFormErrors({});
+    setIsEditModalOpen(true);
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const productId = params.get("id");
+    if (productId && products.length > 0) {
+      const prod = products.find(p => String(p._id) === String(productId));
+      if (prod) {
+        handleOpenEditModal(prod);
+        // Clean up URL query parameters without reloading the page
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, [products, location.search]);
+
+
+
+  const handleDeleteConfirm = () => {
+    handleDeleteProduct(currentProduct._id)
+      .then(() => {
+        setIsDeleteModalOpen(false);
+        addNotification(`Deleted product "${currentProduct.name}"`, "danger");
+        setCurrentProduct(null);
+      })
+      .catch(() => { });
+  };
+
+  // Helper to toggle filter dropdowns
+  const toggleDropdown = (name) => {
+    setActiveDropdown((prev) => (prev === name ? null : name));
+  };
+
+  // Reset Filters
+  const handleClearFilters = () => {
+    setSearchParams({});
+    setSelectedStatus("All Status");
+    setSelectedWeightRange("All Weights");
+    setSelectedStockLevel("All Stock");
+    setSearchQuery("");
+  };
+
+  // Checks if any filters are currently applied
+  const areFiltersApplied = useMemo(() => {
+    return (
+      selectedCategory !== "All Categories" ||
+      selectedStatus !== "All Status" ||
+      selectedWeightRange !== "All Weights" ||
+      selectedStockLevel !== "All Stock" ||
+      searchQuery !== ""
+    );
+  }, [selectedCategory, selectedStatus, selectedWeightRange, selectedStockLevel, searchQuery]);
+
+  // ----------------------------------------------------
+  // FILTERING LOGIC
+  // ----------------------------------------------------
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      // 1. Search Query Filter
+      if (searchQuery.trim() !== "") {
+        const query = searchQuery.toLowerCase();
+        const matchesName = product.name?.toLowerCase().includes(query);
+        const matchesCat = product.category?.toLowerCase().includes(query);
+        if (!matchesName && !matchesCat) return false;
+      }
+
+      // 2. Category Filter
+      if (selectedCategory !== "All Categories") {
+        if (product.category?.toLowerCase() !== selectedCategory.toLowerCase()) return false;
+      }
+
+      // 3. Calculated Status Filter
+      const calculatedStatus = product.pieces > 0 ? "Active" : "Inactive";
+      if (selectedStatus !== "All Status") {
+        if (calculatedStatus !== selectedStatus) return false;
+      }
+
+      // 4. Weight Filter
+      const totalWeight = Array.isArray(product.weight) ? product.weight.reduce((sum, w) => sum + w, 0) : 0;
+      if (selectedWeightRange !== "All Weights") {
+        if (selectedWeightRange === "Under 20g" && totalWeight >= 20) return false;
+        if (selectedWeightRange === "20g - 50g" && (totalWeight < 20 || totalWeight > 50)) return false;
+        if (selectedWeightRange === "Over 50g" && totalWeight <= 50) return false;
+      }
+
+      // 5. Stock Level Filter
+      if (selectedStockLevel !== "All Stock" && selectedStockLevel !== "In Stock") {
+        const stock = product.pieces || 0;
+        if (selectedStockLevel === "Low Stock" && (stock === 0 || stock >= 5)) return false;
+        if (selectedStockLevel === "Out of Stock" && stock > 0) return false;
+      } else if (selectedStockLevel === "In Stock") {
+        if ((product.pieces || 0) === 0) return false;
+      }
+
+      return true;
+    });
+  }, [products, searchQuery, selectedCategory, selectedStatus, selectedWeightRange, selectedStockLevel]);
+
+  // Get categories from active products list for the dropdown filter options
+  const categoriesList = useMemo(() => {
+    const list = new Set(products.map((p) => p.category).filter(Boolean));
+    return ["All Categories", ...Array.from(list)];
+  }, [products]);
+
+
+
+  const handleOpenDeleteModal = (product) => {
+    setCurrentProduct(product);
+    setIsDeleteModalOpen(true);
+  };
+
+
   const [designs, setDesigns] = useState(() => {
     const saved = localStorage.getItem("erp_silver_inventory");
     return saved ? JSON.parse(saved) : INITIAL_DESIGNS;
@@ -151,7 +306,6 @@ const Inventory = () => {
     return savedRate ? parseFloat(savedRate) : 85.0; // ₹85 per gram default
   });
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [purityFilter, setPurityFilter] = useState("All"); // All, 925, 900
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [finishFilter, setFinishFilter] = useState("All");
@@ -212,7 +366,7 @@ const Inventory = () => {
   const [adjustErrors, setAdjustErrors] = useState({});
 
 
-  
+
   const fileInputRef = useRef(null);
 
   // ----------------------------------------------------
@@ -292,7 +446,7 @@ const Inventory = () => {
       totalGrossWeight += Number(d.stocks || 0) * Number(d.weight || 0);
       totalValuation += getStockValuation(d, liveSilverRate);
       pureSilverWeight += getPureSilverWeight(d);
-      
+
       if (d.stocks <= STOCKS_LIMIT) {
         lowStockCount++;
       }
@@ -468,7 +622,7 @@ const Inventory = () => {
 
     setDesigns(prev => [...prev, newDesign]);
     setIsAddOpen(false);
-    
+
     // Reset Form
     setAddForm({
       sku: "",
@@ -538,16 +692,6 @@ const Inventory = () => {
     triggerToast(`Design ${editForm.sku} updated successfully.`);
   };
 
-  // ----------------------------------------------------
-  // DELETE DESIGN
-  // ----------------------------------------------------
-  const handleDeleteConfirm = () => {
-    if (!selectedDesign) return;
-    setDesigns(prev => prev.filter(d => d.id !== selectedDesign.id));
-    setIsDeleteOpen(false);
-    triggerToast(`Design SKU "${selectedDesign.sku}" deleted.`);
-    setSelectedDesign(null);
-  };
 
   // ----------------------------------------------------
   // QUICK QUANTITY ADJUSTMENT
@@ -594,7 +738,7 @@ const Inventory = () => {
   const handleExportJSON = () => {
     try {
       const dataStr = JSON.stringify(designs, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
       const fileName = `silver_wholeseller_inventory_${new Date().toISOString().split('T')[0]}.json`;
 
       const linkElement = document.createElement('a');
@@ -689,7 +833,7 @@ const Inventory = () => {
 
       {/* Live Market Controller & Title Header */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 rounded-2xl text-white shadow-md">
-        
+
         {/* Title Info */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -703,7 +847,7 @@ const Inventory = () => {
 
         {/* Dynamic Silver rate adjuster + actions */}
         <div className="flex flex-wrap items-center gap-3 bg-slate-950/30 p-3 rounded-xl border border-white/10 self-start xl:self-auto">
-          
+
           {/* Rate Adjuster */}
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-lg">
@@ -796,7 +940,7 @@ const Inventory = () => {
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        
+
         {/* KPI 1: Unique Designs */}
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:translate-y-[-2px] transition-transform duration-200">
           <div className="space-y-1">
@@ -881,7 +1025,7 @@ const Inventory = () => {
 
         {showCharts && (
           <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-            
+
             {/* Chart 1: Weight by Category */}
             <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100">
               <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Silver Weight Distribution (Grams by Category)</h4>
@@ -892,7 +1036,7 @@ const Inventory = () => {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 10 }} />
                       <YAxis tick={{ fill: "#64748b", fontSize: 10 }} />
-                      <Tooltip 
+                      <Tooltip
                         contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }}
                         formatter={(val) => [`${val.toLocaleString("en-IN")} g`, "Gross Weight"]}
                       />
@@ -915,7 +1059,7 @@ const Inventory = () => {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 10 }} />
                       <YAxis tick={{ fill: "#64748b", fontSize: 10 }} />
-                      <Tooltip 
+                      <Tooltip
                         contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }}
                         formatter={(val) => [`${val} pcs`]}
                       />
@@ -979,11 +1123,25 @@ const Inventory = () => {
 
       {/* Directory Table Area */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-        
+
+        <Header
+          filteredProducts={filteredProducts}
+          isSearchOpen={isSearchOpen}
+          setIsSearchOpen={setIsSearchOpen}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          notifications={notifications}
+          setNotifications={setNotifications}
+          showNotificationsList={showNotificationsList}
+          setShowNotificationsList={setShowNotificationsList}
+          notificationRef={notificationRef}
+        />
+
+
         {/* Search & Advanced Filters Panel */}
         <div className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/30 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            
+
             {/* Search Bar */}
             <div className="relative flex-1 max-w-md">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -1033,7 +1191,7 @@ const Inventory = () => {
 
           {/* Filtering row */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
-            
+
             {/* Filter by Category */}
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jewelry Category</label>
@@ -1120,186 +1278,36 @@ const Inventory = () => {
           </div>
         </div>
 
+
+
+        <FilterToolbar
+          dropdownRef={dropdownRef}
+          toggleDropdown={toggleDropdown}
+          activeDropdown={activeDropdown}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          categoriesList={categoriesList}
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+          selectedWeightRange={selectedWeightRange}
+          setSelectedWeightRange={setSelectedWeightRange}
+          selectedStockLevel={selectedStockLevel}
+          setSelectedStockLevel={setSelectedStockLevel}
+          areFiltersApplied={areFiltersApplied}
+          handleClearFilters={handleClearFilters}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          handleOpenAddModal={handleOpenAddModal}
+        />
+
         {/* Directory Table element */}
         <div className="overflow-x-auto">
           {filteredDesigns.length > 0 ? (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="px-6 py-4">Design SKU & Name</th>
-                  <th className="px-6 py-4">Details (Purity / Finish)</th>
-                  <th className="px-6 py-4">Weight (g)</th>
-                  <th className="px-6 py-4">Wholesale charges</th>
-                  <th className="px-6 py-4 text-center">Available Stock</th>
-                  <th className="px-6 py-4 text-right">Computed Unit Cost</th>
-                  <th className="px-6 py-4 text-right">Stock Valuation</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
-                {filteredDesigns.map((d) => {
-                  const unitCost = getWholesaleUnitCost(d, liveSilverRate);
-                  const stockVal = getStockValuation(d, liveSilverRate);
-                  const grossWeight = d.stocks * d.weight;
-                  const isLow = d.stocks <= STOCKS_LIMIT;
-                  const isOut = d.stocks <= 0;
-
-                  return (
-                    <tr key={d.id} className="hover:bg-slate-50/50 transition-colors group">
-                      
-                      {/* SKU and name */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={d.imageUrl}
-                            alt={d.name}
-                            className="w-10 h-10 rounded-xl border border-slate-200 object-cover flex-shrink-0 bg-slate-50 shadow-sm"
-                          />
-                          <div className="flex flex-col min-w-0">
-                            <span 
-                              onClick={() => {
-                                setSelectedDesign(d);
-                                setIsTagOpen(true);
-                              }}
-                              className="font-mono font-bold text-xs text-indigo-600 hover:underline cursor-pointer"
-                              title="Click to view Barcode tag"
-                            >
-                              {d.sku}
-                            </span>
-                            <span className="font-semibold text-slate-800 truncate text-xs mt-0.5">{d.name}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Purity & Finish */}
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs font-semibold text-slate-700">{d.finish}</span>
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">
-                            {d.purity === 925 ? "925 Sterling" : d.purity === 999 ? "999 Fine" : `${d.purity} grade`}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Weight per piece */}
-                      <td className="px-6 py-4 font-semibold text-slate-700 text-xs">
-                        {d.weight.toFixed(2)} g
-                      </td>
-
-                      {/* Making charges */}
-                      <td className="px-6 py-4 text-slate-500 font-medium text-xs">
-                        {d.makingChargeType === "PER_GRAM" ? (
-                          <span>₹{d.makingCharge}/g</span>
-                        ) : (
-                          <span>₹{d.makingCharge} flat</span>
-                        )}
-                      </td>
-
-                      {/* Available Stock */}
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex flex-col items-center">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-black border ${
-                            isOut 
-                              ? "bg-rose-50 text-rose-700 border-rose-200" 
-                              : isLow 
-                              ? "bg-amber-50 text-amber-700 border-amber-200" 
-                              : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                          }`}>
-                            {d.stocks} pcs
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-semibold mt-0.5">{grossWeight.toFixed(1)}g total</span>
-                        </div>
-                      </td>
-
-                      {/* Unit cost */}
-                      <td className="px-6 py-4 text-right text-slate-700 font-bold text-xs">
-                        ₹{Math.round(unitCost).toLocaleString("en-IN")}
-                        <span className="block text-[9px] text-slate-400 font-semibold">with 3% GST</span>
-                      </td>
-
-                      {/* Stock Valuation */}
-                      <td className="px-6 py-4 text-right">
-                        <span className="font-extrabold text-slate-800 text-xs">
-                          ₹{Math.round(stockVal).toLocaleString("en-IN")}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          
-                          {/* Quick Adjust Stock */}
-                          <button
-                            onClick={() => {
-                              setSelectedDesign(d);
-                              setAdjustForm({ type: "ADD", qty: "", reason: "Purchase Receipt" });
-                              setAdjustErrors({});
-                              setIsAdjustStockOpen(true);
-                            }}
-                            className="px-2 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg cursor-pointer transition-colors"
-                            title="Adjust Stock Qty"
-                          >
-                            +/- Stock
-                          </button>
-
-                          {/* Print Tag */}
-                          <button
-                            onClick={() => {
-                              setSelectedDesign(d);
-                              setIsTagOpen(true);
-                            }}
-                            className="p-1.5 hover:bg-slate-50 text-indigo-600 rounded-lg transition-colors cursor-pointer"
-                            title="Barcode Tag"
-                          >
-                            <FileText className="w-4 h-4" />
-                          </button>
-
-                          {/* Edit Details */}
-                          <button
-                            onClick={() => {
-                              setEditForm({
-                                id: d.id,
-                                sku: d.sku,
-                                name: d.name,
-                                category: d.category,
-                                purity: d.purity,
-                                weight: d.weight,
-                                finish: d.finish,
-                                makingChargeType: d.makingChargeType,
-                                makingCharge: d.makingCharge,
-                                stocks: d.stocks,
-                                notes: d.notes,
-                                imageUrl: d.imageUrl
-                              });
-                              setEditErrors({});
-                              setIsEditOpen(true);
-                            }}
-                            className="p-1.5 hover:bg-slate-50 text-slate-500 hover:text-blue-600 rounded-lg transition-colors cursor-pointer"
-                            title="Edit Details"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-
-                          {/* Delete */}
-                          <button
-                            onClick={() => {
-                              setSelectedDesign(d);
-                              setIsDeleteOpen(true);
-                            }}
-                            className="p-1.5 hover:bg-rose-50 text-slate-300 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
-                            title="Remove design"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-
-                        </div>
-                      </td>
-
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <ProductTable
+              filteredProducts={filteredDesigns}
+              handleOpenEditModal={handleOpenEditModal}
+              handleOpenDeleteModal={handleOpenDeleteModal}
+            />
           ) : (
             <div className="flex flex-col items-center justify-center p-12 text-slate-400">
               <AlertCircle className="w-12 h-12 text-slate-300 mb-2" />
@@ -1317,500 +1325,38 @@ const Inventory = () => {
 
       </div>
 
-      {/* --- ADD DESIGN MODAL --- */}
-      {isAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden transform scale-100 transition-transform">
-            
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
-              <div className="flex items-center gap-2">
-                <Box className="w-5 h-5 text-blue-600" />
-                <h3 className="text-base font-bold text-slate-800">Add New Silver Design SKU</h3>
-              </div>
-              <button 
-                onClick={() => setIsAddOpen(false)}
-                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
-              >
-                <X className="w-4.5 h-4.5" />
-              </button>
-            </div>
-
-            {/* Modal Body / Form */}
-            <form onSubmit={handleAddSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-              
-              {/* Grid 1: SKU & Name */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* SKU Code */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Design SKU Code *</label>
-                  <input
-                    type="text"
-                    value={addForm.sku}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, sku: e.target.value }))}
-                    placeholder="e.g. SLV-RG-001"
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-mono font-bold ${
-                      addErrors.sku ? "border-rose-400" : "border-slate-200"
-                    }`}
-                  />
-                  {addErrors.sku && <span className="text-xs font-semibold text-rose-500">{addErrors.sku}</span>}
-                </div>
-
-                {/* Name */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Design Name *</label>
-                  <input
-                    type="text"
-                    value={addForm.name}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="e.g. Floral Band Ring"
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      addErrors.name ? "border-rose-400" : "border-slate-200"
-                    }`}
-                  />
-                  {addErrors.name && <span className="text-xs font-semibold text-rose-500">{addErrors.name}</span>}
-                </div>
-
-              </div>
-
-              {/* Grid 2: Category, Purity & Finish */}
-              <div className="grid grid-cols-3 gap-3 text-xs">
-                
-                {/* Category */}
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase">Category</label>
-                  <select
-                    value={addForm.category}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, category: e.target.value }))}
-                    className="px-2 py-2 border border-slate-200 rounded-xl"
-                  >
-                    <option value="Rings">Rings</option>
-                    <option value="Earrings">Earrings</option>
-                    <option value="Bracelets">Bracelets</option>
-                    <option value="Chains">Chains</option>
-                    <option value="Necklaces">Necklaces</option>
-                    <option value="Anklets">Anklets (Payal)</option>
-                    <option value="Toe Rings">Toe Rings</option>
-                  </select>
-                </div>
-
-                {/* Purity */}
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase">Silver Purity</label>
-                  <select
-                    value={addForm.purity}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, purity: Number(e.target.value) }))}
-                    className="px-2 py-2 border border-slate-200 rounded-xl font-bold"
-                  >
-                    <option value={925}>925 Sterling</option>
-                    <option value={900}>900 Coin</option>
-                    <option value={999}>999 Fine</option>
-                    <option value={800}>800 payal</option>
-                  </select>
-                </div>
-
-                {/* Finish */}
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase">Metal Finish</label>
-                  <select
-                    value={addForm.finish}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, finish: e.target.value }))}
-                    className="px-2 py-2 border border-slate-200 rounded-xl"
-                  >
-                    <option value="High-Polish White">High-Polish White</option>
-                    <option value="Oxidized Antique">Oxidized Antique</option>
-                    <option value="Rhodium Plated">Rhodium Plated</option>
-                    <option value="Gold Vermeil">Gold Vermeil</option>
-                    <option value="Pure Silver Polish">Pure Silver Polish</option>
-                  </select>
-                </div>
-
-              </div>
-
-              {/* Grid 3: Weight & Stock */}
-              <div className="grid grid-cols-2 gap-4">
-                
-                {/* Weight */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Weight per Piece (grams) *</label>
-                  <input
-                    type="number"
-                    step={0.01}
-                    value={addForm.weight}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, weight: e.target.value }))}
-                    placeholder="e.g. 12.4"
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      addErrors.weight ? "border-rose-400" : "border-slate-200"
-                    }`}
-                  />
-                  {addErrors.weight && <span className="text-xs font-semibold text-rose-500">{addErrors.weight}</span>}
-                </div>
-
-                {/* Stock pieces */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Wholesale Qty in Stock *</label>
-                  <input
-                    type="number"
-                    value={addForm.stocks}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, stocks: e.target.value }))}
-                    placeholder="Total pieces"
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      addErrors.stocks ? "border-rose-400" : "border-slate-200"
-                    }`}
-                  />
-                  {addErrors.stocks && <span className="text-xs font-semibold text-rose-500">{addErrors.stocks}</span>}
-                </div>
-
-              </div>
-
-              {/* Grid 4: Making Charges */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                
-                {/* Charge type */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Making Charge Type</label>
-                  <select
-                    value={addForm.makingChargeType}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, makingChargeType: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-sm font-semibold bg-white"
-                  >
-                    <option value="PER_GRAM">₹ / Gram Weight (Standard)</option>
-                    <option value="FLAT_PIECE">₹ Flat per Piece (Surtax)</option>
-                  </select>
-                </div>
-
-                {/* Charge Amount */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Charge Rate (₹) *</label>
-                  <input
-                    type="number"
-                    value={addForm.makingCharge}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, makingCharge: e.target.value }))}
-                    placeholder="e.g. 15 or 250"
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      addErrors.makingCharge ? "border-rose-400" : "border-slate-200"
-                    }`}
-                  />
-                  {addErrors.makingCharge && <span className="text-xs font-semibold text-rose-500">{addErrors.makingCharge}</span>}
-                </div>
-
-              </div>
-
-              {/* Image URL & Notes */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase">Image URL (Optional)</label>
-                <input
-                  type="text"
-                  value={addForm.imageUrl}
-                  onChange={(e) => setAddForm(prev => ({ ...prev, imageUrl: e.target.value }))}
-                  placeholder="https://example.com/jewelry-image.jpg"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase">Design Notes</label>
-                <textarea
-                  value={addForm.notes}
-                  onChange={(e) => setAddForm(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder="Additional design specifics, metal purity certificate tags, or manufacturing details."
-                  rows={2}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm resize-none"
-                />
-              </div>
-
-              {/* Modal Footer actions */}
-              <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setIsAddOpen(false)}
-                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-sm rounded-xl cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer"
-                >
-                  Register Design
-                </button>
-              </div>
-
-            </form>
-
-          </div>
-        </div>
+      {isAddModalOpen && (
+        <AddProduct
+          setIsAddModalOpen={setIsAddModalOpen}
+          allCategories={allCategories}
+          handleCreateProduct={handleCreateProduct}
+          addNotification={addNotification}
+        />
       )}
 
-      {/* --- EDIT DESIGN MODAL --- */}
-      {isEditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden transform scale-100 transition-transform">
-            
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
-              <div className="flex items-center gap-2">
-                <Edit2 className="w-5 h-5 text-blue-600" />
-                <h3 className="text-base font-bold text-slate-800">Edit Wholesaler Design SKU</h3>
-              </div>
-              <button 
-                onClick={() => setIsEditOpen(false)}
-                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
-              >
-                <X className="w-4.5 h-4.5" />
-              </button>
-            </div>
+      {isEditModalOpen && <EditProduct currentProduct={currentProduct} allCategories={allCategories} setIsEditModalOpen={setIsEditModalOpen} handleUpdateProduct={handleUpdateProduct} addNotification={addNotification} />}
 
-            {/* Modal Body / Form */}
-            <form onSubmit={handleEditSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-              
-              {/* Grid 1: SKU & Name */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* SKU Code */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Design SKU Code *</label>
-                  <input
-                    type="text"
-                    value={editForm.sku}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, sku: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-mono font-bold ${
-                      editErrors.sku ? "border-rose-400" : "border-slate-200"
-                    }`}
-                  />
-                  {editErrors.sku && <span className="text-xs font-semibold text-rose-500">{editErrors.sku}</span>}
-                </div>
-
-                {/* Name */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Design Name *</label>
-                  <input
-                    type="text"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      editErrors.name ? "border-rose-400" : "border-slate-200"
-                    }`}
-                  />
-                  {editErrors.name && <span className="text-xs font-semibold text-rose-500">{editErrors.name}</span>}
-                </div>
-
-              </div>
-
-              {/* Grid 2: Category, Purity & Finish */}
-              <div className="grid grid-cols-3 gap-3 text-xs">
-                
-                {/* Category */}
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase">Category</label>
-                  <select
-                    value={editForm.category}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
-                    className="px-2 py-2 border border-slate-200 rounded-xl"
-                  >
-                    <option value="Rings">Rings</option>
-                    <option value="Earrings">Earrings</option>
-                    <option value="Bracelets">Bracelets</option>
-                    <option value="Chains">Chains</option>
-                    <option value="Necklaces">Necklaces</option>
-                    <option value="Anklets">Anklets (Payal)</option>
-                    <option value="Toe Rings">Toe Rings</option>
-                  </select>
-                </div>
-
-                {/* Purity */}
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase">Silver Purity</label>
-                  <select
-                    value={editForm.purity}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, purity: Number(e.target.value) }))}
-                    className="px-2 py-2 border border-slate-200 rounded-xl font-bold"
-                  >
-                    <option value={925}>925 Sterling</option>
-                    <option value={900}>900 Coin</option>
-                    <option value={999}>999 Fine</option>
-                    <option value={800}>800 payal</option>
-                  </select>
-                </div>
-
-                {/* Finish */}
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase">Metal Finish</label>
-                  <select
-                    value={editForm.finish}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, finish: e.target.value }))}
-                    className="px-2 py-2 border border-slate-200 rounded-xl"
-                  >
-                    <option value="High-Polish White">High-Polish White</option>
-                    <option value="Oxidized Antique">Oxidized Antique</option>
-                    <option value="Rhodium Plated">Rhodium Plated</option>
-                    <option value="Gold Vermeil">Gold Vermeil</option>
-                    <option value="Pure Silver Polish">Pure Silver Polish</option>
-                  </select>
-                </div>
-
-              </div>
-
-              {/* Grid 3: Weight & Stock */}
-              <div className="grid grid-cols-2 gap-4">
-                
-                {/* Weight */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Weight per Piece (grams) *</label>
-                  <input
-                    type="number"
-                    step={0.01}
-                    value={editForm.weight}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, weight: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      editErrors.weight ? "border-rose-400" : "border-slate-200"
-                    }`}
-                  />
-                  {editErrors.weight && <span className="text-xs font-semibold text-rose-500">{editErrors.weight}</span>}
-                </div>
-
-                {/* Stock pieces */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Wholesale Qty in Stock *</label>
-                  <input
-                    type="number"
-                    value={editForm.stocks}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, stocks: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      editErrors.stocks ? "border-rose-400" : "border-slate-200"
-                    }`}
-                  />
-                  {editErrors.stocks && <span className="text-xs font-semibold text-rose-500">{editErrors.stocks}</span>}
-                </div>
-
-              </div>
-
-              {/* Grid 4: Making Charges */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                
-                {/* Charge type */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Making Charge Type</label>
-                  <select
-                    value={editForm.makingChargeType}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, makingChargeType: e.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-sm font-semibold bg-white"
-                  >
-                    <option value="PER_GRAM">₹ / Gram Weight (Standard)</option>
-                    <option value="FLAT_PIECE">₹ Flat per Piece (Surtax)</option>
-                  </select>
-                </div>
-
-                {/* Charge Amount */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Charge Rate (₹) *</label>
-                  <input
-                    type="number"
-                    value={editForm.makingCharge}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, makingCharge: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      editErrors.makingCharge ? "border-rose-400" : "border-slate-200"
-                    }`}
-                  />
-                  {editErrors.makingCharge && <span className="text-xs font-semibold text-rose-500">{editErrors.makingCharge}</span>}
-                </div>
-
-              </div>
-
-              {/* Image URL & Notes */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase">Image URL (Optional)</label>
-                <input
-                  type="text"
-                  value={editForm.imageUrl}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, imageUrl: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase">Design Notes</label>
-                <textarea
-                  value={editForm.notes}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm resize-none"
-                />
-              </div>
-
-              {/* Modal Footer actions */}
-              <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setIsEditOpen(false)}
-                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-sm rounded-xl cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer"
-                >
-                  Save Changes
-                </button>
-              </div>
-
-            </form>
-
-          </div>
-        </div>
-      )}
-
-      {/* --- CONFIRM DELETE MODAL --- */}
-      {isDeleteOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden p-6 space-y-4 animate-scale-up">
-            
-            <div className="flex items-center gap-3 text-rose-600">
-              <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <h3 className="text-base font-bold text-slate-800">Remove Design from Stock Master?</h3>
-            </div>
-            
-            <p className="text-sm text-slate-500">
-              Are you sure you want to delete design SKU <strong>{selectedDesign?.sku}</strong> (<em>{selectedDesign?.name}</em>)? This will wipe out all stock records, gram weights, and pricing formulas for this item.
-            </p>
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsDeleteOpen(false)}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-sm rounded-xl cursor-pointer"
-              >
-                Cancel, Keep
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteConfirm}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer"
-              >
-                Remove SKU
-              </button>
-            </div>
-
-          </div>
-        </div>
+      {isDeleteModalOpen && currentProduct && (
+        <ConfirmModal
+          title="Delete Product?"
+          message="This action is irreversible and will remove the item immediately."
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setIsDeleteModalOpen(false)}
+        />
       )}
 
       {/* --- QUICK STOCK ADJUST MODAL --- */}
       {isAdjustStockOpen && selectedDesign && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden transform scale-100 transition-transform">
-            
+
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
               <div className="flex flex-col">
                 <h3 className="text-base font-bold text-slate-800 leading-tight">Adjust Stock Quantity</h3>
-                <span className="text-[10px] text-indigo-600 font-mono font-bold mt-0.5">{selectedDesign.sku} • {selectedDesign.name}</span>
+                <span className="text-[10px] text-indigo-600  font-bold mt-0.5">{selectedDesign.sku} • {selectedDesign.name}</span>
               </div>
-              <button 
+              <button
                 onClick={() => setIsAdjustStockOpen(false)}
                 className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
@@ -1820,7 +1366,7 @@ const Inventory = () => {
 
             {/* Modal Body / Form */}
             <form onSubmit={handleAdjustStock} className="p-6 space-y-4">
-              
+
               {/* Current Stocks Display */}
               <div className="flex items-center justify-between bg-slate-50 p-3.5 border border-slate-100 rounded-xl text-xs font-bold text-slate-700">
                 <span>Current Pieces in Stock:</span>
@@ -1834,22 +1380,20 @@ const Inventory = () => {
                   <button
                     type="button"
                     onClick={() => setAdjustForm(prev => ({ ...prev, type: "ADD" }))}
-                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${
-                      adjustForm.type === "ADD" 
-                        ? "bg-blue-600 text-white shadow-sm" 
-                        : "text-slate-600 hover:bg-slate-50"
-                    }`}
+                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${adjustForm.type === "ADD"
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50"
+                      }`}
                   >
                     ADD Stock (Inflow)
                   </button>
                   <button
                     type="button"
                     onClick={() => setAdjustForm(prev => ({ ...prev, type: "REMOVE" }))}
-                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${
-                      adjustForm.type === "REMOVE" 
-                        ? "bg-rose-600 text-white shadow-sm" 
-                        : "text-slate-600 hover:bg-slate-50"
-                    }`}
+                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${adjustForm.type === "REMOVE"
+                      ? "bg-rose-600 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50"
+                      }`}
                   >
                     REMOVE Stock (Sale/Issue)
                   </button>
@@ -1864,9 +1408,8 @@ const Inventory = () => {
                   placeholder="Enter number of pieces"
                   value={adjustForm.qty}
                   onChange={(e) => setAdjustForm(prev => ({ ...prev, qty: e.target.value }))}
-                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                    adjustErrors.qty ? "border-rose-400" : "border-slate-200"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${adjustErrors.qty ? "border-rose-400" : "border-slate-200"
+                    }`}
                 />
                 {adjustErrors.qty && <span className="text-xs font-semibold text-rose-500">{adjustErrors.qty}</span>}
               </div>
@@ -1922,17 +1465,17 @@ const Inventory = () => {
       {/* --- SLIDE OUT DRAWER / BARCODE VOUCHER TAG GENERATOR --- */}
       {isTagOpen && selectedDesign && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          
+
           {/* Card Container */}
           <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden p-6 space-y-5 transform scale-100 transition-transform">
-            
+
             {/* Header Close */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-1.5 text-slate-700">
                 <FileText className="w-5 h-5 text-indigo-500" />
                 <h3 className="font-bold text-slate-800 text-sm">Wholesaler Jewelry Tag</h3>
               </div>
-              <button 
+              <button
                 onClick={() => setIsTagOpen(false)}
                 className="p-1 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
               >
@@ -1942,7 +1485,7 @@ const Inventory = () => {
 
             {/* TAG CONTAINER (Simulates printable jewelry card label) */}
             <div className="bg-slate-50 p-5 rounded-2xl border-2 border-indigo-200 space-y-4 relative overflow-hidden shadow-inner">
-              
+
               {/* String attachment hole mock */}
               <div className="absolute top-4 left-4 w-4 h-4 rounded-full bg-white border border-indigo-200 flex items-center justify-center">
                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-200" />
@@ -1959,20 +1502,20 @@ const Inventory = () => {
               <div className="flex flex-col items-center justify-center py-2 border-y border-dashed border-slate-200 my-2">
                 <div className="flex gap-[1px] items-center h-10 w-44 bg-white px-2 border border-slate-100 rounded">
                   {/* Generate barcode line mockup using arbitrary widths */}
-                  {[2,1,3,1,4,1,2,2,1,3,1,1,4,2,1,2,3,1,1,2,1,4,1,2,1,1,3].map((w, i) => (
-                    <div 
-                      key={i} 
-                      className="h-7 bg-slate-900" 
-                      style={{ width: `${w}px`, opacity: i % 2 === 0 ? 1 : 0 }} 
+                  {[2, 1, 3, 1, 4, 1, 2, 2, 1, 3, 1, 1, 4, 2, 1, 2, 3, 1, 1, 2, 1, 4, 1, 2, 1, 1, 3].map((w, i) => (
+                    <div
+                      key={i}
+                      className="h-7 bg-slate-900"
+                      style={{ width: `${w}px`, opacity: i % 2 === 0 ? 1 : 0 }}
                     />
                   ))}
                 </div>
-                <span className="font-mono text-[9px] text-slate-500 font-bold mt-1 tracking-widest">{selectedDesign.sku}</span>
+                <span className=" text-[9px] text-slate-500 font-bold mt-1 tracking-widest">{selectedDesign.sku}</span>
               </div>
 
               {/* Tag detail specs */}
               <div className="space-y-2 text-xs">
-                
+
                 <div className="text-center font-bold text-slate-800 text-sm leading-tight mb-2">
                   {selectedDesign.name}
                 </div>

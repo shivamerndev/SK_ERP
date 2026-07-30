@@ -91,7 +91,7 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
   };
 
   return (
-    <div className="fixed inset-0 h-[87vh] w-full left-0 top-0 backdrop-blur-md flex items-center justify-center z-50 transition-all">
+    <div className="fixed inset-0 h-screen w-full left-0 top-0 backdrop-blur-md flex items-center justify-center z-50 transition-all">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-scale-up">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
                 value={formWeight}
                 onChange={(e) => setFormWeight(e.target.value)}
                 placeholder="e.g. 10.5, 12.3, 9.8"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
               />
               {formErrors.weight && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.weight}</span>}
             </div>
@@ -201,7 +201,7 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
                   value={formTunch}
                   onChange={(e) => setFormTunch(e.target.value)}
                   placeholder="e.g. 90"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
                 />
                 {formErrors.tunch && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.tunch}</span>}
               </div>
@@ -216,7 +216,7 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
                   value={formLab}
                   onChange={(e) => setFormLab(e.target.value)}
                   placeholder="e.g. 15"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
                 />
                 {formErrors.lab && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.lab}</span>}
               </div>
@@ -230,7 +230,7 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
                   value={formPanniDetail}
                   onChange={(e) => setFormPanniDetail(e.target.value)}
                   placeholder="e.g. 5 or 1*2.5 + 1*3"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-mono"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
                 />
                 {formErrors.panniDetail && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.panniDetail}</span>}
               </div>

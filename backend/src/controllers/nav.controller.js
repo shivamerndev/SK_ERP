@@ -36,7 +36,7 @@ export const getSearch = asyncHandler(async (req, res) => {
         pieces: product.pieces,
         image: product.image,
         title: product.name,
-        url: `/products?id=${product._id}`
+        url: `/inventory?id=${product._id}`
     }));
 
     const formattedCategories = categoryResults.map(category => ({
@@ -44,7 +44,7 @@ export const getSearch = asyncHandler(async (req, res) => {
         type: "category",
         name: category,
         title: category,
-        url: `/products?category=${encodeURIComponent(category)}`
+        url: `/inventory?category=${encodeURIComponent(category)}`
     }));
 
     const formattedResults = [...formattedCustomers, ...formattedProducts, ...formattedCategories];

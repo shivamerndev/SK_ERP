@@ -6,7 +6,7 @@ import Google from "../pages/Google"
 import Dashboard from "../pages/Dashboard"
 import Inventory from "../pages/Inventory"
 import Udhaar from "../pages/Udhaar"
-import Products from "../pages/Products"
+// import Products from "../pages/Products"
 import Sales from "../pages/Sales"
 import Purchases from "../pages/Purchases"
 import Customers from "../pages/Customers"
@@ -39,10 +39,10 @@ export const router = createBrowserRouter([
                         path: "/udhaar",
                         element: <Udhaar />
                     },
-                    {
-                        path: "/products",
-                        element: <Products />
-                    },
+                    // {
+                    //     path: "/products",
+                    //     element: <Products />
+                    // },
                     {
                         path: "/sales",
                         element: <Sales />

@@ -1,12 +1,24 @@
-
 import { Package, Edit, Trash2 } from 'lucide-react';
+import useProduct from "../useProduct"
+import { useEffect } from 'react';
 
 const ProductTable = ({
-  filteredProducts = [],
-  handleClearFilters,
   handleOpenEditModal,
   handleOpenDeleteModal
 }) => {
+
+
+
+
+
+  const { handleClearFilters, handleAllProducts, products: filteredProducts } = useProduct()
+
+
+  useEffect(() => {
+    handleAllProducts();
+  }, []);
+
+
   return (
     <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
@@ -104,19 +116,19 @@ const ProductTable = ({
                     <td className="p-4 px-6 text-right font-semibold text-slate-600">
                       {product.pieces}
                     </td>
-                    <td className="p-4 px-6 text-right font-bold text-slate-700 font-mono">
+                    <td className="p-4 px-6 text-right font-bold text-slate-700 ">
                       <div>{totalWeight.toFixed(2)}g</div>
                       {Array.isArray(product.weight) && product.weight.length > 1 && (
                         <div className="text-[10px] text-slate-400 font-medium">({product.weight.join(", ")})</div>
                       )}
                     </td>
-                    <td className="p-4 px-6 text-right font-semibold text-slate-600 font-mono">
+                    <td className="p-4 px-6 text-right font-semibold text-slate-600 ">
                       {product.tunch}%
                     </td>
-                    <td className="p-4 px-6 text-right font-semibold text-slate-600 font-mono">
+                    <td className="p-4 px-6 text-right font-semibold text-slate-600 ">
                       ₹{product.lab}
                     </td>
-                    <td className="p-4 px-6 text-right font-semibold text-slate-600 font-mono">
+                    <td className="p-4 px-6 text-right font-semibold text-slate-600 ">
                       {product.panniDetail}g
                     </td>
                     <td className="p-4 px-6 text-center">
