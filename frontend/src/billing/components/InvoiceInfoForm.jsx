@@ -55,7 +55,7 @@ const InvoiceInfoForm = () => {
             name="topHeader"
             value={topHeader}
             onChange={(e) => setTopHeader(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-mono"
+            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 "
           />
         </div>
         <div>
@@ -106,7 +106,7 @@ const InvoiceInfoForm = () => {
                   >
                     <div>
                       <p className="font-semibold text-slate-800 text-sm">{c.name || c.fullName}</p>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">{c.phone || "No phone"}</p>
+                      <p className="text-xs text-slate-400  mt-0.5">{c.phone || "No phone"}</p>
                     </div>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-100">Saved</span>
                   </button>
@@ -130,7 +130,7 @@ const InvoiceInfoForm = () => {
               placeholder="e.g. 91995 XXXXX"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-mono"
+              className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 "
             />
             <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
           </div>
@@ -159,7 +159,7 @@ const InvoiceInfoForm = () => {
             name="billNo"
             value={billNo}
             onChange={(e) => setBillNo(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-bold font-mono"
+            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-bold "
           />
         </div>
 
@@ -171,7 +171,7 @@ const InvoiceInfoForm = () => {
               name="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-mono"
+              className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 "
             />
             <Calendar className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
           </div>
@@ -185,7 +185,7 @@ const InvoiceInfoForm = () => {
               name="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-mono"
+              className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 "
             />
             <Clock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
           </div>

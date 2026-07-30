@@ -35,7 +35,7 @@ const ComparisonStats = ({ comparisons }) => {
             </strong>
             <div className="flex items-center gap-1 mt-1 font-bold">
               {renderTrend(comparisons.week.revChange)}
-              <span className="text-[10px] text-slate-400 font-medium font-mono">
+              <span className="text-[10px] text-slate-400 font-medium ">
                 vs ₹{comparisons.week.lastRev.toLocaleString("en-IN")}
               </span>
             </div>
@@ -48,7 +48,7 @@ const ComparisonStats = ({ comparisons }) => {
             </strong>
             <div className="flex items-center gap-1 mt-1 font-bold">
               {renderTrend(comparisons.week.fineChange)}
-              <span className="text-[10px] text-slate-400 font-medium font-mono">
+              <span className="text-[10px] text-slate-400 font-medium ">
                 vs {comparisons.week.lastFine.toLocaleString("en-IN")}g
               </span>
             </div>
@@ -74,7 +74,7 @@ const ComparisonStats = ({ comparisons }) => {
             </strong>
             <div className="flex items-center gap-1 mt-1 font-bold">
               {renderTrend(comparisons.month.revChange)}
-              <span className="text-[10px] text-slate-400 font-medium font-mono">
+              <span className="text-[10px] text-slate-400 font-medium ">
                 vs ₹{comparisons.month.lastRev.toLocaleString("en-IN")}
               </span>
             </div>
@@ -87,7 +87,7 @@ const ComparisonStats = ({ comparisons }) => {
             </strong>
             <div className="flex items-center gap-1 mt-1 font-bold">
               {renderTrend(comparisons.month.fineChange)}
-              <span className="text-[10px] text-slate-400 font-medium font-mono">
+              <span className="text-[10px] text-slate-400 font-medium ">
                 vs {comparisons.month.lastFine.toLocaleString("en-IN")}g
               </span>
             </div>

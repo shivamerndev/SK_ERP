@@ -23,12 +23,12 @@ const TopCustomers = ({ topClients }) => {
                                 <span className="font-black text-slate-800 text-xs truncate max-w-[150px]">
                                     {client.name}
                                 </span>
-                                <span className="text-[10px] text-slate-400 font-semibold font-mono">
+                                <span className="text-[10px] text-slate-400 font-semibold ">
                                     {client.billsCount} bills
                                 </span>
                             </div>
 
-                            <div className="flex items-center justify-between mt-2 text-[10px] text-slate-500 font-mono">
+                            <div className="flex items-center justify-between mt-2 text-[10px] text-slate-500 ">
                                 <div>
                                     <span className="block text-[8px] uppercase tracking-wider text-slate-400">Total Labor</span>
                                     <span className="font-bold text-emerald-600">₹{Math.round(client.totalLabor)}</span>
@@ -39,7 +39,7 @@ const TopCustomers = ({ topClients }) => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-dashed border-slate-100 text-[10px] text-slate-500 font-mono">
+                            <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-dashed border-slate-100 text-[10px] text-slate-500 ">
                                 <div>
                                     <span className="text-rose-500 font-semibold">Baki ₹{Math.round(client.bakiAmount)}</span>
                                 </div>

@@ -306,7 +306,7 @@ body {
 }
 
 .detail-value.mono {
-  @apply font-mono text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20;
+  @apply  text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20;
 }
 
 .status-active {

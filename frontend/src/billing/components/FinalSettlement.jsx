@@ -36,7 +36,7 @@ const FinalSettlement = () => {
               <p className="text-xs font-bold text-emerald-800 uppercase tracking-wide">
                 {isSettle ? "Baki Total Amount (Settle)" : "Baki Labor Amount"}
               </p>
-              <p className="text-2xl font-black text-emerald-700 font-mono mt-1">₹{finalBaki.amount}</p>
+              <p className="text-2xl font-black text-emerald-700  mt-1">₹{finalBaki.amount}</p>
             </div>
             <div className="text-right text-xs text-slate-400">
               <p>Sale: ₹{totals.amount}</p>
@@ -50,7 +50,7 @@ const FinalSettlement = () => {
           <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl p-5 flex justify-between items-center">
             <div>
               <p className="text-xs font-bold text-purple-800 uppercase tracking-wide">Baki Fine Outstanding</p>
-              <p className="text-2xl font-black text-purple-700 font-mono mt-1">{finalBaki.fine} g</p>
+              <p className="text-2xl font-black text-purple-700  mt-1">{finalBaki.fine} g</p>
             </div>
             <div className="text-right text-xs text-slate-400">
               <p>Sale: {totals.fine}g</p>

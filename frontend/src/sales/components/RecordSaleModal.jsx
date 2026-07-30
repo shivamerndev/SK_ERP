@@ -303,14 +303,14 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
       <div className="bg-white w-full max-w-4xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-        
+
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
           <div className="flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-blue-600" />
             <h3 className="text-base font-extrabold text-slate-800">Record Estimate Bill Slip</h3>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
           >
@@ -320,7 +320,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
 
         {/* Modal Body Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1 text-xs">
-          
+
           {/* Metadata Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
             <div className="flex flex-col gap-1">
@@ -348,14 +348,14 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                 value={billNo}
                 placeholder="e.g. 81"
                 onChange={(e) => setBillNo(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
               />
             </div>
           </div>
 
           {/* Customer Details Row */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            
+
             {/* Customer Search Autocomplete */}
             <div ref={autocompleteRef} className="relative flex flex-col gap-1 md:col-span-2">
               <label className="font-bold text-slate-500 uppercase">Customer Name *</label>
@@ -396,7 +396,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 placeholder="10 digit number"
-                className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
               />
             </div>
 
@@ -422,7 +422,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -432,7 +432,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                 required
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
               />
             </div>
           </div>
@@ -469,7 +469,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                 <tbody className="divide-y divide-slate-100 font-medium">
                   {items.map((row, idx) => (
                     <tr key={idx} className="hover:bg-slate-50/50">
-                      
+
                       {/* Item description */}
                       <td className="p-2">
                         <input
@@ -491,7 +491,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                           value={row.weight}
                           placeholder="0.0"
                           onChange={(e) => handleRowChange(idx, "weight", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-200 rounded-md text-center focus:outline-none font-mono"
+                          className="w-full px-2 py-1 border border-slate-200 rounded-md text-center focus:outline-none "
                         />
                       </td>
 
@@ -502,7 +502,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                           value={row.panniDetail}
                           placeholder="e.g. 4*2.4"
                           onChange={(e) => handleRowChange(idx, "panniDetail", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-200 rounded-md text-center focus:outline-none font-mono text-[9px]"
+                          className="w-full px-2 py-1 border border-slate-200 rounded-md text-center focus:outline-none  text-[9px]"
                         />
                       </td>
 
@@ -513,12 +513,12 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                           value={row.less}
                           placeholder="0.0"
                           onChange={(e) => handleRowChange(idx, "less", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-200 rounded-md text-center focus:outline-none font-mono"
+                          className="w-full px-2 py-1 border border-slate-200 rounded-md text-center focus:outline-none "
                         />
                       </td>
 
                       {/* Net Wt */}
-                      <td className="p-2 text-center font-bold text-slate-700 font-mono">
+                      <td className="p-2 text-center font-bold text-slate-700 ">
                         {row.netWt}
                       </td>
 
@@ -529,7 +529,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                           value={row.tunch}
                           placeholder="%"
                           onChange={(e) => handleRowChange(idx, "tunch", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-200 rounded-md text-center focus:outline-none font-mono"
+                          className="w-full px-2 py-1 border border-slate-200 rounded-md text-center focus:outline-none "
                         />
                       </td>
 
@@ -540,17 +540,17 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                           value={row.lab}
                           placeholder="rate/Gram"
                           onChange={(e) => handleRowChange(idx, "lab", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-200 rounded-md text-center focus:outline-none font-mono"
+                          className="w-full px-2 py-1 border border-slate-200 rounded-md text-center focus:outline-none "
                         />
                       </td>
 
                       {/* Labor cash */}
-                      <td className="p-2 text-right text-emerald-600 font-bold font-mono">
+                      <td className="p-2 text-right text-emerald-600 font-bold ">
                         ₹{row.amount}
                       </td>
 
                       {/* Fine wt */}
-                      <td className="p-2 text-right text-indigo-600 font-bold font-mono">
+                      <td className="p-2 text-right text-indigo-600 font-bold ">
                         {row.fine}
                       </td>
 
@@ -573,23 +573,23 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
 
             {/* Worksheet Totals summary row */}
             <div className="bg-slate-50 p-3.5 border border-slate-100 rounded-xl flex flex-wrap gap-6 items-center justify-end font-bold text-slate-700">
-              <span>Total Weight: <span className="font-mono">{totals.weight}g</span></span>
-              <span>Total Less: <span className="font-mono">{totals.less}g</span></span>
-              <span className="text-slate-800">Total Net Wt: <span className="font-mono">{totals.netWt}g</span></span>
-              <span className="text-indigo-600 font-extrabold">Total Fine: <span className="font-mono">{totals.fine}g</span></span>
-              <span className="text-emerald-600 font-black">Total Labor: <span className="font-mono">₹{totals.amount}</span></span>
+              <span>Total Weight: <span className="">{totals.weight}g</span></span>
+              <span>Total Less: <span className="">{totals.less}g</span></span>
+              <span className="text-slate-800">Total Net Wt: <span className="">{totals.netWt}g</span></span>
+              <span className="text-indigo-600 font-extrabold">Total Fine: <span className="">{totals.fine}g</span></span>
+              <span className="text-emerald-600 font-black">Total Labor: <span className="">₹{totals.amount}</span></span>
             </div>
           </div>
 
           {/* Settling / Deposits / Jama Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-slate-100">
-            
+
             {/* Balance & Deposits */}
             <div className="space-y-4">
               <h4 className="font-extrabold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-1.5">
                 Adjustment & Deposits (Jama)
               </h4>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="font-bold text-slate-500 uppercase">Last balance Amount (Cash)</label>
@@ -598,7 +598,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                     value={lastBalanceAmount}
                     onChange={(e) => setLastBalanceAmount(e.target.value)}
                     placeholder="₹0"
-                    className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                    className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -608,7 +608,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                     value={lastBalanceFine}
                     onChange={(e) => setLastBalanceFine(e.target.value)}
                     placeholder="0.0 g"
-                    className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                    className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
                   />
                 </div>
               </div>
@@ -632,7 +632,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                     value={jamaWeight}
                     onChange={(e) => setJamaWeight(e.target.value)}
                     placeholder="0"
-                    className="w-full px-2 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                    className="w-full px-2 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
                   />
                 </div>
                 <div className="flex flex-col gap-1 col-span-1">
@@ -642,7 +642,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                     value={jamaNetWt}
                     onChange={(e) => setJamaNetWt(e.target.value)}
                     placeholder="0"
-                    className="w-full px-2 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                    className="w-full px-2 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
                   />
                 </div>
                 <div className="flex flex-col gap-1 col-span-1">
@@ -652,12 +652,12 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                     value={jamaTunch}
                     onChange={(e) => setJamaTunch(e.target.value)}
                     placeholder="%"
-                    className="w-full px-2 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                    className="w-full px-2 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
                   />
                 </div>
                 <div className="flex flex-col gap-1 col-span-1">
                   <label className="font-bold text-slate-500 uppercase font-black text-indigo-600">Jama Fine Wt</label>
-                  <div className="px-2 py-1.5 border border-slate-100 rounded-lg bg-slate-50 text-slate-700 text-center font-bold font-mono">
+                  <div className="px-2 py-1.5 border border-slate-100 rounded-lg bg-slate-50 text-slate-700 text-center font-bold ">
                     {computedJamaFine} g
                   </div>
                 </div>
@@ -671,7 +671,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                     value={jamaAmount}
                     onChange={(e) => setJamaAmount(e.target.value)}
                     placeholder="₹0"
-                    className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                    className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -681,7 +681,7 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                     value={silverRate}
                     onChange={(e) => setSilverRate(e.target.value)}
                     placeholder="e.g. 223600"
-                    className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none font-mono"
+                    className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white focus:outline-none "
                   />
                 </div>
               </div>
@@ -693,25 +693,25 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                 <h4 className="font-extrabold text-indigo-900 uppercase tracking-wide border-b border-indigo-100/50 pb-2 mb-3">
                   Summary & Final Settlement
                 </h4>
-                
+
                 <div className="space-y-3 font-medium text-slate-600">
                   <div className="flex justify-between items-center">
                     <span>Labor Charges total:</span>
-                    <strong className="text-slate-800 font-mono">₹{totals.amount}</strong>
+                    <strong className="text-slate-800 ">₹{totals.amount}</strong>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Worksheet Fine Weight:</span>
-                    <strong className="text-slate-800 font-mono">{totals.fine} g</strong>
+                    <strong className="text-slate-800 ">{totals.fine} g</strong>
                   </div>
 
                   <div className="border-t border-indigo-100/50 my-2 pt-2 space-y-2">
                     <div className="flex justify-between items-center text-[11px]">
                       <span>Deposited Jama Cash:</span>
-                      <span className="font-bold text-slate-700 font-mono">-₹{parseFloat(jamaAmount) || 0}</span>
+                      <span className="font-bold text-slate-700 ">-₹{parseFloat(jamaAmount) || 0}</span>
                     </div>
                     <div className="flex justify-between items-center text-[11px]">
                       <span>Deposited Jama Fine:</span>
-                      <span className="font-bold text-slate-700 font-mono">-{computedJamaFine} g</span>
+                      <span className="font-bold text-slate-700 ">-{computedJamaFine} g</span>
                     </div>
                   </div>
 
@@ -723,15 +723,15 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                       </div>
                       <div className="flex justify-between text-slate-500">
                         <span>Net Fine Balance weight:</span>
-                        <span className="font-mono">{totalFineBeforeSettle} g</span>
+                        <span className="">{totalFineBeforeSettle} g</span>
                       </div>
                       <div className="flex justify-between text-slate-500">
                         <span>Rate per gram (₹{silverRate}/1000):</span>
-                        <span className="font-mono">₹{(parseFloat(silverRate)/1000).toFixed(2)}/g</span>
+                        <span className="">₹{(parseFloat(silverRate) / 1000).toFixed(2)}/g</span>
                       </div>
                       <div className="flex justify-between font-extrabold text-indigo-700 pt-1 border-t border-indigo-50">
                         <span>Metal Cash equivalent:</span>
-                        <span className="font-mono">₹{convertedFineAmount}</span>
+                        <span className="">₹{convertedFineAmount}</span>
                       </div>
                     </div>
                   ) : (
@@ -747,11 +747,11 @@ const RecordSaleModal = ({ isOpen, onClose, onSubmit }) => {
                 <div className="bg-indigo-600 text-white p-4 rounded-xl shadow-inner space-y-1">
                   <span className="text-[10px] font-black uppercase tracking-wider block opacity-75">Final Outstanding Balance (Baki)</span>
                   <div className="flex items-baseline justify-between">
-                    <strong className="text-xl font-black font-mono">
+                    <strong className="text-xl font-black ">
                       ₹{finalBaki.amount.toLocaleString("en-IN")}
                     </strong>
                     {finalBaki.fine > 0 && (
-                      <span className="font-bold text-xs font-mono">
+                      <span className="font-bold text-xs ">
                         + {finalBaki.fine.toFixed(2)}g Fine
                       </span>
                     )}

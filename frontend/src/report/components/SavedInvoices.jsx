@@ -34,16 +34,16 @@ const SavedInvoices = ({ filteredHistory }) => {
                         <tbody className="divide-y divide-slate-100">
                             {filteredHistory.map((bill) => (
                                 <tr key={bill._id} className="hover:bg-slate-50/70 transition-colors font-semibold text-slate-700">
-                                    <td className="p-3 text-indigo-600 font-bold font-mono">#{bill.billNo}</td>
+                                    <td className="p-3 text-indigo-600 font-bold ">#{bill.billNo}</td>
                                     <td className="p-3 font-bold text-slate-800">{bill.customerName}</td>
-                                    <td className="p-3 text-slate-500 font-mono">
+                                    <td className="p-3 text-slate-500 ">
                                         {bill.date} <span className="text-[10px] text-slate-400">({bill.time})</span>
                                     </td>
-                                    <td className="p-3 text-right font-mono text-slate-500">{bill.items?.length || 0} items</td>
-                                    <td className="p-3 text-right font-mono text-slate-500 font-semibold text-slate-700">₹{bill.totals?.amount || 0}</td>
-                                    <td className="p-3 text-right font-mono text-slate-500">{bill.totals?.fine || 0}g</td>
-                                    <td className="p-3 text-right font-mono text-rose-500 font-bold">₹{bill.finalBaki?.amount || 0}</td>
-                                    <td className="p-3 text-right font-mono text-purple-600 font-bold">{bill.finalBaki?.fine || 0}g</td>
+                                    <td className="p-3 text-right  text-slate-500">{bill.items?.length || 0} items</td>
+                                    <td className="p-3 text-right  text-slate-500 font-semibold text-slate-700">₹{bill.totals?.amount || 0}</td>
+                                    <td className="p-3 text-right  text-slate-500">{bill.totals?.fine || 0}g</td>
+                                    <td className="p-3 text-right  text-rose-500 font-bold">₹{bill.finalBaki?.amount || 0}</td>
+                                    <td className="p-3 text-right  text-purple-600 font-bold">{bill.finalBaki?.fine || 0}g</td>
                                     <td className="p-3 text-center flex items-center justify-center gap-1.5 font-bold">
                                         <button onClick={() => handleSelectBill(bill)} className="flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-100 px-2.5 py-1.5 rounded-lg font-bold transition-colors cursor-pointer">
                                             <ExternalLink className="w-3.5 h-3.5" />

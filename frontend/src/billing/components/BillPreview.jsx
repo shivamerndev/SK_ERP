@@ -24,7 +24,7 @@ const BillPreview = () => {
         </div>
 
         {previewBill ? (
-          <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-4  overflow-y-auto font-mono text-xs text-slate-600">
+          <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-4  overflow-y-auto  text-xs text-slate-600">
             <div className="text-center font-bold text-slate-700 border-b border-dashed border-slate-200 pb-2">
               <p className="text-[10px]">{previewBill.topHeader}</p>
               <p className="text-sm font-black tracking-wider text-slate-800 mt-0.5">{previewBill.title}</p>
@@ -40,7 +40,7 @@ const BillPreview = () => {
                 <p className="mt-0.5">{previewBill.time}</p>
               </div>
             </div>
-            
+
             {/* Small Summary Table */}
             <div className="border-t border-b border-slate-200/60 py-2 space-y-1">
               <div className="grid grid-cols-5 text-[9px] font-bold border-b border-slate-100 pb-1">
@@ -52,9 +52,9 @@ const BillPreview = () => {
               {previewBill.items.map((row, idx) => (
                 <div key={idx} className="grid grid-cols-5 text-[9px] text-slate-500 font-semibold py-0.5">
                   <span className="col-span-2 truncate">{row.item}</span>
-                  <span className="text-right font-mono">{row.netWt}g</span>
-                  <span className="text-right font-mono">{row.amount || "-"}</span>
-                  <span className="text-right font-mono">{row.fine || "-"}</span>
+                  <span className="text-right ">{row.netWt}g</span>
+                  <span className="text-right ">{row.amount || "-"}</span>
+                  <span className="text-right ">{row.fine || "-"}</span>
                 </div>
               ))}
             </div>
@@ -114,12 +114,12 @@ const BillPreview = () => {
             {/* Meta client detail info row */}
             <div className="print-meta-grid">
               <div className="meta-col-left font-sans font-bold">
-                <p>Bill No. &nbsp;<span className="font-mono">{previewBill.billNo}</span></p>
+                <p>Bill No. &nbsp;<span className="">{previewBill.billNo}</span></p>
                 <p className="meta-client-name mt-1">{previewBill.customerName}</p>
               </div>
               <div className="meta-col-right text-right font-sans font-bold">
-                <p className="font-mono">{previewBill.time}</p>
-                <p className="font-mono mt-1">{previewBill.date}</p>
+                <p className="">{previewBill.time}</p>
+                <p className=" mt-1">{previewBill.date}</p>
               </div>
             </div>
 
@@ -127,63 +127,63 @@ const BillPreview = () => {
             <table className="traditional-bill-table font-sans">
               <thead>
                 <tr>
-                  <th className="col-amount text-center font-bold" style={{border: '1px solid black'}}>Amount</th>
-                  <th className="col-item text-left font-bold" style={{border: '1px solid black'}}>Item</th>
-                  <th className="col-weight text-right font-bold" style={{border: '1px solid black'}}>Weight</th>
-                  <th className="col-panni text-left font-bold" style={{border: '1px solid black'}}>Panni Detail</th>
-                  <th className="col-less text-right font-bold" style={{border: '1px solid black'}}>Less</th>
-                  <th className="col-netwt text-right font-bold" style={{border: '1px solid black'}}>Net Wt.</th>
-                  <th className="col-tunch text-right font-bold" style={{border: '1px solid black'}}>Tunch</th>
-                  <th className="col-lab text-right font-bold" style={{border: '1px solid black'}}>Lab.</th>
-                  <th className="col-fine text-right font-bold" style={{border: '1px solid black'}}>Fine</th>
+                  <th className="col-amount text-center font-bold" style={{ border: '1px solid black' }}>Amount</th>
+                  <th className="col-item text-left font-bold" style={{ border: '1px solid black' }}>Item</th>
+                  <th className="col-weight text-right font-bold" style={{ border: '1px solid black' }}>Weight</th>
+                  <th className="col-panni text-left font-bold" style={{ border: '1px solid black' }}>Panni Detail</th>
+                  <th className="col-less text-right font-bold" style={{ border: '1px solid black' }}>Less</th>
+                  <th className="col-netwt text-right font-bold" style={{ border: '1px solid black' }}>Net Wt.</th>
+                  <th className="col-tunch text-right font-bold" style={{ border: '1px solid black' }}>Tunch</th>
+                  <th className="col-lab text-right font-bold" style={{ border: '1px solid black' }}>Lab.</th>
+                  <th className="col-fine text-right font-bold" style={{ border: '1px solid black' }}>Fine</th>
                 </tr>
               </thead>
               <tbody>
                 {previewBill.items.map((row, idx) => (
                   <tr key={idx}>
-                    <td className="col-amount font-mono text-center">{row.amount || ""}</td>
+                    <td className="col-amount  text-center">{row.amount || ""}</td>
                     <td className="col-item text-left font-bold">{row.item}</td>
-                    <td className="col-weight font-mono text-right">{row.weight}</td>
-                    <td className="col-panni font-mono text-left">{row.panniDetail || ""}</td>
-                    <td className="col-less font-mono text-right">{row.less || ""}</td>
-                    <td className="col-netwt font-mono text-right">{row.netWt || ""}</td>
-                    <td className="col-tunch font-mono text-right">{row.tunch}</td>
-                    <td className="col-lab font-mono text-right">{row.lab || ""}</td>
-                    <td className="col-fine font-mono text-right">{row.fine || ""}</td>
+                    <td className="col-weight  text-right">{row.weight}</td>
+                    <td className="col-panni  text-left">{row.panniDetail || ""}</td>
+                    <td className="col-less  text-right">{row.less || ""}</td>
+                    <td className="col-netwt  text-right">{row.netWt || ""}</td>
+                    <td className="col-tunch  text-right">{row.tunch}</td>
+                    <td className="col-lab  text-right">{row.lab || ""}</td>
+                    <td className="col-fine  text-right">{row.fine || ""}</td>
                   </tr>
                 ))}
 
                 {/* TOTAL SALE ROW */}
                 {!(previewBill.silverRate > 0) && (
                   <tr className="row-total-sale">
-                    <td className="col-amount font-mono text-center font-bold">{previewBill.totals.amount || ""}</td>
+                    <td className="col-amount  text-center font-bold">{previewBill.totals.amount || ""}</td>
                     <td className="col-item text-left font-black">TOTAL SALE</td>
-                    <td className="col-weight font-mono text-right font-bold">{previewBill.totals.weight}</td>
+                    <td className="col-weight  text-right font-bold">{previewBill.totals.weight}</td>
                     <td className="col-panni">&nbsp;</td>
-                    <td className="col-less font-mono text-right font-bold">{previewBill.totals.less || ""}</td>
-                    <td className="col-netwt font-mono text-right font-bold">{previewBill.totals.netWt}</td>
+                    <td className="col-less  text-right font-bold">{previewBill.totals.less || ""}</td>
+                    <td className="col-netwt  text-right font-bold">{previewBill.totals.netWt}</td>
                     <td className="col-tunch">&nbsp;</td>
                     <td className="col-lab">&nbsp;</td>
-                    <td className="col-fine font-mono text-right font-bold">{previewBill.totals.fine}</td>
+                    <td className="col-fine  text-right font-bold">{previewBill.totals.fine}</td>
                   </tr>
                 )}
 
                 {/* LAST BALANCE ROW */}
                 <tr className="row-last-bal">
-                  <td className="col-amount font-mono text-center font-bold">{previewBill.lastBalance.amount || ""}</td>
-                  <td className="col-item text-left text-slate-500 font-bold">Last Bal. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="font-mono text-xs">{previewBill.date}</span></td>
+                  <td className="col-amount  text-center font-bold">{previewBill.lastBalance.amount || ""}</td>
+                  <td className="col-item text-left text-slate-500 font-bold">Last Bal. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className=" text-xs">{previewBill.date}</span></td>
                   <td className="col-weight">&nbsp;</td>
                   <td className="col-panni">&nbsp;</td>
                   <td className="col-less">&nbsp;</td>
                   <td className="col-netwt">&nbsp;</td>
                   <td className="col-tunch">&nbsp;</td>
                   <td className="col-lab">&nbsp;</td>
-                  <td className="col-fine font-mono text-right font-bold">{previewBill.lastBalance.fine || "0"}</td>
+                  <td className="col-fine  text-right font-bold">{previewBill.lastBalance.fine || "0"}</td>
                 </tr>
 
                 {/* TOTAL SALE + LAST BAL ROW */}
                 <tr className="row-inter-total">
-                  <td className="col-amount font-mono text-center font-bold">
+                  <td className="col-amount  text-center font-bold">
                     {previewBill.totals.amount + previewBill.lastBalance.amount || ""}
                   </td>
                   <td className="col-item text-left font-black">Total</td>
@@ -193,7 +193,7 @@ const BillPreview = () => {
                   <td className="col-netwt">&nbsp;</td>
                   <td className="col-tunch">&nbsp;</td>
                   <td className="col-lab">&nbsp;</td>
-                  <td className="col-fine font-mono text-right font-bold">
+                  <td className="col-fine  text-right font-bold">
                     {previewBill.totals.fine + previewBill.lastBalance.fine || ""}
                   </td>
                 </tr>
@@ -201,13 +201,13 @@ const BillPreview = () => {
                 {/* BHAW FINE SETTLEMENT ROW */}
                 {previewBill.silverRate > 0 && (
                   <tr className="row-bhaw-settle">
-                    <td className="col-amount font-mono text-center font-bold">
+                    <td className="col-amount  text-center font-bold">
                       {previewBill.convertedFineAmount || ""}
                     </td>
                     <td className="col-item text-left font-bold">
                       Bhaw - {previewBill.time}
                     </td>
-                    <td className="col-weight font-mono text-right font-bold">
+                    <td className="col-weight  text-right font-bold">
                       {previewBill.silverRate}
                     </td>
                     <td className="col-panni">&nbsp;</td>
@@ -215,7 +215,7 @@ const BillPreview = () => {
                     <td className="col-netwt">&nbsp;</td>
                     <td className="col-tunch">&nbsp;</td>
                     <td className="col-lab">&nbsp;</td>
-                    <td className="col-fine font-mono text-right font-bold">
+                    <td className="col-fine  text-right font-bold">
                       {previewBill.totals.fine + (previewBill.lastBalance.fine || 0) - (previewBill.jamaDetail.fine || 0)}
                     </td>
                   </tr>
@@ -223,7 +223,7 @@ const BillPreview = () => {
 
                 {/* JAMA DETAIL ROW */}
                 <tr className="row-jama-detail">
-                  <td className="col-amount font-mono text-center font-bold">
+                  <td className="col-amount  text-center font-bold">
                     {previewBill.jamaDetail.amount || ""}
                   </td>
                   <td className="col-item text-left font-bold">
@@ -234,26 +234,26 @@ const BillPreview = () => {
                       </>
                     )}
                   </td>
-                  <td className="col-weight font-mono text-right">
+                  <td className="col-weight  text-right">
                     {previewBill.silverRate > 0 ? "" : (previewBill.jamaDetail.weight || "")}
                   </td>
                   <td className="col-panni">&nbsp;</td>
                   <td className="col-less">&nbsp;</td>
-                  <td className="col-netwt font-mono text-right">
+                  <td className="col-netwt  text-right">
                     {previewBill.silverRate > 0 ? "" : (previewBill.jamaDetail.netWt || "")}
                   </td>
-                  <td className="col-tunch font-mono text-right">
+                  <td className="col-tunch  text-right">
                     {previewBill.silverRate > 0 ? "" : (previewBill.jamaDetail.tunch || "")}
                   </td>
                   <td className="col-lab">&nbsp;</td>
-                  <td className="col-fine font-mono text-right font-bold">
+                  <td className="col-fine  text-right font-bold">
                     {previewBill.silverRate > 0 ? "" : (previewBill.jamaDetail.fine || "")}
                   </td>
                 </tr>
 
                 {/* BAKI FINAL ROW */}
                 <tr className="row-baki-final">
-                  <td className="col-amount font-mono text-center font-black text-lg">{previewBill.finalBaki.amount}</td>
+                  <td className="col-amount  text-center font-black text-lg">{previewBill.finalBaki.amount}</td>
                   <td className="col-item text-left font-black text-base">
                     (BAKI) &nbsp;&nbsp;&nbsp;Final
                   </td>
@@ -263,7 +263,7 @@ const BillPreview = () => {
                   <td className="col-netwt">&nbsp;</td>
                   <td className="col-tunch font-black text-center text-sm">(BAKI)</td>
                   <td className="col-lab">&nbsp;</td>
-                  <td className="col-fine font-mono text-right font-black text-lg">{previewBill.finalBaki.fine}</td>
+                  <td className="col-fine  text-right font-black text-lg">{previewBill.finalBaki.fine}</td>
                 </tr>
 
               </tbody>

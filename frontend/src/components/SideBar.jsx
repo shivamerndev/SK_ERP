@@ -39,11 +39,11 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             path: "/udhaar",
             icon: <ClipboardList className="w-5 h-5" />,
         },
-        {
-            name: "Products",
-            path: "/products",
-            icon: <Package className="w-5 h-5" />,
-        },
+        // {
+        //     name: "Products",
+        //     path: "/products",
+        //     icon: <Package className="w-5 h-5" />,
+        // },
         {
             name: "Sales",
             path: "/sales",

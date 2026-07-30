@@ -22,7 +22,7 @@ const PrintModal = ({ selectedBill }) => {
                     <div className="flex items-center gap-2">
                         <FileText className="w-5 h-5 text-indigo-600" />
                         <h3 className="font-black text-slate-800">Invoice Draft Viewer</h3>
-                        <span className="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold font-mono">
+                        <span className="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold ">
                             #{selectedBill.billNo}
                         </span>
                     </div>
@@ -51,7 +51,7 @@ const PrintModal = ({ selectedBill }) => {
                                 {selectedBill.customerPhone && (
                                     <div className="flex justify-between">
                                         <span className="text-slate-400">Phone:</span>
-                                        <span className="font-mono text-slate-800">{selectedBill.customerPhone}</span>
+                                        <span className=" text-slate-800">{selectedBill.customerPhone}</span>
                                     </div>
                                 )}
                                 {selectedBill.customerAddress && (
@@ -71,11 +71,11 @@ const PrintModal = ({ selectedBill }) => {
                             <div className="space-y-2 text-xs font-semibold text-slate-600">
                                 <div className="flex justify-between">
                                     <span className="text-slate-400">Date:</span>
-                                    <span className="font-mono text-slate-800">{selectedBill.date}</span>
+                                    <span className=" text-slate-800">{selectedBill.date}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-slate-400">Time:</span>
-                                    <span className="font-mono text-slate-800">{selectedBill.time}</span>
+                                    <span className=" text-slate-800">{selectedBill.time}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-slate-400">Top Header:</span>
@@ -94,13 +94,13 @@ const PrintModal = ({ selectedBill }) => {
                             </h4>
                             <div className="flex justify-between items-center">
                                 <span className="text-xs text-indigo-300 font-semibold">Baki Amount:</span>
-                                <span className="text-lg font-black text-rose-300 font-mono">
+                                <span className="text-lg font-black text-rose-300 ">
                                     ₹{selectedBill.finalBaki?.amount}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-xs text-indigo-300 font-semibold">Baki Fine Wt.:</span>
-                                <span className="text-lg font-black text-purple-300 font-mono">
+                                <span className="text-lg font-black text-purple-300 ">
                                     {selectedBill.finalBaki?.fine}g
                                 </span>
                             </div>
@@ -119,13 +119,13 @@ const PrintModal = ({ selectedBill }) => {
                             <div className="flex justify-between mb-4 font-bold border-b border-slate-100 pb-2">
                                 <div>
                                     <p className="text-[10px] text-slate-400">BILL NO</p>
-                                    <p className="font-mono text-indigo-600 text-sm mt-0.5">#{selectedBill.billNo}</p>
+                                    <p className=" text-indigo-600 text-sm mt-0.5">#{selectedBill.billNo}</p>
                                     <p className="text-slate-800 text-[13px] mt-1.5 font-black uppercase">{selectedBill.customerName}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-[10px] text-slate-400">DATE & TIME</p>
-                                    <p className="font-mono text-slate-800 mt-0.5">{selectedBill.date}</p>
-                                    <p className="font-mono text-slate-500 mt-0.5">{selectedBill.time}</p>
+                                    <p className=" text-slate-800 mt-0.5">{selectedBill.date}</p>
+                                    <p className=" text-slate-500 mt-0.5">{selectedBill.time}</p>
                                 </div>
                             </div>
 
@@ -146,32 +146,32 @@ const PrintModal = ({ selectedBill }) => {
                                 <tbody className="divide-y divide-slate-100">
                                     {selectedBill.items?.map((row, idx) => (
                                         <tr key={idx} className="font-semibold text-slate-700">
-                                            <td className="p-2 text-center font-mono text-slate-500">{row.amount || "-"}</td>
+                                            <td className="p-2 text-center  text-slate-500">{row.amount || "-"}</td>
                                             <td className="p-2 text-left font-black text-slate-800">{row.item}</td>
-                                            <td className="p-2 text-right font-mono">{row.weight}</td>
-                                            <td className="p-2 text-left font-mono text-[10px] text-slate-400">{row.panniDetail || "-"}</td>
-                                            <td className="p-2 text-right font-mono text-slate-400">{row.less || "-"}</td>
-                                            <td className="p-2 text-right font-mono">{row.netWt || "-"}</td>
-                                            <td className="p-2 text-right font-mono">{row.tunch}%</td>
-                                            <td className="p-2 text-right font-mono text-slate-500">{row.lab || "-"}</td>
-                                            <td className="p-2 text-right font-mono text-slate-800 font-bold">{row.fine || "-"}</td>
+                                            <td className="p-2 text-right ">{row.weight}</td>
+                                            <td className="p-2 text-left  text-[10px] text-slate-400">{row.panniDetail || "-"}</td>
+                                            <td className="p-2 text-right  text-slate-400">{row.less || "-"}</td>
+                                            <td className="p-2 text-right ">{row.netWt || "-"}</td>
+                                            <td className="p-2 text-right ">{row.tunch}%</td>
+                                            <td className="p-2 text-right  text-slate-500">{row.lab || "-"}</td>
+                                            <td className="p-2 text-right  text-slate-800 font-bold">{row.fine || "-"}</td>
                                         </tr>
                                     ))}
                                     {/* TOTAL SALE ROW */}
                                     <tr className="border-t border-slate-900/60 font-black text-slate-800 bg-slate-50/50">
-                                        <td className="p-2 text-center font-mono">₹{selectedBill.totals?.amount}</td>
+                                        <td className="p-2 text-center ">₹{selectedBill.totals?.amount}</td>
                                         <td className="p-2 text-left">TOTAL SALE</td>
-                                        <td className="p-2 text-right font-mono">{selectedBill.totals?.weight}</td>
+                                        <td className="p-2 text-right ">{selectedBill.totals?.weight}</td>
                                         <td className="p-2"></td>
-                                        <td className="p-2 text-right font-mono">{selectedBill.totals?.less}</td>
-                                        <td className="p-2 text-right font-mono">{selectedBill.totals?.netWt}</td>
+                                        <td className="p-2 text-right ">{selectedBill.totals?.less}</td>
+                                        <td className="p-2 text-right ">{selectedBill.totals?.netWt}</td>
                                         <td className="p-2"></td>
                                         <td className="p-2"></td>
-                                        <td className="p-2 text-right font-mono">{selectedBill.totals?.fine}g</td>
+                                        <td className="p-2 text-right ">{selectedBill.totals?.fine}g</td>
                                     </tr>
                                     {/* LAST BALANCE ROW */}
                                     <tr className="text-slate-500 font-semibold">
-                                        <td className="p-2 text-center font-mono">₹{selectedBill.lastBalance?.amount || 0}</td>
+                                        <td className="p-2 text-center ">₹{selectedBill.lastBalance?.amount || 0}</td>
                                         <td className="p-2 text-left">Last Bal.</td>
                                         <td className="p-2"></td>
                                         <td className="p-2"></td>
@@ -179,11 +179,11 @@ const PrintModal = ({ selectedBill }) => {
                                         <td className="p-2"></td>
                                         <td className="p-2"></td>
                                         <td className="p-2"></td>
-                                        <td className="p-2 text-right font-mono">{selectedBill.lastBalance?.fine || 0}g</td>
+                                        <td className="p-2 text-right ">{selectedBill.lastBalance?.fine || 0}g</td>
                                     </tr>
                                     {/* TOTAL SALE + LAST BAL ROW */}
                                     <tr className="font-bold text-slate-800 border-t border-dashed border-slate-200">
-                                        <td className="p-2 text-center font-mono">₹{(selectedBill.totals?.amount || 0) + (selectedBill.lastBalance?.amount || 0)}</td>
+                                        <td className="p-2 text-center ">₹{(selectedBill.totals?.amount || 0) + (selectedBill.lastBalance?.amount || 0)}</td>
                                         <td className="p-2 text-left">Total</td>
                                         <td className="p-2"></td>
                                         <td className="p-2"></td>
@@ -191,26 +191,26 @@ const PrintModal = ({ selectedBill }) => {
                                         <td className="p-2"></td>
                                         <td className="p-2"></td>
                                         <td className="p-2"></td>
-                                        <td className="p-2 text-right font-mono">{(selectedBill.totals?.fine || 0) + (selectedBill.lastBalance?.fine || 0)}g</td>
+                                        <td className="p-2 text-right ">{(selectedBill.totals?.fine || 0) + (selectedBill.lastBalance?.fine || 0)}g</td>
                                     </tr>
                                     {/* JAMA DETAIL ROW */}
                                     <tr className="text-indigo-900 bg-indigo-50/30">
-                                        <td className="p-2 text-center font-mono">₹{selectedBill.jamaDetail?.amount || 0}</td>
+                                        <td className="p-2 text-center ">₹{selectedBill.jamaDetail?.amount || 0}</td>
                                         <td className="p-2 text-left font-bold">
                                             Jama Detail
                                             {selectedBill.jamaDetail?.details && <span className="block text-[10px] text-indigo-500 font-normal">{selectedBill.jamaDetail.details}</span>}
                                         </td>
-                                        <td className="p-2 text-right font-mono">{selectedBill.jamaDetail?.weight}</td>
+                                        <td className="p-2 text-right ">{selectedBill.jamaDetail?.weight}</td>
                                         <td className="p-2"></td>
                                         <td className="p-2"></td>
-                                        <td className="p-2 text-right font-mono">{selectedBill.jamaDetail?.netWt}</td>
-                                        <td className="p-2 text-right font-mono">{selectedBill.jamaDetail?.tunch}%</td>
+                                        <td className="p-2 text-right ">{selectedBill.jamaDetail?.netWt}</td>
+                                        <td className="p-2 text-right ">{selectedBill.jamaDetail?.tunch}%</td>
                                         <td className="p-2"></td>
-                                        <td className="p-2 text-right font-mono font-bold">{selectedBill.jamaDetail?.fine || 0}g</td>
+                                        <td className="p-2 text-right  font-bold">{selectedBill.jamaDetail?.fine || 0}g</td>
                                     </tr>
                                     {/* BAKI FINAL ROW */}
                                     <tr className="border-y-2 border-slate-900 text-slate-900 bg-rose-50/20 font-black text-sm">
-                                        <td className="p-2.5 text-center font-mono text-rose-600">₹{selectedBill.finalBaki?.amount}</td>
+                                        <td className="p-2.5 text-center  text-rose-600">₹{selectedBill.finalBaki?.amount}</td>
                                         <td className="p-2.5 text-left font-black text-slate-800">BAKI FINAL</td>
                                         <td className="p-2.5"></td>
                                         <td className="p-2.5"></td>
@@ -218,7 +218,7 @@ const PrintModal = ({ selectedBill }) => {
                                         <td className="p-2.5"></td>
                                         <td className="p-2.5 text-center text-xs font-semibold text-rose-500">(BAKI)</td>
                                         <td className="p-2.5"></td>
-                                        <td className="p-2.5 text-right font-mono text-purple-700">{selectedBill.finalBaki?.fine}g</td>
+                                        <td className="p-2.5 text-right  text-purple-700">{selectedBill.finalBaki?.fine}g</td>
                                     </tr>
                                 </tbody>
                             </table>

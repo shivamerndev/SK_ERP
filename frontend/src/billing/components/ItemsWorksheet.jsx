@@ -86,7 +86,7 @@ const ItemsWorksheet = () => {
                   placeholder="0"
                   value={row.weight}
                   onChange={(e) => handleRowChange(index, "weight", e.target.value)}
-                  className="w-full text-right bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm font-semibold text-slate-700 font-mono"
+                  className="w-full text-right bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm font-semibold text-slate-700 "
                 />
               </td>
 
@@ -97,7 +97,7 @@ const ItemsWorksheet = () => {
                   placeholder="e.g. 8*2.7+49*2.3"
                   value={row.panniDetail}
                   onChange={(e) => handleRowChange(index, "panniDetail", e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm text-slate-600 font-mono"
+                  className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm text-slate-600 "
                 />
               </td>
 
@@ -108,12 +108,12 @@ const ItemsWorksheet = () => {
                   placeholder="0"
                   value={row.less}
                   onChange={(e) => handleRowChange(index, "less", e.target.value)}
-                  className="w-full text-right bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm text-slate-600 font-mono"
+                  className="w-full text-right bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm text-slate-600 "
                 />
               </td>
 
               {/* Net Wt (Calculated) */}
-              <td className="py-2 px-1 text-right font-bold text-slate-800 font-mono">
+              <td className="py-2 px-1 text-right font-bold text-slate-800 ">
                 {row.netWt || "0"}
               </td>
 
@@ -124,22 +124,22 @@ const ItemsWorksheet = () => {
                   placeholder="0.0"
                   value={row.tunch}
                   onChange={(e) => handleRowChange(index, "tunch", e.target.value)}
-                  className="w-full text-right bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm font-semibold text-slate-700 font-mono"
+                  className="w-full text-right bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm font-semibold text-slate-700 "
                 />
               </td>
 
               {/* Lab Expression or Rate */}
               <td className="py-2 px-1">
-                <input type="text" placeholder="850 or 17*12" value={row.lab} onChange={(e) => handleRowChange(index, "lab", e.target.value)} className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm text-slate-600 font-mono" />
+                <input type="text" placeholder="850 or 17*12" value={row.lab} onChange={(e) => handleRowChange(index, "lab", e.target.value)} className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-sm text-slate-600 " />
               </td>
 
               {/* Amount (Labor) Calculated */}
-              <td className="py-2 px-1 text-right font-bold text-slate-800 font-mono">
+              <td className="py-2 px-1 text-right font-bold text-slate-800 ">
                 {row.amount || "-"}
               </td>
 
               {/* Fine Calculated */}
-              <td className="py-2 px-1 text-right font-bold text-slate-800 font-mono">
+              <td className="py-2 px-1 text-right font-bold text-slate-800 ">
                 {row.fine || "-"}
               </td>
 
@@ -160,23 +160,23 @@ const ItemsWorksheet = () => {
         <div className="flex flex-wrap gap-6 text-sm">
           <div className="flex gap-2">
             <span className="text-slate-400 font-semibold">Weight:</span>
-            <span className="font-bold text-slate-800 font-mono">{totals.weight}g</span>
+            <span className="font-bold text-slate-800 ">{totals.weight}g</span>
           </div>
           <div className="flex gap-2">
             <span className="text-slate-400 font-semibold">Less:</span>
-            <span className="font-bold text-slate-800 font-mono">{totals.less}g</span>
+            <span className="font-bold text-slate-800 ">{totals.less}g</span>
           </div>
           <div className="flex gap-2">
             <span className="text-slate-400 font-semibold">Net Wt:</span>
-            <span className="font-bold text-slate-800 font-mono text-blue-600">{totals.netWt}g</span>
+            <span className="font-bold text-slate-800  text-blue-600">{totals.netWt}g</span>
           </div>
           <div className="flex gap-2">
             <span className="text-slate-400 font-semibold">Labor Amt:</span>
-            <span className="font-bold text-emerald-600 font-mono">₹{totals.amount}</span>
+            <span className="font-bold text-emerald-600 ">₹{totals.amount}</span>
           </div>
           <div className="flex gap-2">
             <span className="text-slate-400 font-semibold">Fine:</span>
-            <span className="font-bold text-purple-600 font-mono">{totals.fine}g</span>
+            <span className="font-bold text-purple-600 ">{totals.fine}g</span>
           </div>
         </div>
       </div>

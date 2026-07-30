@@ -32,7 +32,7 @@ const ChartsSection = ({ chartData, showCharts, setShowCharts }) => {
 
       {showCharts && (
         <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-          
+
           {/* Chart 1: Dual-Axis Cash Revenue vs Fine Weight trend */}
           <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100 lg:col-span-2">
             <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Daily Labor Cash (INR) vs. Sales Fine Weight Sold (Grams)</h4>
@@ -42,15 +42,15 @@ const ChartsSection = ({ chartData, showCharts, setShowCharts }) => {
                   <ComposedChart data={chartData.dailyTrendData} margin={{ left: -10, right: 10, bottom: 5 }}>
                     <defs>
                       <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10 }} />
                     <YAxis yAxisId="left" label={{ value: "Labor Cash (₹)", angle: -90, position: "insideLeft", fontSize: 10, fill: "#6366f1" }} tick={{ fill: "#6366f1", fontSize: 10 }} />
                     <YAxis yAxisId="right" orientation="right" label={{ value: "Fine Weight (grams)", angle: 90, position: "insideRight", fontSize: 10, fill: "#10b981" }} tick={{ fill: "#10b981", fontSize: 10 }} />
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }}
                     />
                     <Legend wrapperStyle={{ fontSize: 10 }} />
@@ -90,7 +90,7 @@ const ChartsSection = ({ chartData, showCharts, setShowCharts }) => {
               {chartData.itemPerformanceData.slice(0, 5).map((d, index) => (
                 <div key={index} className="flex items-center justify-between font-semibold">
                   <span className="text-slate-600 truncate">{d.name}:</span>
-                  <span className="text-slate-700 font-mono">₹{d.Revenue.toLocaleString("en-IN")} ({d.Weight.toFixed(1)}g)</span>
+                  <span className="text-slate-700 ">₹{d.Revenue.toLocaleString("en-IN")} ({d.Weight.toFixed(1)}g)</span>
                 </div>
               ))}
             </div>

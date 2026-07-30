@@ -8,7 +8,7 @@ const SalesTable = ({
 }) => {
   return (
     <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-      
+
       {/* Table Element */}
       <div className="overflow-x-auto">
         {filteredSales.length > 0 ? (
@@ -33,18 +33,18 @@ const SalesTable = ({
 
                 return (
                   <tr key={s._id} className="hover:bg-slate-50/50 transition-colors group">
-                    
+
                     {/* Bill No & Date */}
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-extrabold text-slate-800 text-xs bg-slate-100 px-2 py-0.5 rounded-md w-fit font-mono">
+                        <span className="font-extrabold text-slate-800 text-xs bg-slate-100 px-2 py-0.5 rounded-md w-fit ">
                           #{s.billNo}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1 mt-1.5 font-mono">
+                        <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1 mt-1.5 ">
                           <Clock className="w-3 h-3" />
                           {s.date}
                         </span>
-                        <span className="text-[9px] text-slate-400 font-medium font-mono">{s.time}</span>
+                        <span className="text-[9px] text-slate-400 font-medium ">{s.time}</span>
                       </div>
                     </td>
 
@@ -56,7 +56,7 @@ const SalesTable = ({
                           {s.customerName}
                         </span>
                         {s.customerPhone && (
-                          <span className="text-[10px] text-slate-500 font-medium font-mono mt-0.5">
+                          <span className="text-[10px] text-slate-500 font-medium  mt-0.5">
                             {s.customerPhone}
                           </span>
                         )}
@@ -74,28 +74,28 @@ const SalesTable = ({
                         {s.items && s.items.map((it, idx) => (
                           <div key={idx} className="text-[10px] text-slate-500 leading-tight">
                             <span className="font-bold text-slate-700">{it.item}</span>
-                            <span className="font-mono">
+                            <span className="">
                               ({it.weight || 0}g {it.less ? `-${it.less}` : ""})
                             </span>
-                            {it.tunch && <span className="text-amber-600 font-semibold font-mono"> T:{it.tunch}%</span>}
-                            {it.lab && <span className="text-indigo-500 font-semibold font-mono"> L:{it.lab}</span>}
+                            {it.tunch && <span className="text-amber-600 font-semibold "> T:{it.tunch}%</span>}
+                            {it.lab && <span className="text-indigo-500 font-semibold "> L:{it.lab}</span>}
                           </div>
                         ))}
                       </div>
                     </td>
 
                     {/* Net weight */}
-                    <td className="px-6 py-4 text-center font-bold text-slate-700 text-xs font-mono">
+                    <td className="px-6 py-4 text-center font-bold text-slate-700 text-xs ">
                       {s.totals?.netWt || 0} g
                     </td>
 
                     {/* Fine weight */}
-                    <td className="px-6 py-4 text-center font-bold text-slate-600 text-xs font-mono">
+                    <td className="px-6 py-4 text-center font-bold text-slate-600 text-xs ">
                       {s.totals?.fine || 0} g
                     </td>
 
                     {/* Labor cash */}
-                    <td className="px-6 py-4 text-center text-emerald-600 font-bold text-xs font-mono">
+                    <td className="px-6 py-4 text-center text-emerald-600 font-bold text-xs ">
                       ₹{s.totals?.amount || 0}
                     </td>
 
@@ -103,14 +103,14 @@ const SalesTable = ({
                     <td className="px-6 py-4 text-right">
                       <div className="flex flex-col items-end">
                         {bakiAmt > 0 ? (
-                          <span className="font-black text-rose-600 text-xs font-mono">
+                          <span className="font-black text-rose-600 text-xs ">
                             ₹{Math.round(bakiAmt).toLocaleString("en-IN")}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-slate-400 font-bold font-mono">₹0</span>
+                          <span className="text-[10px] text-slate-400 font-bold ">₹0</span>
                         )}
                         {bakiFine > 0 ? (
-                          <span className="font-bold text-purple-600 text-[10px] font-mono mt-0.5">
+                          <span className="font-bold text-purple-600 text-[10px]  mt-0.5">
                             {bakiFine.toFixed(2)}g Fine
                           </span>
                         ) : (

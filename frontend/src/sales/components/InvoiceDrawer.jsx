@@ -5,16 +5,16 @@ const InvoiceDrawer = ({ isOpen, onClose, selectedSale, onPrint }) => {
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end bg-slate-900/40 backdrop-blur-xs animate-fade-in screen-only">
-      
+
       {/* Backdrop Closer */}
-      <div 
-        className="flex-1 cursor-pointer" 
-        onClick={onClose} 
+      <div
+        className="flex-1 cursor-pointer"
+        onClick={onClose}
       />
 
       {/* Drawer Panel Container */}
       <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in relative overflow-hidden text-xs">
-        
+
         {/* Drawer Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
           <div>
@@ -32,17 +32,17 @@ const InvoiceDrawer = ({ isOpen, onClose, selectedSale, onPrint }) => {
         {/* Drawer Body Receipt Voucher */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-300 space-y-5 relative">
-            
+
             {/* Top Store Header */}
             <div className="text-center pb-4 border-b border-slate-200">
-              <span className="text-[10px] text-slate-400 font-bold block mb-0.5 tracking-wider font-mono">
+              <span className="text-[10px] text-slate-400 font-bold block mb-0.5 tracking-wider ">
                 {selectedSale.topHeader || "|| SHREE GANESHAYAA NAMAH ||"}
               </span>
               <h4 className="font-extrabold text-slate-800 tracking-tight text-base">
                 {selectedSale.title || "ROUGH ESTIMATE"}
               </h4>
               <div className="mt-3 flex justify-center">
-                <span className="px-3 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-black rounded-full border border-blue-200 uppercase tracking-wider font-mono">
+                <span className="px-3 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-black rounded-full border border-blue-200 uppercase tracking-wider ">
                   BILL NO: {selectedSale.billNo}
                 </span>
               </div>
@@ -53,11 +53,11 @@ const InvoiceDrawer = ({ isOpen, onClose, selectedSale, onPrint }) => {
               <span className="text-[9px] text-slate-400 font-bold block uppercase tracking-wider mb-1">
                 Outstanding Balance (Baki)
               </span>
-              <strong className="text-3xl font-black block tracking-tight text-rose-600 font-mono">
+              <strong className="text-3xl font-black block tracking-tight text-rose-600 ">
                 ₹{Math.round(selectedSale.finalBaki?.amount || 0).toLocaleString("en-IN")}
               </strong>
               {selectedSale.finalBaki?.fine > 0 && (
-                <span className="block text-[11px] text-purple-600 font-bold font-mono mt-0.5">
+                <span className="block text-[11px] text-purple-600 font-bold  mt-0.5">
                   + {selectedSale.finalBaki.fine.toFixed(2)}g Fine Outstanding
                 </span>
               )}
@@ -72,7 +72,7 @@ const InvoiceDrawer = ({ isOpen, onClose, selectedSale, onPrint }) => {
               {selectedSale.customerPhone && (
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Phone</span>
-                  <span className="text-slate-700 font-mono">{selectedSale.customerPhone}</span>
+                  <span className="text-slate-700 ">{selectedSale.customerPhone}</span>
                 </div>
               )}
               {selectedSale.customerAddress && (
@@ -83,7 +83,7 @@ const InvoiceDrawer = ({ isOpen, onClose, selectedSale, onPrint }) => {
               )}
               <div className="flex justify-between items-center">
                 <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Date & Time</span>
-                <span className="text-slate-700 font-mono">{selectedSale.date} | {selectedSale.time}</span>
+                <span className="text-slate-700 ">{selectedSale.date} | {selectedSale.time}</span>
               </div>
             </div>
 
@@ -97,11 +97,11 @@ const InvoiceDrawer = ({ isOpen, onClose, selectedSale, onPrint }) => {
                   <div key={idx} className="py-2 first:pt-0 flex items-start justify-between font-medium">
                     <div className="flex flex-col">
                       <span className="font-bold text-slate-800 text-[11px]">{it.item}</span>
-                      <span className="text-[10px] text-slate-400 font-mono">
+                      <span className="text-[10px] text-slate-400 ">
                         Gross: {it.weight}g {it.less ? `| Less: ${it.less}g` : ""} | Net: {it.netWt}g
                       </span>
                     </div>
-                    <div className="text-right font-mono text-[10px] flex flex-col">
+                    <div className="text-right  text-[10px] flex flex-col">
                       {it.amount > 0 && <span className="text-emerald-600 font-bold">₹{it.amount} L</span>}
                       {it.fine > 0 && <span className="text-indigo-600 font-bold">{it.fine}g F</span>}
                     </div>
@@ -111,7 +111,7 @@ const InvoiceDrawer = ({ isOpen, onClose, selectedSale, onPrint }) => {
             </div>
 
             {/* Totals Summary */}
-            <div className="border-t border-slate-200 pt-3 space-y-1.5 font-bold font-mono text-slate-700">
+            <div className="border-t border-slate-200 pt-3 space-y-1.5 font-bold  text-slate-700">
               <div className="flex justify-between items-center">
                 <span>Total Net Wt:</span>
                 <span>{selectedSale.totals?.netWt || 0} g</span>
@@ -137,7 +137,7 @@ const InvoiceDrawer = ({ isOpen, onClose, selectedSale, onPrint }) => {
                     "{selectedSale.jamaDetail.details}"
                   </div>
                 )}
-                <div className="space-y-1 font-mono text-[10px] text-slate-600">
+                <div className="space-y-1  text-[10px] text-slate-600">
                   {selectedSale.jamaDetail.amount > 0 && (
                     <div className="flex justify-between">
                       <span>Cash Paid:</span>
@@ -159,17 +159,17 @@ const InvoiceDrawer = ({ isOpen, onClose, selectedSale, onPrint }) => {
               <div className="border-t border-slate-200 pt-3 text-[10px] text-slate-500 space-y-1">
                 <div className="flex justify-between">
                   <span>Silver rate:</span>
-                  <span className="font-bold font-mono">₹{selectedSale.silverRate}/kg</span>
+                  <span className="font-bold ">₹{selectedSale.silverRate}/kg</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Converted Fine Cash:</span>
-                  <span className="font-bold font-mono">₹{selectedSale.convertedFineAmount}</span>
+                  <span className="font-bold ">₹{selectedSale.convertedFineAmount}</span>
                 </div>
               </div>
             )}
 
             {/* Footer seal */}
-            <div className="text-center pt-2 text-[9px] text-slate-400 font-medium font-mono">
+            <div className="text-center pt-2 text-[9px] text-slate-400 font-medium ">
               ~ Thank you for your business ~
             </div>
 

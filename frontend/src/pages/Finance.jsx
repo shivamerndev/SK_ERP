@@ -191,7 +191,7 @@ const Finance = () => {
   const [editErrors, setEditErrors] = useState({});
 
 
-  
+
   const fileInputRef = useRef(null);
 
   // ----------------------------------------------------
@@ -474,7 +474,7 @@ const Finance = () => {
     if (!addForm.date) errors.date = "Date is required";
     if (isNaN(amt) || amt <= 0) errors.amount = "Amount must be a positive number";
     if (!addForm.description.trim()) errors.description = "Provide details / explanation";
-    
+
     if (Object.keys(errors).length > 0) {
       setAddErrors(errors);
       return;
@@ -492,7 +492,7 @@ const Finance = () => {
 
     setGeneralTransactions(prev => [newTx, ...prev]);
     setIsAddOpen(false);
-    
+
     // Reset form to default OUTFLOW
     setAddForm({
       date: new Date().toISOString().split("T")[0],
@@ -598,7 +598,7 @@ const Finance = () => {
   const handleExportJSON = () => {
     try {
       const dataStr = JSON.stringify(generalTransactions, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
       const exportFileDefaultName = `general_cashflow_backup_${new Date().toISOString().split('T')[0]}.json`;
 
       const linkElement = document.createElement('a');
@@ -709,7 +709,7 @@ const Finance = () => {
             Centralized ledger consolidating showroom expenses, daily retail sales, and customer credit recovery entries.
           </p>
         </div>
-        
+
         <div className="flex flex-wrap items-center gap-2">
           {/* Add Entry */}
           <button
@@ -771,7 +771,7 @@ const Finance = () => {
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        
+
         {/* KPI 1: Inflow */}
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:translate-y-[-2px] transition-transform duration-200">
           <div className="space-y-1">
@@ -805,9 +805,8 @@ const Finance = () => {
             </h3>
             <p className="text-[10px] text-slate-400">Total net revenue balance</p>
           </div>
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold ${
-            stats.netFlow >= 0 ? "bg-blue-50 text-blue-600" : "bg-rose-100 text-rose-600 animate-pulse"
-          }`}>
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold ${stats.netFlow >= 0 ? "bg-blue-50 text-blue-600" : "bg-rose-100 text-rose-600 animate-pulse"
+            }`}>
             <DollarSign className="w-6 h-6" />
           </div>
         </div>
@@ -856,7 +855,7 @@ const Finance = () => {
 
         {showAnalytics && (
           <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-            
+
             {/* Chart 1: Daily Inflow vs Outflow Trend */}
             <div className="bg-slate-50/40 p-4 rounded-xl border border-slate-100">
               <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Cash Inflow vs Outflow Trend</h4>
@@ -866,18 +865,18 @@ const Finance = () => {
                     <AreaChart data={chartData.dateTrendData} margin={{ left: -15, right: 10, bottom: 5 }}>
                       <defs>
                         <linearGradient id="colorInflow" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="colorOutflow" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10 }} />
                       <YAxis tick={{ fill: "#64748b", fontSize: 10 }} />
-                      <Tooltip 
+                      <Tooltip
                         contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }}
                         formatter={(val) => [`₹${val.toLocaleString("en-IN")}`]}
                       />
@@ -943,7 +942,7 @@ const Finance = () => {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 10 }} />
                     <YAxis tick={{ fill: "#64748b", fontSize: 10 }} />
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }}
                       formatter={(val) => `₹${val.toLocaleString("en-IN")}`}
                     />
@@ -966,7 +965,7 @@ const Finance = () => {
           <h3 className="text-sm font-bold text-slate-800">Quick Shop Logs (Click-to-Add Expense/Sale)</h3>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          
+
           <button
             onClick={() => quickLog("Tea & Snacks", "OUTFLOW", "Tea & Refreshments", 100, "Cash", "Tea & snacks for customer & staff")}
             className="p-3 bg-orange-50 hover:bg-orange-100 border border-orange-100 text-left rounded-xl transition-all cursor-pointer group active:scale-98"
@@ -1008,11 +1007,11 @@ const Finance = () => {
 
       {/* Directory Table Area */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-        
+
         {/* Search & Advanced Filters Panel */}
         <div className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/30 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            
+
             {/* Search Bar */}
             <div className="relative flex-1 max-w-md">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -1059,7 +1058,7 @@ const Finance = () => {
 
           {/* Filtering row */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
-            
+
             {/* Filter by Type */}
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Transaction Type</label>
@@ -1195,17 +1194,16 @@ const Finance = () => {
                 {filteredTransactions.map((tx) => {
                   return (
                     <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors group">
-                      
+
                       {/* Date & Description */}
                       <td className="px-6 py-4">
                         <div className="flex items-start gap-3">
-                          <div className={`p-2 rounded-lg flex-shrink-0 ${
-                            tx.type === "INFLOW" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
-                          }`}>
+                          <div className={`p-2 rounded-lg flex-shrink-0 ${tx.type === "INFLOW" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                            }`}>
                             {tx.type === "INFLOW" ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                           </div>
                           <div className="flex flex-col min-w-0 max-w-sm">
-                            <span 
+                            <span
                               onClick={() => {
                                 setSelectedTx(tx);
                                 setIsDrawerOpen(true);
@@ -1249,9 +1247,8 @@ const Finance = () => {
 
                       {/* Flow Amount */}
                       <td className="px-6 py-4 text-right">
-                        <span className={`font-extrabold ${
-                          tx.type === "INFLOW" ? "text-emerald-600" : "text-rose-600"
-                        }`}>
+                        <span className={`font-extrabold ${tx.type === "INFLOW" ? "text-emerald-600" : "text-rose-600"
+                          }`}>
                           {tx.type === "INFLOW" ? "+" : "-"}₹{tx.amount.toLocaleString("en-IN")}
                         </span>
                       </td>
@@ -1259,7 +1256,7 @@ const Finance = () => {
                       {/* Action Menu */}
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          
+
                           {/* View details */}
                           <button
                             onClick={() => {
@@ -1287,11 +1284,10 @@ const Finance = () => {
                               setEditErrors({});
                               setIsEditOpen(true);
                             }}
-                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                              tx.isAutoImported 
-                                ? "text-slate-200 cursor-not-allowed" 
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${tx.isAutoImported
+                                ? "text-slate-200 cursor-not-allowed"
                                 : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-                            }`}
+                              }`}
                             title={tx.isAutoImported ? "Payments synced from Customers can only be edited there." : "Edit Entry"}
                           >
                             <Edit2 className="w-4 h-4" />
@@ -1304,11 +1300,10 @@ const Finance = () => {
                               setSelectedTx(tx);
                               setIsDeleteConfirmOpen(true);
                             }}
-                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                              tx.isAutoImported 
-                                ? "text-slate-200 cursor-not-allowed" 
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${tx.isAutoImported
+                                ? "text-slate-200 cursor-not-allowed"
                                 : "text-slate-300 hover:text-rose-600 hover:bg-rose-50"
-                            }`}
+                              }`}
                             title={tx.isAutoImported ? "Payments synced from Customers can only be deleted there." : "Delete Entry"}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1343,14 +1338,14 @@ const Finance = () => {
       {isAddOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden transform scale-100 transition-transform">
-            
+
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
               <div className="flex items-center gap-2">
                 <Wallet className="w-5 h-5 text-blue-600" />
                 <h3 className="text-base font-bold text-slate-800">Record General Shop Entry</h3>
               </div>
-              <button 
+              <button
                 onClick={() => setIsAddOpen(false)}
                 className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
@@ -1360,7 +1355,7 @@ const Finance = () => {
 
             {/* Modal Body / Form */}
             <form onSubmit={handleAddSubmit} className="p-6 space-y-4">
-              
+
               {/* Type Switcher */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase">Cashflow Direction</label>
@@ -1368,22 +1363,20 @@ const Finance = () => {
                   <button
                     type="button"
                     onClick={() => handleAddTypeChange("INFLOW")}
-                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${
-                      addForm.type === "INFLOW" 
-                        ? "bg-emerald-500 text-white shadow-sm" 
+                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${addForm.type === "INFLOW"
+                        ? "bg-emerald-500 text-white shadow-sm"
                         : "text-slate-600 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     INFLOW (+ Cash In)
                   </button>
                   <button
                     type="button"
                     onClick={() => handleAddTypeChange("OUTFLOW")}
-                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${
-                      addForm.type === "OUTFLOW" 
-                        ? "bg-rose-500 text-white shadow-sm" 
+                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${addForm.type === "OUTFLOW"
+                        ? "bg-rose-500 text-white shadow-sm"
                         : "text-slate-600 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     OUTFLOW (- Cash Out)
                   </button>
@@ -1392,7 +1385,7 @@ const Finance = () => {
 
               {/* Grid 1: Date & Category */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
+
                 {/* Date */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase">Transaction Date *</label>
@@ -1400,9 +1393,8 @@ const Finance = () => {
                     type="date"
                     value={addForm.date}
                     onChange={(e) => setAddForm(prev => ({ ...prev, date: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      addErrors.date ? "border-rose-400" : "border-slate-200"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${addErrors.date ? "border-rose-400" : "border-slate-200"
+                      }`}
                   />
                   {addErrors.date && <span className="text-xs font-semibold text-rose-500">{addErrors.date}</span>}
                 </div>
@@ -1431,7 +1423,7 @@ const Finance = () => {
 
               {/* Grid 2: Amount & Method */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
+
                 {/* Amount */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase">Amount (INR) *</label>
@@ -1440,9 +1432,8 @@ const Finance = () => {
                     value={addForm.amount}
                     onChange={(e) => setAddForm(prev => ({ ...prev, amount: e.target.value }))}
                     placeholder="e.g. 500"
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      addErrors.amount ? "border-rose-400" : "border-slate-200"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${addErrors.amount ? "border-rose-400" : "border-slate-200"
+                      }`}
                   />
                   {addErrors.amount && <span className="text-xs font-semibold text-rose-500">{addErrors.amount}</span>}
                 </div>
@@ -1472,9 +1463,8 @@ const Finance = () => {
                   onChange={(e) => setAddForm(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="e.g. paid electricity bill showroom, direct client jewelry buy"
                   rows={2}
-                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm resize-none ${
-                    addErrors.description ? "border-rose-400" : "border-slate-200"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm resize-none ${addErrors.description ? "border-rose-400" : "border-slate-200"
+                    }`}
                 />
                 {addErrors.description && <span className="text-xs font-semibold text-rose-500">{addErrors.description}</span>}
               </div>
@@ -1506,14 +1496,14 @@ const Finance = () => {
       {isEditOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
-            
+
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
               <div className="flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-blue-600" />
                 <h3 className="text-base font-bold text-slate-800">Edit Cash Flow Entry</h3>
               </div>
-              <button 
+              <button
                 onClick={() => setIsEditOpen(false)}
                 className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
@@ -1523,7 +1513,7 @@ const Finance = () => {
 
             {/* Modal Body / Form */}
             <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
-              
+
               {/* Type Switcher */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase">Cashflow Direction</label>
@@ -1531,22 +1521,20 @@ const Finance = () => {
                   <button
                     type="button"
                     onClick={() => handleEditTypeChange("INFLOW")}
-                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${
-                      editForm.type === "INFLOW" 
-                        ? "bg-emerald-500 text-white shadow-sm" 
+                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${editForm.type === "INFLOW"
+                        ? "bg-emerald-500 text-white shadow-sm"
                         : "text-slate-600 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     INFLOW (+ Cash In)
                   </button>
                   <button
                     type="button"
                     onClick={() => handleEditTypeChange("OUTFLOW")}
-                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${
-                      editForm.type === "OUTFLOW" 
-                        ? "bg-rose-500 text-white shadow-sm" 
+                    className={`py-2 text-xs font-bold rounded-lg cursor-pointer transition-all ${editForm.type === "OUTFLOW"
+                        ? "bg-rose-500 text-white shadow-sm"
                         : "text-slate-600 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     OUTFLOW (- Cash Out)
                   </button>
@@ -1555,7 +1543,7 @@ const Finance = () => {
 
               {/* Grid 1: Date & Category */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
+
                 {/* Date */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase">Transaction Date *</label>
@@ -1563,9 +1551,8 @@ const Finance = () => {
                     type="date"
                     value={editForm.date}
                     onChange={(e) => setEditForm(prev => ({ ...prev, date: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      editErrors.date ? "border-rose-400" : "border-slate-200"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${editErrors.date ? "border-rose-400" : "border-slate-200"
+                      }`}
                   />
                   {editErrors.date && <span className="text-xs font-semibold text-rose-500">{editErrors.date}</span>}
                 </div>
@@ -1594,7 +1581,7 @@ const Finance = () => {
 
               {/* Grid 2: Amount & Method */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
+
                 {/* Amount */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase">Amount (INR) *</label>
@@ -1602,9 +1589,8 @@ const Finance = () => {
                     type="number"
                     value={editForm.amount}
                     onChange={(e) => setEditForm(prev => ({ ...prev, amount: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${
-                      editErrors.amount ? "border-rose-400" : "border-slate-200"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm ${editErrors.amount ? "border-rose-400" : "border-slate-200"
+                      }`}
                   />
                   {editErrors.amount && <span className="text-xs font-semibold text-rose-500">{editErrors.amount}</span>}
                 </div>
@@ -1633,9 +1619,8 @@ const Finance = () => {
                   value={editForm.description}
                   onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                   rows={2}
-                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm resize-none ${
-                    editErrors.description ? "border-rose-400" : "border-slate-200"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm resize-none ${editErrors.description ? "border-rose-400" : "border-slate-200"
+                    }`}
                 />
                 {editErrors.description && <span className="text-xs font-semibold text-rose-500">{editErrors.description}</span>}
               </div>
@@ -1667,14 +1652,14 @@ const Finance = () => {
       {isDeleteConfirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden p-6 space-y-4">
-            
+
             <div className="flex items-center gap-3 text-rose-600">
               <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <h3 className="text-base font-bold text-slate-800">Remove Ledger Transaction?</h3>
             </div>
-            
+
             <p className="text-sm text-slate-500">
               Are you sure you want to delete the entry <strong>{selectedTx?.description}</strong> of amount <strong>₹{selectedTx?.amount.toLocaleString("en-IN")}</strong>? This will permanently erase the record from the shop general transactions.
             </p>
@@ -1703,16 +1688,16 @@ const Finance = () => {
       {/* --- SLIDE OUT DRAWER (Receipt / Transaction details) --- */}
       {isDrawerOpen && selectedTx && (
         <div className="fixed inset-0 z-40 flex justify-end bg-slate-900/40 backdrop-blur-xs animate-fade-in">
-          
+
           {/* Backdrop closer clicker */}
-          <div 
-            className="flex-1 cursor-pointer" 
-            onClick={() => setIsDrawerOpen(false)} 
+          <div
+            className="flex-1 cursor-pointer"
+            onClick={() => setIsDrawerOpen(false)}
           />
 
           {/* Drawer Panel Container */}
           <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in relative overflow-hidden">
-            
+
             {/* Drawer Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
               <div>
@@ -1729,7 +1714,7 @@ const Finance = () => {
 
             {/* Drawer Body (Scrollable container) */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              
+
               {/* Receipt Visual design */}
               <div className="bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-300 space-y-5 relative">
                 {/* Side punch-holes mockup */}
@@ -1738,15 +1723,14 @@ const Finance = () => {
                     <div key={i} className="w-2 h-2 rounded-full bg-white border border-slate-100 -ml-1" />
                   ))}
                 </div>
-                
+
                 {/* Store Name header */}
                 <div className="text-center pb-4 border-b border-slate-200">
                   <h4 className="font-extrabold text-slate-800 tracking-tight text-base">ERP SUITE STORE</h4>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mt-0.5">Showroom Accounts Cash Ledger</span>
                   <div className="mt-3 flex justify-center">
-                    <span className={`px-3 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${
-                      selectedTx.type === "INFLOW" ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-rose-50 text-rose-800 border-rose-200"
-                    }`}>
+                    <span className={`px-3 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${selectedTx.type === "INFLOW" ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-rose-50 text-rose-800 border-rose-200"
+                      }`}>
                       {selectedTx.type === "INFLOW" ? "Cash Inflow" : "Cash Outflow"}
                     </span>
                   </div>
@@ -1755,19 +1739,18 @@ const Finance = () => {
                 {/* Amount display */}
                 <div className="text-center py-2">
                   <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider mb-1">Transaction Value</span>
-                  <strong className={`text-3xl font-black block tracking-tight ${
-                    selectedTx.type === "INFLOW" ? "text-emerald-600" : "text-rose-600"
-                  }`}>
+                  <strong className={`text-3xl font-black block tracking-tight ${selectedTx.type === "INFLOW" ? "text-emerald-600" : "text-rose-600"
+                    }`}>
                     ₹{selectedTx.amount.toLocaleString("en-IN")}
                   </strong>
                 </div>
 
                 {/* Voucher details fields */}
                 <div className="space-y-3.5 text-xs border-t border-slate-200 pt-4">
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-bold uppercase text-[9px] tracking-wider">Transaction ID</span>
-                    <span className="text-slate-700 font-mono font-semibold">{selectedTx.id}</span>
+                    <span className="text-slate-700  font-semibold">{selectedTx.id}</span>
                   </div>
 
                   <div className="flex justify-between items-center">
@@ -1824,18 +1807,17 @@ const Finance = () => {
 
             {/* Drawer Footer actions */}
             <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-              
+
               <button
                 type="button"
                 disabled={selectedTx.isAutoImported}
                 onClick={() => {
                   setIsDeleteConfirmOpen(true);
                 }}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  selectedTx.isAutoImported 
-                    ? "bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200" 
+                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${selectedTx.isAutoImported
+                    ? "bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200"
                     : "bg-rose-50 hover:bg-rose-100 hover:text-rose-700 text-rose-600"
-                }`}
+                  }`}
                 title={selectedTx.isAutoImported ? "Udhaar collection transaction logs must be removed from the customer statement ledger." : "Delete Entry"}
               >
                 <Trash2 className="w-4 h-4" />
