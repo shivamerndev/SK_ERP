@@ -20,7 +20,7 @@ const App = () => {
 	}
 
 	return (
-		<main className="h-screen w-full flex bg-white ">
+		<main className="h-screen w-full flex bg-[#faf6f0]">
 			<Toaster />
 			<SideBar isMobileSidebarOpen={isMobileSidebarOpen} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
 
@@ -29,7 +29,7 @@ const App = () => {
             
 				<Navbar user={user} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
                 {/* Main Viewport Content */}
-                <main className="flex-1 p-4 sm:p-6 bg-slate-50/50 w-full overflow-x-hidden">
+                <main className="flex-1 p-4 sm:p-6 bg-[#faf6f0] w-full overflow-x-hidden">
                     <div className="mx-auto md:pl-4">
                         <Outlet />
                     </div>

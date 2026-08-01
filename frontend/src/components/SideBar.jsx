@@ -1,17 +1,12 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation,useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react"
 import useAuth from "../auth/useAuth";
 import {
     LayoutDashboard,
     ClipboardList,
-    Package,
-    DollarSign,
     ShoppingCart,
     Box,
-    CreditCard,
     Users,
-    MessageSquare,
-    Factory,
     BarChart3,
     Settings,
     HelpCircle,
@@ -28,6 +23,7 @@ import {
 
 const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
 
+    const navigate = useNavigate()
 
     const { handleLogout } = useAuth();
     const location = useLocation();
@@ -43,11 +39,6 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             path: "/udhaar",
             icon: <ClipboardList className="w-5 h-5" />,
         },
-        // {
-        //     name: "Products",
-        //     path: "/products",
-        //     icon: <Package className="w-5 h-5" />,
-        // },
         {
             name: "Sales",
             path: "/sales",
@@ -118,7 +109,7 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
     return <>
         {isMobileSidebarOpen && (
             <div
-                className="fixed inset-0 z-45 bg-slate-900/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"
+                className="fixed inset-0 z-45 bg-[#0a0503]/80 backdrop-blur-md lg:hidden transition-opacity duration-300"
                 onClick={() => setIsMobileSidebarOpen(false)}
             />
         )}
@@ -126,29 +117,33 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
         <aside
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className={`fixed lg:relative inset-y-0 left-0 z-50 flex flex-col bg-[#0b1629] text-slate-300 border-r border-slate-800 shadow-xl transition-all duration-300 transform
+            className={`fixed select-none lg:relative inset-y-0 left-0 z-50 flex flex-col bg-gradient-to-b from-[#180d07] via-[#120a05] to-[#0a0502] text-[#d4c3b3] border-r border-[#4a3219]/60 shadow-[5px_0_25px_rgba(0,0,0,0.6)] transition-all duration-300 transform
                 lg:translate-x-0 lg:h-screen
                 ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
                 ${isCollapsed ? "w-20" : "w-64"}`}
         >
-            <div className={`flex items-center px-5 py-5 border-b border-slate-800/80 ${isCollapsed ? "justify-center" : "justify-between"}`}>
+            <div onClick={() => navigate("/")} className={`flex cursor-pointer items-center px-4 py-4 border-b border-[#3a2613]/70 ${isCollapsed ? "justify-center" : "justify-between"}`}>
                 <div className={`flex items-center gap-3 transition-all duration-200 ${isCollapsed ? "justify-center" : ""}`}>
-                    <div className="w-9 h-9 rounded-md bg-blue-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md shadow-blue-500/20">
-                        SK
-                    </div>
+                    <figure className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-[#f3d078] via-[#b8860b] to-[#59390f] p-[2px] shadow-[0_0_12px_rgba(212,175,55,0.35)] flex items-center justify-center flex-shrink-0">
+                        <img src="icon.png" alt="Suruchi Jewellers" className="w-full h-full object-cover rounded-full bg-[#120a05]" />
+                    </figure>
                     {!isCollapsed && (
-                        <div className="flex flex-col">
-                            <span className="font-bold text-white text-base leading-tight tracking-tight">SK-ERP</span>
-                            <span className="text-[10px] text-slate-400 font-medium tracking-wide">Smart Business Solution</span>
+                        <div className="flex flex-col truncate">
+                            <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37] text-base leading-tight tracking-tight drop-shadow-sm truncate">
+                                Suruchi Jewellers
+                            </span>
+                            <span className="text-[10px] text-[#b39568] font-medium tracking-wider uppercase mt-0.5 truncate">
+                                Smart Business Solution
+                            </span>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Collapse Arrow Desktop - Sleek Floating Button on Border */}
+            {/* Collapse Arrow Desktop - Sleek Floating Metallic Button */}
             <button
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="hidden lg:flex absolute top-6 -right-1 z-50 items-center justify-center w-6 h-6 rounded-full bg-[#0b2029] hover:bg-slate-800 hover:text-slate-400  text-white border border-slate-700 shadow-md transition-all duration-200 hover:scale-110 cursor-pointer"
+                className="hidden lg:flex absolute top-5 -right-3 z-50 items-center justify-center w-6 h-6 rounded-full bg-gradient-to-b from-[#2a1a0f] to-[#120a04] hover:from-[#3a2416] hover:to-[#1a0f07] text-[#f5d061] border border-[#855e24]/70 shadow-[0_2px_8px_rgba(0,0,0,0.6)] transition-all duration-200 hover:scale-110 cursor-pointer hover:border-[#d4af37]"
                 title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
                 {isSidebarCollapsed ? (
@@ -159,7 +154,7 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             </button>
 
             {/* Scrollable Navigation Area */}
-            <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1 scrollbar-none">
+            <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1.5 scrollbar-none">
                 {sidebarItems.map((item, idx) => {
 
                     // Highlight Inventory if currently in O2D
@@ -175,25 +170,32 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
                                     e.preventDefault();
                                     alert(`Please add hindi language and theme options in it`);
                                 }
+                                if (item.path === "/help") {
+                                    e.preventDefault();
+                                    alert(`This is for other's Buyers`);
+                                    navigate(-1)
+                                }
                             }}
-                            className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group cursor-pointer
-                                ${isCollapsed ? "justify-center px-2" : "justify-start px-3"}
+                            className={`flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group cursor-pointer border
+                                ${isCollapsed ? "justify-center px-2" : "justify-start px-3.5"}
                                 ${isItemActive
-                                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/10"
-                                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/40"
+                                    ? "bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] text-[#140b04] font-bold shadow-[0_4px_16px_rgba(212,175,55,0.3)] border-[#ffe8ad]/60"
+                                    : "border-transparent text-[#c7b299] hover:text-[#fff4d1] hover:bg-[#2a190d]/60 hover:border-[#6e4a21]/50"
                                 }`}
                             title={isCollapsed ? item.name : undefined}
                         >
                             <div className={`flex-shrink-0 transition-colors
-                                ${isItemActive ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`}
+                                ${isItemActive ? "text-[#140b04]" : "text-[#a3886b] group-hover:text-[#f7d479]"}`}
                             >
                                 {item.icon}
                             </div>
                             {!isCollapsed && (
-                                <span className="flex-1 truncate">{item.name}</span>
+                                <span className="flex-1 truncate tracking-wide">{item.name}</span>
                             )}
                             {!isCollapsed && item.hasDropdown && (
-                                <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-400 ml-auto" />
+                                <ChevronDown className={`w-3.5 h-3.5 ml-auto transition-colors ${
+                                    isItemActive ? "text-[#140b04]" : "text-[#876e53] group-hover:text-[#f7d479]"
+                                }`} />
                             )}
                         </NavLink>
                     );
@@ -201,11 +203,11 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             </nav>
 
             {/* Sidebar Footer / User Logout */}
-            <div className="p-3 border-t border-slate-800/80 bg-slate-950/20">
+            <div className="p-3 border-t border-[#3a2613]/70 bg-[#0a0502]/60">
                 <button
                     onClick={handleLogout}
-                    className={`flex items-center gap-3 w-full py-2.5 rounded-lg text-sm font-medium text-rose-400 hover:text-rose-200 hover:bg-rose-500/10 transition-all duration-150 cursor-pointer
-                        ${isCollapsed ? "justify-center px-2" : "justify-start px-3"}`}
+                    className={`flex items-center gap-3 w-full py-2.5 rounded-xl text-sm font-medium text-[#e57373] hover:text-[#ffcdd2] hover:bg-[#3d1414]/40 border border-transparent hover:border-[#852a2a]/40 transition-all duration-200 cursor-pointer
+                        ${isCollapsed ? "justify-center px-2" : "justify-start px-3.5"}`}
                     title="Sign Out"
                 >
                     <LogOut className="w-5 h-5 flex-shrink-0" />

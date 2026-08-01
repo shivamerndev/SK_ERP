@@ -9,14 +9,14 @@ const AddPurchase = ({
   calculatedFormValues,
   handleRecordPurchaseSubmit
 }) => {
-  return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-    <div className="bg-white w-full max-w-7xl rounded-2xl shadow-xl overflow-hidden my-8 flex flex-col max-h-[90vh]">
+  return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0502]/60 backdrop-blur-xs p-4 overflow-y-auto">
+    <div className="bg-[#fffdfa] border border-[#e8decb] w-full max-w-7xl rounded-2xl shadow-xl overflow-hidden my-8 flex flex-col max-h-[90vh]">
 
       {/* Modal Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[#e8decb] bg-[#f8f3ea]">
         <div className="flex items-center gap-2">
-          <Package className="w-5 h-5 text-blue-600" />
-          <h3 className="text-base font-bold text-slate-800">Record Wholesale Purchase Estimate Bill</h3>
+          <Package className="w-5 h-5 text-[#d4af37]" />
+          <h3 className="text-base font-bold text-[#2c1d11]">Record Wholesale Purchase Estimate Bill</h3>
         </div>
         <button
           onClick={() => setIsRecordOpen(false)}
@@ -650,17 +650,17 @@ const AddPurchase = ({
         </div>
 
         {/* Modal Footer actions */}
-        <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4 mt-6">
+        <div className="flex items-center justify-end gap-2 border-t border-[#e8decb] pt-4 mt-6">
           <button
             type="button"
             onClick={() => setIsRecordOpen(false)}
-            className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-sm rounded-xl cursor-pointer"
+            className="px-4 py-2 border border-[#e8decb] hover:bg-[#f7f0e3] text-[#2c1d11] font-semibold text-sm rounded-xl cursor-pointer transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-xl transition-all cursor-pointer shadow-md shadow-blue-500/10"
+            className="px-5 py-2 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] hover:from-[#f3d078] hover:via-[#d4af37] hover:to-[#b8860b] text-[#140b04] font-bold text-sm rounded-xl transition-all cursor-pointer shadow-[0_4px_16px_rgba(212,175,55,0.3)] border border-[#ffe8ad]/60"
           >
             Post Restock Bill
           </button>

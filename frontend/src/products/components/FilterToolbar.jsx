@@ -21,16 +21,16 @@ const FilterToolbar = ({
   handleOpenAddModal
 }) => {
   return (
-    <div className="flex flex-col gap-4 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm" ref={dropdownRef}>
+    <div className="flex flex-col gap-4 bg-[#fffdfa] border border-[#e8decb] rounded-2xl p-5 shadow-xs" ref={dropdownRef}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           {/* Category Dropdown */}
           <div className="relative">
             <button
               onClick={() => toggleDropdown("category")}
-              className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${activeDropdown === "category" || selectedCategory !== "All Categories"
-                ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
-                : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+              className={`border rounded-xl px-4 py-2 text-[#2c1d11] text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${activeDropdown === "category" || selectedCategory !== "All Categories"
+                ? "border-[#d4af37] ring-2 ring-[#d4af37]/20 text-[#8a641b] bg-[#f7f0e3]"
+                : "border-[#e8decb] hover:border-[#d4af37]/50 hover:bg-[#f8f3ea]"
                 }`}
             >
               <span>{selectedCategory}</span>
@@ -59,9 +59,9 @@ const FilterToolbar = ({
           <div className="relative">
             <button
               onClick={() => toggleDropdown("status")}
-              className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${activeDropdown === "status" || selectedStatus !== "All Status"
-                ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
-                : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+              className={`border rounded-xl px-4 py-2 text-[#2c1d11] text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${activeDropdown === "status" || selectedStatus !== "All Status"
+                ? "border-[#d4af37] ring-2 ring-[#d4af37]/20 text-[#8a641b] bg-[#f7f0e3]"
+                : "border-[#e8decb] hover:border-[#d4af37]/50 hover:bg-[#f8f3ea]"
                 }`}
             >
               <span>{selectedStatus}</span>
@@ -90,9 +90,9 @@ const FilterToolbar = ({
           <div className="relative">
             <button
               onClick={() => toggleDropdown("weight")}
-              className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${activeDropdown === "weight" || selectedWeightRange !== "All Weights"
-                ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
-                : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+              className={`border rounded-xl px-4 py-2 text-[#2c1d11] text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${activeDropdown === "weight" || selectedWeightRange !== "All Weights"
+                ? "border-[#d4af37] ring-2 ring-[#d4af37]/20 text-[#8a641b] bg-[#f7f0e3]"
+                : "border-[#e8decb] hover:border-[#d4af37]/50 hover:bg-[#f8f3ea]"
                 }`}
             >
               <span>{selectedWeightRange}</span>
@@ -121,9 +121,9 @@ const FilterToolbar = ({
           <div className="relative">
             <button
               onClick={() => toggleDropdown("stock")}
-              className={`border rounded-xl px-4 py-2 text-slate-700 text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${activeDropdown === "stock" || selectedStockLevel !== "All Stock"
-                ? "border-blue-500 ring-2 ring-blue-500/10 text-blue-700 bg-blue-50/20"
-                : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+              className={`border rounded-xl px-4 py-2 text-[#2c1d11] text-sm font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${activeDropdown === "stock" || selectedStockLevel !== "All Stock"
+                ? "border-[#d4af37] ring-2 ring-[#d4af37]/20 text-[#8a641b] bg-[#f7f0e3]"
+                : "border-[#e8decb] hover:border-[#d4af37]/50 hover:bg-[#f8f3ea]"
                 }`}
             >
               <span>{selectedStockLevel}</span>
@@ -154,7 +154,7 @@ const FilterToolbar = ({
           {areFiltersApplied && (
             <button
               onClick={handleClearFilters}
-              className="text-blue-600 hover:text-blue-800 text-xs font-semibold px-3 py-2 rounded-xl hover:bg-blue-50/60 transition-all flex items-center gap-1 cursor-pointer"
+              className="text-[#8a641b] hover:text-[#59390f] text-xs font-semibold px-3 py-2 rounded-xl hover:bg-[#f7f0e3] transition-all flex items-center gap-1 cursor-pointer"
             >
               <X size={14} /> Clear Filters
             </button>
@@ -163,7 +163,7 @@ const FilterToolbar = ({
           {/* Add Product Button */}
           <button
             onClick={handleOpenAddModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-sm hover:shadow-blue-500/20 hover:-translate-y-0.5 active:translate-y-0 w-full sm:w-auto justify-center"
+            className="bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] hover:from-[#f3d078] hover:via-[#d4af37] hover:to-[#b8860b] text-[#140b04] font-bold px-5 py-2.5 rounded-xl text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-[0_4px_16px_rgba(212,175,55,0.3)] border border-[#ffe8ad]/60 hover:-translate-y-0.5 active:translate-y-0 w-full sm:w-auto justify-center"
           >
             <Plus size={18} /> Add Product
           </button>

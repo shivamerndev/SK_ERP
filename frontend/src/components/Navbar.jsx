@@ -17,7 +17,7 @@ const Navbar = ({ user, setIsMobileSidebarOpen }) => {
         return () => clearTimeout(delay);
     }, [search])
 
-    return <header className="sticky top-0 z-30 flex items-center justify-between bg-white border-b border-slate-200/80 px-4 sm:px-6 py-3 shadow-sm shadow-slate-100">
+    return <header className="sticky top-0 z-30 flex items-center justify-between bg-[#fffdfa] border-b border-[#e8decb] px-4 sm:px-6 py-3 shadow-xs">
 
 
         <div className="flex items-center gap-3 flex-1">
@@ -44,12 +44,12 @@ const Navbar = ({ user, setIsMobileSidebarOpen }) => {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search anything..."
-                    className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50/50 focus:bg-white text-slate-700"
+                    className="w-full pl-9 pr-4 py-2 border border-[#e8decb] rounded-xl text-sm placeholder-[#a38c75] focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all bg-[#f8f3ea]/50 focus:bg-[#fffdfa] text-[#2c1d11]"
                 />
 
                 {
                     search.length > 0 && (
-                        <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200/80 rounded-2xl shadow-xl p-2 z-50 max-h-[350px] overflow-y-auto backdrop-blur-lg bg-white/95 border-b-4 border-b-blue-500/10">
+                        <div className="absolute top-full left-0 w-full mt-2 bg-[#fffdfa] border border-[#e8decb] rounded-2xl shadow-xl p-2 z-50 max-h-[350px] overflow-y-auto backdrop-blur-lg bg-[#fffdfa]/95 border-b-4 border-b-[#d4af37]/30">
                             {results.length === 0 ? (
                                 <div className="p-6 text-center text-slate-400 flex flex-col items-center gap-2">
                                     <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,8 +176,8 @@ const Navbar = ({ user, setIsMobileSidebarOpen }) => {
         {/* Right: Quick Action Controls & User details */}
         <div className="flex items-center gap-3 sm:gap-5">
             {/* Live System Badge */}
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live System
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-[#946914] bg-[#fdf5e6] border border-[#f0d89c] px-2.5 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] animate-pulse"></span> Live System
             </span>
 
             {/* Action Icons */}
@@ -214,9 +214,9 @@ const Navbar = ({ user, setIsMobileSidebarOpen }) => {
             {/* User Details */}
             <div className="flex items-center gap-2.5">
                 {user?.avatar ? (
-                    <img src={user.avatar} alt={user?.fullName} className="w-8 h-8 sm:w-9.5 sm:h-9.5 rounded-full object-cover border-2 border-slate-200 shadow-sm" />
+                    <img src={user.avatar} alt={user?.fullName} className="w-8 h-8 sm:w-9.5 sm:h-9.5 rounded-full object-cover border-2 border-[#d4af37]/60 shadow-sm" />
                 ) : (
-                    <div className="w-8 h-8 sm:w-9.5 sm:h-9.5 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                    <div className="w-8 h-8 sm:w-9.5 sm:h-9.5 rounded-full bg-gradient-to-br from-[#d4af37] via-[#e5c158] to-[#c79928] text-[#140b04] flex items-center justify-center font-bold text-sm shadow-sm">
                         {user?.fullName ? user?.fullName.charAt(0).toUpperCase() : "U"}
                     </div>
                 )}

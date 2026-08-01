@@ -758,21 +758,21 @@ const Inventory = () => {
 
 
       {/* Live Market Controller & Title Header */}
-      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 rounded-2xl text-white shadow-md">
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 bg-gradient-to-r from-[#180d07] via-[#120a05] to-[#2a190d] border border-[#4a3219]/60 p-6 rounded-2xl text-white shadow-md">
 
         {/* Title Info */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <Box className="w-6 h-6 text-indigo-400" />
-            <h1 className="text-2xl font-bold tracking-tight">Silver Wholesaler Inventory & Stocks</h1>
+            <Box className="w-6 h-6 text-[#f5cf6e]" />
+            <h1 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37]">Silver Wholesaler Inventory & Stocks</h1>
           </div>
-          <p className="text-slate-300 text-sm max-w-xl">
+          <p className="text-[#d4c3b3] text-sm max-w-xl">
             Valuate stock contents by weight (grams), manage purity standards (925 sterling / 900 coin), stamp barcode labels, and trigger stock alerts.
           </p>
         </div>
 
         {/* Dynamic Silver rate adjuster + actions */}
-        <div className="flex flex-wrap items-center gap-3 bg-slate-950/30 p-3 rounded-xl border border-white/10 self-start xl:self-auto">
+        <div className="flex flex-wrap items-center gap-3 bg-[#0a0502]/40 p-3 rounded-xl border border-[#855e24]/40 self-start xl:self-auto">
 
           {/* Rate Adjuster */}
           <div className="flex items-center gap-2.5">
@@ -791,7 +791,7 @@ const Inventory = () => {
                     const r = parseFloat(e.target.value);
                     setLiveSilverRate(isNaN(r) ? 0 : r);
                   }}
-                  className="w-16 bg-slate-800/80 border border-slate-700 rounded px-1.5 py-0.5 text-xs font-black text-center focus:outline-none focus:border-indigo-500 text-yellow-400"
+                  className="w-16 bg-slate-800/80 border border-slate-700 rounded px-1.5 py-0.5 text-xs font-black text-center focus:outline-none focus:border-[#d4af37] text-yellow-400"
                 />
                 <span className="text-[10px] text-slate-400">/ gram</span>
               </div>
@@ -805,7 +805,7 @@ const Inventory = () => {
             {/* Add New Design */}
             <button
               onClick={handleOpenAddModal}
-              className="flex items-center gap-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-all active:scale-95 cursor-pointer shadow-md shadow-blue-500/10"
+              className="flex items-center gap-1 px-3 py-2 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] hover:from-[#f3d078] hover:via-[#d4af37] hover:to-[#b8860b] text-[#140b04] text-xs font-bold rounded-lg transition-all active:scale-95 cursor-pointer shadow-[0_4px_16px_rgba(212,175,55,0.3)] border border-[#ffe8ad]/60"
             >
               <Plus className="w-4 h-4" />
               Add Product
@@ -815,7 +815,7 @@ const Inventory = () => {
             <button
               onClick={handleExportCSV}
               title="Download Stock CSV Statement"
-              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition-all cursor-pointer"
+              className="p-2 bg-[#2a1a0f] hover:bg-[#3a2416] text-[#f5d061] rounded-lg border border-[#855e24]/70 transition-all cursor-pointer shadow-sm"
             >
               <Download className="w-4 h-4" />
             </button>

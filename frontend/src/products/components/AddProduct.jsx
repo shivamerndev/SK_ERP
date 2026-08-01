@@ -91,12 +91,12 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
   };
 
   return (
-    <div className="fixed inset-0 h-screen w-full left-0 top-0 backdrop-blur-md flex items-center justify-center z-50 transition-all">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-scale-up">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+    <div className="fixed inset-0 h-screen w-full left-0 top-0 bg-[#0a0502]/60 backdrop-blur-md flex items-center justify-center z-50 transition-all">
+      <div className="bg-[#fffdfa] rounded-2xl border border-[#e8decb] shadow-2xl w-full max-w-lg overflow-hidden animate-scale-up">
+        <div className="px-6 py-4 border-b border-[#e8decb] flex items-center justify-between bg-[#f8f3ea]">
           <div className="flex items-center gap-2">
-            <Sparkles className="text-blue-600" size={18} />
-            <h3 className="font-extrabold text-slate-800 text-lg">Add New Product</h3>
+            <Sparkles className="text-[#d4af37]" size={18} />
+            <h3 className="font-extrabold text-[#2c1d11] text-lg">Add New Product</h3>
           </div>
           <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg transition-colors cursor-pointer">
             <X size={18} />
@@ -265,13 +265,13 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
             <button
               type="button"
               onClick={() => setIsAddModalOpen(false)}
-              className="px-4.5 py-2 border border-slate-200 hover:border-slate-300 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100/50 transition-all cursor-pointer"
+              className="px-4.5 py-2 border border-[#e8decb] rounded-xl text-sm font-semibold text-[#2c1d11] hover:bg-[#f7f0e3] transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-all duration-150 cursor-pointer shadow-sm hover:shadow-blue-500/15"
+              className="bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] hover:from-[#f3d078] hover:via-[#d4af37] hover:to-[#b8860b] text-[#140b04] font-bold px-5 py-2 rounded-xl text-sm transition-all cursor-pointer shadow-[0_4px_16px_rgba(212,175,55,0.3)] border border-[#ffe8ad]/60"
             >
               Add Product
             </button>

@@ -706,13 +706,13 @@ const Finance = () => {
 
 
       {/* Title Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 rounded-2xl text-white shadow-md">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-[#180d07] via-[#120a05] to-[#2a190d] border border-[#4a3219]/60 p-6 rounded-2xl text-white shadow-md">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Wallet className="w-6 h-6 text-indigo-400" />
-            <h1 className="text-2xl font-bold tracking-tight">Shop Cash Flow Manager</h1>
+            <Wallet className="w-6 h-6 text-[#f5cf6e]" />
+            <h1 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37]">Shop Cash Flow Manager</h1>
           </div>
-          <p className="text-slate-300 text-sm max-w-xl">
+          <p className="text-[#d4c3b3] text-sm max-w-xl">
             Centralized ledger consolidating showroom expenses, daily retail sales, and customer credit recovery entries.
           </p>
         </div>
@@ -732,7 +732,7 @@ const Finance = () => {
               setAddErrors({});
               setIsAddOpen(true);
             }}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] hover:from-[#f3d078] hover:via-[#d4af37] hover:to-[#b8860b] text-[#140b04] text-sm font-bold rounded-xl transition-all shadow-[0_4px_16px_rgba(212,175,55,0.3)] border border-[#ffe8ad]/60 cursor-pointer"
           >
             <Plus className="w-4.5 h-4.5" />
             Record Expense
@@ -742,7 +742,7 @@ const Finance = () => {
           <button
             onClick={handleExportCSV}
             title="Download CSV Statement Reports"
-            className="flex items-center gap-1.5 px-3 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-sm font-medium rounded-xl border border-slate-700 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2.5 bg-[#2a1a0f] hover:bg-[#3a2416] active:scale-95 text-[#f5d061] text-sm font-medium rounded-xl border border-[#855e24]/70 transition-all cursor-pointer shadow-sm"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -752,7 +752,7 @@ const Finance = () => {
           <button
             onClick={handleExportJSON}
             title="Backup Expenses to JSON"
-            className="flex items-center gap-1.5 px-3 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-sm font-medium rounded-xl border border-slate-700 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2.5 bg-[#2a1a0f] hover:bg-[#3a2416] active:scale-95 text-[#f5d061] text-sm font-medium rounded-xl border border-[#855e24]/70 transition-all cursor-pointer shadow-sm"
           >
             JSON Backup
           </button>

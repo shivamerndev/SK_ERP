@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-main: #0f172a;
-  --color-bg-card: #1e293b;
-  --color-bg-glass: rgba(30, 41, 59, 0.75);
-  --color-border-glass: rgba(255, 255, 255, 0.1);
-  --color-accent-primary: #3b82f6;
-  --color-accent-hover: #2563eb;
-  --color-text-main: #f8fafc;
-  --color-text-muted: #94a3b8;
+  --color-bg-main: #faf6f0;
+  --color-bg-card: #fffdfa;
+  --color-bg-glass: rgba(253, 249, 242, 0.85);
+  --color-border-glass: rgba(212, 175, 55, 0.2);
+  --color-accent-primary: #d4af37;
+  --color-accent-hover: #b8860b;
+  --color-text-main: #1c130b;
+  --color-text-muted: #786452;
 
   --animate-fade-in: fade-in 0.3s ease-out;
   --animate-slide-in: slide-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
@@ -40,14 +40,14 @@
 
 
 :root {
-  --bg-main: #0f172a;
-  --bg-card: #1e293b;
-  --bg-glass: rgba(30, 41, 59, 0.75);
-  --border-glass: rgba(255, 255, 255, 0.1);
-  --accent-primary: #3b82f6;
-  --accent-hover: #2563eb;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --bg-main: #faf6f0;
+  --bg-card: #fffdfa;
+  --bg-glass: rgba(253, 249, 242, 0.85);
+  --border-glass: rgba(212, 175, 55, 0.2);
+  --accent-primary: #d4af37;
+  --accent-hover: #b8860b;
+  --text-main: #1c130b;
+  --text-muted: #786452;
 }
 
 .scrollbar-none{
@@ -55,11 +55,11 @@
 }
 
 body {
-  @apply bg-slate-950 text-slate-100 min-h-screen font-sans m-0 antialiased;
+  @apply bg-[#faf6f0] text-[#1c130b] min-h-screen font-sans m-0 antialiased;
 }
 
 .app-shell {
-  @apply min-h-screen flex flex-col bg-slate-950 text-slate-100;
+  @apply min-h-screen flex flex-col bg-[#faf6f0] text-[#1c130b];
 }
 
 /* Auth Page */

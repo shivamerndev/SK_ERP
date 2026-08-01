@@ -66,7 +66,7 @@ const Dashboard = () => {
             <select
               value={selectedDateRange}
               onChange={(e) => setSelectedDateRange(e.target.value)}
-              className="appearance-none pl-10 pr-9 py-2 border border-slate-200 bg-white rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 cursor-pointer shadow-sm shadow-slate-100"
+              className="appearance-none pl-10 pr-9 py-2 border border-[#e8decb] bg-[#fffdfa] rounded-xl text-xs font-semibold text-[#2c1d11] focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 cursor-pointer shadow-xs"
             >
               {dateOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -86,7 +86,7 @@ const Dashboard = () => {
           {activeTab === "Overview" ? (
             <button
               onClick={openLayoutModal}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm hover:shadow transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] hover:from-[#f3d078] hover:via-[#d4af37] hover:to-[#b8860b] text-[#140b04] rounded-xl text-xs font-bold cursor-pointer shadow-[0_4px_16px_rgba(212,175,55,0.3)] border border-[#ffe8ad]/60 transition-all"
             >
               <Layers className="w-4 h-4" />
               Customize
@@ -95,14 +95,14 @@ const Dashboard = () => {
             <>
               <button
                 onClick={() => alert("Filter configuration opened.")}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50 cursor-pointer shadow-sm transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-[#fffdfa] border border-[#e8decb] text-[#2c1d11] rounded-xl text-xs font-semibold hover:bg-[#f7f0e3] cursor-pointer shadow-xs transition-all"
               >
-                <Filter className="w-4 h-4 text-slate-400" />
+                <Filter className="w-4 h-4 text-[#786452]" />
                 Filters
               </button>
               <button
                 onClick={() => alert("Exporting report...")}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm hover:shadow transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] hover:from-[#f3d078] hover:via-[#d4af37] hover:to-[#b8860b] text-[#140b04] rounded-xl text-xs font-bold cursor-pointer shadow-[0_4px_16px_rgba(212,175,55,0.3)] border border-[#ffe8ad]/60 transition-all"
               >
                 <Download className="w-4 h-4" />
                 Export
@@ -128,8 +128,8 @@ const Dashboard = () => {
       {/* CUSTOMIZE MODAL POPUP                                     */}
       {/* ========================================================= */}
       {showCustomizeModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md shadow-2xl relative animate-scale-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0a0502]/60 backdrop-blur-sm p-4">
+          <div className="bg-[#fffdfa] border border-[#e8decb] rounded-2xl p-6 w-full max-w-md shadow-2xl relative animate-scale-in">
             <button
               onClick={() => setShowCustomizeModal(false)}
               className="absolute top-4 right-4 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
@@ -237,13 +237,13 @@ const Dashboard = () => {
             <div className="flex gap-2.5">
               <button
                 onClick={() => setShowCustomizeModal(false)}
-                className="flex-1 py-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-100 transition-colors cursor-pointer"
+                className="flex-1 py-2 bg-[#f7f0e3] border border-[#e8decb] text-[#2c1d11] rounded-xl text-xs font-semibold hover:bg-[#efe3d0] transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={applyLayoutChanges}
-                className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm hover:shadow transition-all cursor-pointer"
+                className="flex-1 py-2 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] hover:from-[#f3d078] hover:via-[#d4af37] hover:to-[#b8860b] text-[#140b04] rounded-xl text-xs font-bold shadow-[0_4px_16px_rgba(212,175,55,0.3)] border border-[#ffe8ad]/60 transition-all cursor-pointer"
               >
                 Apply Changes
               </button>
