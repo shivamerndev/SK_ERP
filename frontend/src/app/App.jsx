@@ -5,6 +5,7 @@ import SideBar from "../components/SideBar";
 import Navbar from "../components/Navbar";
 import { Toaster } from "react-hot-toast";
 import { LanguageProvider } from "../context/LanguageContext";
+import TodaysQuotes from "../components/Today'sQuotes";
 
 const App = () => {
 
@@ -22,6 +23,7 @@ const App = () => {
 
 	return (
 		<LanguageProvider>
+			<TodaysQuotes/>
 			<main className="h-screen w-full flex bg-[#faf6f0]">
 				<Toaster />
 				<SideBar isMobileSidebarOpen={isMobileSidebarOpen} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
