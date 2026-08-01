@@ -136,7 +136,15 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
             <div onClick={() => navigate("/")} className={`flex cursor-pointer items-center px-4 py-4 border-b border-[#3a2613]/70 ${isCollapsed ? "justify-center" : "justify-between"}`}>
                 <div className={`flex items-center gap-3 transition-all duration-200 ${isCollapsed ? "justify-center" : ""}`}>
                     <figure className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-[#f3d078] via-[#b8860b] to-[#59390f] p-[2px] shadow-[0_0_12px_rgba(212,175,55,0.35)] flex items-center justify-center flex-shrink-0">
-                        <img src="icon.png" alt="Suruchi Jewellers" className="w-full h-full object-cover rounded-full bg-[#120a05]" />
+                        <img
+                            src="/icon192.png"
+                            alt="Suruchi Jewellers"
+                            className="w-full h-full object-cover rounded-full bg-[#120a05]"
+                            onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = "/icon.png";
+                            }}
+                        />
                     </figure>
                     {!isCollapsed && (
                         <div className="flex flex-col truncate">
