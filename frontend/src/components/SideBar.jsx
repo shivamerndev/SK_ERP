@@ -1,6 +1,7 @@
-import { NavLink, useLocation,useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react"
 import useAuth from "../auth/useAuth";
+import { useLanguage } from "../context/LanguageContext";
 import {
     LayoutDashboard,
     ClipboardList,
@@ -15,7 +16,6 @@ import {
     ChevronDown,
     LogOut,
     IndianRupeeIcon,
-    Send,
     ShoppingBag,
     Notebook
 } from "lucide-react";
@@ -24,63 +24,74 @@ import {
 const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
 
     const navigate = useNavigate()
+    const { t } = useLanguage();
 
     const { handleLogout } = useAuth();
     const location = useLocation();
 
     const sidebarItems = [
         {
+            key: "dashboard",
             name: "Dashboard",
             path: "/",
             icon: <LayoutDashboard className="w-5 h-5" />,
         },
         {
+            key: "udhaar",
             name: "Lend",
             path: "/udhaar",
             icon: <ClipboardList className="w-5 h-5" />,
         },
         {
+            key: "sales",
             name: "Sales",
             path: "/sales",
             icon: <ShoppingBag className="w-5 h-5" />,
         },
         {
+            key: "purchases",
             name: "Purchases",
             path: "/purchases",
             icon: <ShoppingCart className="w-5 h-5" />,
         },
         {
+            key: "inventory",
             name: "Inventory",
             path: "/inventory",
             icon: <Box className="w-5 h-5" />,
         },
         {
+            key: "finance",
             name: "Finance",
             path: "/finance",
             icon: <IndianRupeeIcon className="w-5 h-5" />
         },
         {
+            key: "customers",
             name: "Customers",
             path: "/customers",
             icon: <Users className="w-5 h-5" />
         },
         {
+            key: "billing",
             name: "Billing",
             path: "/billing",
             icon: <Notebook className="w-5 h-5" />,
         },
         {
+            key: "reports",
             name: "Reports",
             path: "/reports",
             icon: <BarChart3 className="w-5 h-5" />,
         },
         {
+            key: "settings",
             name: "Settings",
             path: "/settings",
             icon: <Settings className="w-5 h-5" />,
-            hasDropdown: true,
         },
         {
+            key: "help",
             name: "Help & Support",
             path: "/help",
             icon: <HelpCircle className="w-5 h-5" />,
@@ -130,10 +141,10 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
                     {!isCollapsed && (
                         <div className="flex flex-col truncate">
                             <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37] text-base leading-tight tracking-tight drop-shadow-sm truncate">
-                                Suruchi Jewellers
+                                {t("suruchiJewellers")}
                             </span>
                             <span className="text-[10px] text-[#b39568] font-medium tracking-wider uppercase mt-0.5 truncate">
-                                Smart Business Solution
+                                {t("smartSolution")}
                             </span>
                         </div>
                     )}
@@ -160,16 +171,13 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
                     // Highlight Inventory if currently in O2D
                     const isInventoryActive = item.name.includes("Inventory") && location.pathname === "/O2D";
                     const isItemActive = (location.pathname === item.path) || isInventoryActive;
+                    const translatedLabel = t(item.key);
 
                     return (
                         <NavLink
                             key={idx}
                             to={item.path}
                             onClick={(e) => {
-                                if (item.path === "/settings") {
-                                    e.preventDefault();
-                                    alert(`Please add hindi language and theme options in it`);
-                                }
                                 if (item.path === "/help") {
                                     e.preventDefault();
                                     alert(`This is for other's Buyers`);
@@ -182,7 +190,7 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
                                     ? "bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] text-[#140b04] font-bold shadow-[0_4px_16px_rgba(212,175,55,0.3)] border-[#ffe8ad]/60"
                                     : "border-transparent text-[#c7b299] hover:text-[#fff4d1] hover:bg-[#2a190d]/60 hover:border-[#6e4a21]/50"
                                 }`}
-                            title={isCollapsed ? item.name : undefined}
+                            title={isCollapsed ? translatedLabel : undefined}
                         >
                             <div className={`flex-shrink-0 transition-colors
                                 ${isItemActive ? "text-[#140b04]" : "text-[#a3886b] group-hover:text-[#f7d479]"}`}
@@ -190,7 +198,7 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
                                 {item.icon}
                             </div>
                             {!isCollapsed && (
-                                <span className="flex-1 truncate tracking-wide">{item.name}</span>
+                                <span className="flex-1 truncate tracking-wide">{translatedLabel}</span>
                             )}
                             {!isCollapsed && item.hasDropdown && (
                                 <ChevronDown className={`w-3.5 h-3.5 ml-auto transition-colors ${
@@ -208,10 +216,10 @@ const SideBar = ({ isMobileSidebarOpen, setIsMobileSidebarOpen }) => {
                     onClick={handleLogout}
                     className={`flex items-center gap-3 w-full py-2.5 rounded-xl text-sm font-medium text-[#e57373] hover:text-[#ffcdd2] hover:bg-[#3d1414]/40 border border-transparent hover:border-[#852a2a]/40 transition-all duration-200 cursor-pointer
                         ${isCollapsed ? "justify-center px-2" : "justify-start px-3.5"}`}
-                    title="Sign Out"
+                    title={t("signOut")}
                 >
                     <LogOut className="w-5 h-5 flex-shrink-0" />
-                    {!isCollapsed && <span>Sign Out</span>}
+                    {!isCollapsed && <span>{t("signOut")}</span>}
                 </button>
             </div>
         </aside>

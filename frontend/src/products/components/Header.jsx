@@ -1,5 +1,6 @@
 
 import { Bell, Info, Search, X } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 const Header = ({
   filteredProducts = [],
@@ -13,10 +14,11 @@ const Header = ({
   setShowNotificationsList,
   notificationRef
 }) => {
+  const { t } = useLanguage();
   return (
     <div className="flex items-center justify-between bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Products</h1>
+        <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">{t("productsTitle")}</h1>
         <span className="bg-blue-50 text-blue-700 font-semibold px-3 py-1 rounded-full text-xs transition-all hover:bg-blue-100/80">
           {filteredProducts.length} items
         </span>

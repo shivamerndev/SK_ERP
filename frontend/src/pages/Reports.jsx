@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { History } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
 import PrintModal from "../report/components/PrintModal";
 import ReportFilter from "../report/components/ReportFilter";
 import LedgerTable from "../report/components/LedgerTable";
@@ -12,7 +13,7 @@ import SummaryCard from "../report/components/SummaryCard";
 
 
 const Reports = () => {
-
+  const { t } = useLanguage();
   const { handleGetReports, selectedBill, history } = useReport()
 
   useEffect(() => {
@@ -133,10 +134,10 @@ const Reports = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <History className="w-6 h-6 text-indigo-600" />
-            Reports & Billing Analytics
+            {t("reportsTitle")}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Perform in-depth analysis of invoices, track client outstanding dues, and print estimate sheets.
+            {t("reportsSubtitle")}
           </p>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import useAuth from "../auth/useAuth.js";
+import { useLanguage } from "../context/LanguageContext";
 import { Calendar as CalendarIcon, Filter, Download, ChevronDown, Layers, X } from "lucide-react";
 import KpiCards from "../dashboard/components/KpiCards.jsx";
 import ChartArea from "../dashboard/components/ChartArea.jsx";
@@ -7,7 +8,7 @@ import LowerGrid from "../dashboard/components/LowerGrid.jsx";
 
 
 const Dashboard = () => {
-
+  const { t } = useLanguage();
   const { user } = useAuth();
   const activeTab = "Overview"
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
@@ -55,9 +56,10 @@ const Dashboard = () => {
       {/* Sub-Header Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="text-2xl text-slate-900/90 font-bold mt-1">
-            Welcome, {user?.fullName || "Manager"}!
-          </p>
+          <h1 className="text-2xl text-slate-900/90 font-bold mt-1">
+            {t("welcome")}, {user?.fullName || "Manager"}!
+          </h1>
+          <p className="text-xs text-[#786452] mt-0.5">{t("dashboardSubtitle")}</p>
         </div>
 
         <div className="flex items-center gap-2.5">

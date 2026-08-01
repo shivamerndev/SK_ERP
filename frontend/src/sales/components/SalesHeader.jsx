@@ -1,15 +1,20 @@
 import { FileText, Plus, Download } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 const SalesHeader = ({ onRecordBillClick, onExportCSV }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-[#180d07] via-[#120a05] to-[#2a190d] border border-[#4a3219]/60 p-6 rounded-2xl text-white shadow-md">
       <div>
         <div className="flex items-center gap-2 mb-1">
           <FileText className="w-6 h-6 text-[#f5cf6e]" />
-          <h1 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37]">Rough Estimate Logs & Sales Analytics</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37]">
+            {t("salesTitle")}
+          </h1>
         </div>
         <p className="text-[#d4c3b3] text-sm max-w-xl">
-          Analyze daily estimate sheets, track total metal weights, labor charges, evaluate client accounts, and manage invoices in real-time.
+          {t("salesSubtitle")}
         </p>
       </div>
 

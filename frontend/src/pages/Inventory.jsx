@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext";
 
 import {
   Search,
@@ -72,6 +73,7 @@ const PRESET_IMAGES = [
 
 
 const Inventory = () => {
+  const { t } = useLanguage();
 
   const { products = [], handleAllProducts, handleCreateProduct, handleUpdateProduct, handleDeleteProduct } = useProduct();
   const location = useLocation();
@@ -764,10 +766,12 @@ const Inventory = () => {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Box className="w-6 h-6 text-[#f5cf6e]" />
-            <h1 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37]">Silver Wholesaler Inventory & Stocks</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37]">
+              {t("inventoryTitle")}
+            </h1>
           </div>
           <p className="text-[#d4c3b3] text-sm max-w-xl">
-            Valuate stock contents by weight (grams), manage purity standards (925 sterling / 900 coin), stamp barcode labels, and trigger stock alerts.
+            {t("inventorySubtitle")}
           </p>
         </div>
 

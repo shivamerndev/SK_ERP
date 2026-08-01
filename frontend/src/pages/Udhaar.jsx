@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSelector } from "react-redux";
+import { useLanguage } from "../context/LanguageContext";
 import { allCustomers } from "../store/features/customer.slice";
 import useCustomer from "../customers/useCustomer";
 import { toast } from "react-hot-toast";
@@ -142,6 +143,7 @@ const INITIAL_CUSTOMERS = [
 ];
 
 const Udhaar = () => {
+  const { t } = useLanguage();
   const {
     handleAllCustomers,
     handleCreateCustomer,
@@ -699,7 +701,7 @@ Thank you for your continued support!
           ---------------------------------------------------- */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Udhaar & Ledgers</h1>
+          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">{t("udhaarTitle")}</h1>
           <span className="bg-rose-50 text-rose-700 font-semibold px-3 py-1 rounded-full text-xs hover:bg-rose-100/80 transition-colors">
             {stats.totalDebtorsCount} active debtors
           </span>

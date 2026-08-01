@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useLanguage } from "../context/LanguageContext";
 import {
   Search,
   Plus,
@@ -147,6 +148,7 @@ const EXPENSE_CATEGORIES = [
 ];
 
 const Finance = () => {
+  const { t } = useLanguage();
   // ----------------------------------------------------
   // STATE MANAGEMENT
   // ----------------------------------------------------
@@ -710,10 +712,12 @@ const Finance = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Wallet className="w-6 h-6 text-[#f5cf6e]" />
-            <h1 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37]">Shop Cash Flow Manager</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37]">
+              {t("financeTitle")}
+            </h1>
           </div>
           <p className="text-[#d4c3b3] text-sm max-w-xl">
-            Centralized ledger consolidating showroom expenses, daily retail sales, and customer credit recovery entries.
+            {t("financeSubtitle")}
           </p>
         </div>
 

@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react"
 import useNavbar from "../navigations/useNavbar"
 import { Link } from "react-router-dom"
-
+import { useLanguage } from "../context/LanguageContext"
 
 const Navbar = ({ user, setIsMobileSidebarOpen }) => {
-
-
+    const { t } = useLanguage()
     const { results, handleSearch } = useNavbar()
-
     const [search, setSearch] = useState("")
 
     useEffect(() => {
@@ -43,7 +41,7 @@ const Navbar = ({ user, setIsMobileSidebarOpen }) => {
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search anything..."
+                    placeholder={t("searchPlaceholder")}
                     className="w-full pl-9 pr-4 py-2 border border-[#e8decb] rounded-xl text-sm placeholder-[#a38c75] focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all bg-[#f8f3ea]/50 focus:bg-[#fffdfa] text-[#2c1d11]"
                 />
 
@@ -177,7 +175,7 @@ const Navbar = ({ user, setIsMobileSidebarOpen }) => {
         <div className="flex items-center gap-3 sm:gap-5">
             {/* Live System Badge */}
             <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-[#946914] bg-[#fdf5e6] border border-[#f0d89c] px-2.5 py-0.5 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] animate-pulse"></span> Live System
+                <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37] animate-pulse"></span> {t("liveSystem")}
             </span>
 
             {/* Action Icons */}

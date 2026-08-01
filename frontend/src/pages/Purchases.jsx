@@ -35,11 +35,13 @@ import { showToast } from "../utils/toast.utils";
 import AddPurchase from "../purchase/components/AddPurchase.jsx";
 import ConfirmModal from "../utils/ConfirmModal.jsx";
 import usePurchase from "../purchase/usePurchase";
+import { useLanguage } from "../context/LanguageContext";
 
 
 const Purchases = () => {
 
 
+  const { t } = useLanguage();
   const { productsList, isLoading,
     // Filters state
     searchQuery, setSearchQuery, paymentFilter, setPaymentFilter, dateRangePreset, setDateRangePreset, customStartDate,
@@ -65,10 +67,12 @@ const Purchases = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Package className="w-6 h-6 text-[#f5cf6e]" />
-            <h1 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37]">Wholesale Purchases Ledger & Restock</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#ffeab3] via-[#f5cf6e] to-[#d4af37]">
+              {t("purchasesTitle")}
+            </h1>
           </div>
           <p className="text-[#d4c3b3] text-sm max-w-xl">
-            Log raw jewelry batch replenishment costs against metal weights, maintain supplier accounts, and print purchase vouchers.
+            {t("purchasesSubtitle")}
           </p>
         </div>
 
