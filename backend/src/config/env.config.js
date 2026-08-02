@@ -20,8 +20,6 @@ const checkVariables = {
     MONGO_URI,
     NODE_ENV,
     JWT_SECRET,
-    GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET,
     MISTRAL_API_KEY,
     METAL_RATE_API,
 }

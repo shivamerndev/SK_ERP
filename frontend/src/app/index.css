@@ -64,11 +64,11 @@ body {
 
 /* Auth Page */
 .auth-shell {
-  @apply min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-950 via-slate-900 to-slate-950 p-6;
+  @apply min-h-screen flex items-center justify-center bg-gradient-to-br from-[#180d07] via-[#120a05] to-[#0a0502] p-6 text-[#d4c3b3];
 }
 
 .auth-panel {
-  @apply bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-10 w-full max-w-md shadow-2xl text-center;
+  @apply bg-[#120a05]/90 backdrop-blur-xl border border-[#4a3219]/60 rounded-2xl p-10 w-full max-w-md shadow-[0_10px_40px_rgba(0,0,0,0.8)] text-center;
 }
 
 .auth-header {
@@ -76,11 +76,11 @@ body {
 }
 
 .logo-badge {
-  @apply bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-extrabold px-3 py-1 rounded-lg text-sm tracking-wider uppercase shadow-md;
+  @apply bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#c79928] text-[#140b04] font-extrabold px-3 py-1 rounded-lg text-sm tracking-wider uppercase shadow-md;
 }
 
 .eyebrow {
-  @apply text-slate-400 text-xs uppercase tracking-widest font-semibold;
+  @apply text-[#b39568] text-xs uppercase tracking-widest font-semibold;
 }
 
 .auth-panel h1 {
@@ -95,9 +95,6 @@ body {
   @apply flex justify-center mb-6;
 }
 
-.google-btn-wrapper {
-  @apply inline-block transform hover:scale-105 transition-transform duration-200;
-}
 
 .auth-status-msg {
   @apply p-3 rounded-lg text-sm mt-4 font-medium transition-all;

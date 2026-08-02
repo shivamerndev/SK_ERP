@@ -1,4 +1,4 @@
-import { getUserService, googleAuthService, logoutService, refreshTokenService } from './auth.service'
+import { getUserService, loginService, registerService, logoutService, refreshTokenService } from './auth.service'
 import { useDispatch, useSelector } from "react-redux"
 import { logout, setAccessToken, setAuthLoading, setInitialized, setUser } from '../store/features/auth.slice'
 import { useNavigate } from "react-router-dom"
@@ -32,15 +32,33 @@ const useAuth = () => {
 		}
 	}
 
-	const handleGoogleAuth = async (response) => {
+	const handleLogin = async (credentials) => {
 		try {
 			dispatch(setAuthLoading(true))
-			const data = await googleAuthService(response.credential);
+			const data = await loginService(credentials);
 			dispatch(setAccessToken(data.accessToken));
 			dispatch(setUser(data.user));
 			navigate("/", { replace: true })
+			return data;
 		} catch (error) {
-			console.error("Google Auth failed:", error)
+			console.error("Login failed:", error)
+			dispatch(logout())
+			throw error
+		} finally {
+			dispatch(setAuthLoading(false))
+		}
+	};
+
+	const handleRegister = async (userData) => {
+		try {
+			dispatch(setAuthLoading(true))
+			const data = await registerService(userData);
+			dispatch(setAccessToken(data.accessToken));
+			dispatch(setUser(data.user));
+			navigate("/", { replace: true })
+			return data;
+		} catch (error) {
+			console.error("Registration failed:", error)
 			dispatch(logout())
 			throw error
 		} finally {
@@ -90,7 +108,8 @@ const useAuth = () => {
 		checkAuth,
 		handleGetUser,
 		handleRefreshToken,
-		handleGoogleAuth,
+		handleLogin,
+		handleRegister,
 		handleLogout,
 	}
 }

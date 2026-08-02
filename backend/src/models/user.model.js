@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
     {
@@ -15,22 +16,28 @@ const userSchema = new mongoose.Schema(
             lowercase: true,
             match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
         },
-        googleId: {
+        password: {
             type: String,
-            unique: true,
-            sparse: true,
+            required: [true, "Password is required"],
+            minlength: [6, "Password must be at least 6 characters long"],
+            select: false,
         },
         avatar: {
             type: String,
             default: "",
-        },
-        role: {
-            type: String,
-            enum: ["user", "admin"],
-            default: "user",
         }
     }, { timestamps: true }
 );
+
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+});
+
+userSchema.methods.comparePassword = async function (candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+};
 
 
 export default mongoose.model("User", userSchema); 

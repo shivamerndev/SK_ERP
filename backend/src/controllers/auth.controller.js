@@ -1,17 +1,19 @@
-import { getUser, googleService, refreshService } from "../services/auth.service.js";
+import { getUser, loginService, registerService, refreshService } from "../services/auth.service.js";
 import { clearRefreshCookie } from "../utils/token.utils.js";
 import { asyncHandler } from "../utils/asyncHanlder.utils.js"
 
 
-const googleAuth = asyncHandler(async (req, res) => {
+const register = asyncHandler(async (req, res) => {
+    const { accessToken, httpOnly, user } = await registerService(req.body);
+    res.cookie("refresh_token", httpOnly.token, httpOnly.options);
+    res.success(201, "Registration Successful.", { accessToken, user });
+});
 
-    const { idToken } = req.body;
-
-    let { accessToken, httpOnly, user } = await googleService(idToken)
-    res.cookie("refresh_token", httpOnly.token, httpOnly.options)
-
-    res.success(200, "Authentication Successfully.", { accessToken, user })
-})
+const login = asyncHandler(async (req, res) => {
+    const { accessToken, httpOnly, user } = await loginService(req.body);
+    res.cookie("refresh_token", httpOnly.token, httpOnly.options);
+    res.success(200, "Login Successful.", { accessToken, user });
+});
 
 
 const loggedInUser = asyncHandler(async (req, res) => {
@@ -31,4 +33,4 @@ const logout = asyncHandler(async (req, res) => {
     res.success(200, "Logged out successfully.")
 })
 
-export { loggedInUser, googleAuth, refreshToken, logout }
+export { register, login, loggedInUser, refreshToken, logout }

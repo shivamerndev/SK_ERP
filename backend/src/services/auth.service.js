@@ -1,36 +1,59 @@
-import { createUser, findUserByEmail, findUserById, updateUserById } from "../repository/user.dao.js";
+import { createUser, findUserByEmail, findUserByEmailWithPassword, findUserById } from "../repository/user.dao.js";
 import { AppError } from "../utils/error.utils.js";
 import { createHttpOnlyTokenCookie, generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/token.utils.js"
-import { OAuth2Client } from "google-auth-library";
-import { GOOGLE_CLIENT_ID } from "../config/env.config.js";
+import authValidator from "../validator/auth.validator.js";
 
 
-const client = new OAuth2Client(GOOGLE_CLIENT_ID);
-
-
-export const googleService = async (idToken) => {
-
-    if (!idToken) throw new AppError(400, "Id Token Must be Provided.")
-
-    const ticket = await client.verifyIdToken({ idToken, audience: GOOGLE_CLIENT_ID });
-
-    const payload = ticket.getPayload();
-
-    const { name: fullName, email, sub: googleId, picture: avatar } = payload;
-
-    let user = await findUserByEmail(email);
-
-    if (!user) {
-        user = await createUser({ fullName, email, googleId, avatar });
-    } else if (!user.googleId || (avatar && user.avatar !== avatar)) {
-        user = await updateUserById(user._id, { googleId, avatar: avatar || user.avatar });
+export const registerService = async (userData) => {
+    const { error } = authValidator(userData).register;
+    if (error) {
+        throw new AppError(400, error.details[0].message);
     }
 
-    const accessToken = generateAccessToken(user._id)
-    const httpOnly = createHttpOnlyTokenCookie(generateRefreshToken(user._id))
+    const { fullName, email, password } = userData;
 
-    return { accessToken, httpOnly, user }
-}
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
+        throw new AppError(409, "User with this email already exists.");
+    }
+
+    const user = await createUser({ fullName, email, password });
+
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    const accessToken = generateAccessToken(user._id);
+    const httpOnly = createHttpOnlyTokenCookie(generateRefreshToken(user._id));
+
+    return { accessToken, httpOnly, user: userObj };
+};
+
+export const loginService = async (credentials) => {
+    const { error } = authValidator(credentials).login;
+    if (error) {
+        throw new AppError(400, error.details[0].message);
+    }
+
+    const { email, password } = credentials;
+
+    const user = await findUserByEmailWithPassword(email);
+    if (!user) {
+        throw new AppError(401, "Invalid email or password.");
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+        throw new AppError(401, "Invalid email or password.");
+    }
+
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    const accessToken = generateAccessToken(user._id);
+    const httpOnly = createHttpOnlyTokenCookie(generateRefreshToken(user._id));
+
+    return { accessToken, httpOnly, user: userObj };
+};
 
 export const refreshService = async (refreshToken) => {
     if (!refreshToken) throw new AppError(401, "Refresh token is required.")

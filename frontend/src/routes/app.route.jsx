@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom"
 import App from "../app/App"
 import ProtectedRoute from "../routes/ProtectedRoute"
 import PublicRoute from "../routes/PublicRoute"
-import Google from "../pages/Google"
+import Login from "../pages/Login"
 import Dashboard from "../pages/Dashboard"
 import Inventory from "../pages/Inventory"
 import Udhaar from "../pages/Udhaar"
@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
                 children: [
                     {
                         path: "/login",
-                        element: <Google />
+                        element: <Login />
                     }
                 ]
             },
