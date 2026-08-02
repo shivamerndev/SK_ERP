@@ -1,8 +1,8 @@
-import { Search, Trash2, X, PhoneCall, ChevronRight, AlertCircle, Send } from "lucide-react";
+import { Search, Trash2, X, PhoneCall, ChevronRight, AlertCircle, Send, Edit2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 
-const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, setIsDrawerOpen }) => {
+const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, setIsDrawerOpen, setIsEditOpen }) => {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState("name");
@@ -228,6 +228,10 @@ const CustomerTable = ({ customers, setIsDeleteConfirmOpen, setSelectedCust, set
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
 
+                                                <button onClick={() => { setSelectedCust(c); setIsEditOpen(true); }} className="flex items-center gap-1 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer" title="Edit Profile">
+                                                    <Edit2 className="w-3 h-3" />
+                                                    Edit
+                                                </button>
                                                 <button onClick={() => { setSelectedCust(c); setIsDrawerOpen(true); }} className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer">
                                                     Statement
                                                     <ChevronRight className="w-3 h-3" />

@@ -3,6 +3,7 @@ import { setCustomers } from "../store/features/customer.slice";
 import { 
   createCustomerService, 
   getAllCustomersService, 
+  updateCustomerService,
   deleteCustomerService, 
   recordTransactionService, 
   deleteTransactionService 
@@ -37,6 +38,23 @@ const useCustomer = () => {
       dispatch(setCustomers(res.data.data))
     } catch (error) {
       console.error("Failed to fetch customers:", error)
+    }
+  }
+
+  const handleUpdateCustomer = async (id, customerData) => {
+    try {
+      const res = await updateCustomerService(id, customerData)
+      if (res.data?.success || res.status === 200) {
+        toast.success(res.data?.message || "Customer updated successfully!");
+        handleAllCustomers();
+        return true;
+      } else {
+        toast.error(res.data?.message || "Failed to update customer");
+        return false;
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong");
+      return false;
     }
   }
 
@@ -92,7 +110,7 @@ const useCustomer = () => {
   }
 
 
-  const handleExport = () => {
+  const handleExport = (customers) => {
     try {
       const dataStr = JSON.stringify(customers, null, 2);
       const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
@@ -104,7 +122,7 @@ const useCustomer = () => {
       linkElement.click();
       toast.success("Database backup downloaded successfully!");
     } catch (e) {
-      toast.error("Failed to export database.", "error");
+      toast.error("Failed to export database.");
     }
   };
 
@@ -135,10 +153,10 @@ const useCustomer = () => {
           return;
         }
 
-        setCustomers(importedData);
+        dispatch(setCustomers(importedData));
         toast.success("Database restored successfully!");
       } catch (err) {
-        toast.error("Failed to parse JSON file.", "error");
+        toast.error("Failed to parse JSON file.");
       }
     };
     reader.readAsText(file);
@@ -149,6 +167,7 @@ const useCustomer = () => {
   return {
     handleCreateCustomer,
     handleAllCustomers,
+    handleUpdateCustomer,
     handleDeleteCustomer,
     handleRecordTransaction,
     handleDeleteTransaction,

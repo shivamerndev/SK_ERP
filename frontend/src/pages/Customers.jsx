@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import CreateForm from "../customers/components/CreateForm";
+import EditForm from "../customers/components/EditForm";
 import useCustomer from "../customers/useCustomer";
 import { allCustomers } from "../store/features/customer.slice";
 import { useSelector } from "react-redux";
@@ -13,12 +14,13 @@ import SlideDrawer from "../customers/components/SlideDrawer";
 
 const Customers = () => {
 
-  const { handleAllCustomers } = useCustomer();
+  const { handleAllCustomers, handleDeleteCustomer } = useCustomer();
   const location = useLocation();
 
   const customers = useSelector(allCustomers) || []
 
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [selectedCust, setSelectedCust] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -50,11 +52,31 @@ const Customers = () => {
 
       <StatsGrid customers={customers}/>
 
-      <CustomerTable setIsDrawerOpen={setIsDrawerOpen} setSelectedCust={setSelectedCust} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} customers={customers} />
+      <CustomerTable 
+        setIsDrawerOpen={setIsDrawerOpen} 
+        setSelectedCust={setSelectedCust} 
+        setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} 
+        setIsEditOpen={setIsEditOpen}
+        customers={customers} 
+      />
 
       {isAddOpen && <CreateForm onClose={() => setIsAddOpen(false)} />}
 
-      {isDeleteConfirmOpen && <ConfirmModal title="Confirm Delete" message="Are you sure you want to delete this customer?" onConfirm={() => { setIsDeleteConfirmOpen(false); }} onCancel={() => { setIsDeleteConfirmOpen(false) }} />}
+      {isEditOpen && selectedCust && <EditForm customer={selectedCust} onClose={() => setIsEditOpen(false)} />}
+
+      {isDeleteConfirmOpen && (
+        <ConfirmModal 
+          title="Confirm Delete" 
+          message="Are you sure you want to delete this customer?" 
+          onConfirm={async () => { 
+            if (selectedCust?._id) { 
+              await handleDeleteCustomer(selectedCust._id); 
+            } 
+            setIsDeleteConfirmOpen(false); 
+          }} 
+          onCancel={() => { setIsDeleteConfirmOpen(false) }} 
+        />
+      )}
 
       {isDrawerOpen && selectedCust && <SlideDrawer selectedCust={selectedCust} setIsDrawerOpen={setIsDrawerOpen} />}
 

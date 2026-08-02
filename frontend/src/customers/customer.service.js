@@ -7,6 +7,9 @@ const createCustomerService = (customerData) => api.post("/customer/", customerD
 const getAllCustomersService = () => api.get("/customer/")
 
 
+const updateCustomerService = (id, customerData) => api.put(`/customer/${id}`, customerData)
+
+
 const deleteCustomerService = (id) => api.delete(`/customer/${id}`)
 
 
@@ -16,4 +19,4 @@ const recordTransactionService = (customerId, txData) => api.post(`/customer/${c
 const deleteTransactionService = (customerId, txId) => api.delete(`/customer/${customerId}/transaction/${txId}`)
 
 
-export { createCustomerService, getAllCustomersService, deleteCustomerService, recordTransactionService, deleteTransactionService }
+export { createCustomerService, getAllCustomersService, updateCustomerService, deleteCustomerService, recordTransactionService, deleteTransactionService }

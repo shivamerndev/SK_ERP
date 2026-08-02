@@ -1,5 +1,5 @@
 import { asyncHandler } from "../utils/asyncHanlder.utils.js";
-import customerValidator from "../validator/customer.validator.js";
+import customerValidator, { updateCustomerValidator } from "../validator/customer.validator.js";
 import customerService from "../services/customer.service.js";
 import { AppError } from "../utils/error.utils.js";
 
@@ -16,6 +16,17 @@ const createCustomer = asyncHandler(async (req, res) => {
 const getAllCustomers = asyncHandler(async (req, res) => {
     const response = await customerService.getAllCustomers()
     return res.success(200, "Customers Fetched Successfully", response)
+})
+
+
+const updateCustomer = asyncHandler(async (req, res) => {
+    const { id } = req.params
+    const { error, value } = updateCustomerValidator(req.body)
+    if (error) throw new AppError(400, error.details[0].message, error)
+
+    const response = await customerService.updateCustomer(id, value)
+    if (!response) throw new AppError(404, "Customer not found")
+    return res.success(200, "Customer Updated Successfully", response)
 })
 
 
@@ -57,4 +68,4 @@ const deleteTransaction = asyncHandler(async (req, res) => {
 })
 
 
-export { createCustomer, getAllCustomers, deleteCustomer, addTransaction, deleteTransaction }
+export { createCustomer, getAllCustomers, updateCustomer, deleteCustomer, addTransaction, deleteTransaction }

@@ -36,4 +36,15 @@ const searchCustomers = async (query) => {
     return customers
 }
 
-export default { createCustomer, getAllCustomers, deleteCustomer, addTransaction, deleteTransaction, searchCustomers }
+const updateCustomer = async (customerId, updateData) => {
+    if (updateData.phone) {
+        const existingCustomer = await customerRepo.findCustomer({ phone: updateData.phone })
+        if (existingCustomer && String(existingCustomer._id) !== String(customerId)) {
+            throw new AppError(400, "Another customer with this phone number already exists")
+        }
+    }
+    const response = await customerRepo.updateCustomer(customerId, updateData)
+    return response
+}
+
+export default { createCustomer, getAllCustomers, deleteCustomer, addTransaction, deleteTransaction, searchCustomers, updateCustomer }

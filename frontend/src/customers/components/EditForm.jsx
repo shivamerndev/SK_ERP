@@ -1,45 +1,34 @@
 import { useState } from "react";
-import {
-    Search,
-    Plus,
-    Edit2,
-    Trash2,
-    X,
-    Check,
-    Users,
-    TrendingUp,
-    TrendingDown,
-    DollarSign,
-    AlertTriangle,
-    PhoneCall,
-    MessageSquare,
-    Download,
-    Upload,
-    ChevronRight,
-    Info,
-    Calendar,
-    ArrowUpRight,
-    ArrowDownRight,
-    Clock,
-    CreditCard,
-    AlertCircle,
-    Filter,
-    FileText,
-    CheckCircle,
-    ChevronDown,
-    UserPlus
-} from "lucide-react";
-import handleForm from "../../utils/formHandler.utils.js"
+import { X, Edit2 } from "lucide-react";
+import handleForm from "../../utils/formHandler.utils.js";
 import useCustomer from "../useCustomer.js";
 
+const EditForm = ({ customer, onClose }) => {
+    const { handleUpdateCustomer } = useCustomer();
 
-const CreateForm = ({ onClose }) => {
+    const isInitiallyOlder = 
+        customer?.joinedAt === "older" || 
+        customer?.joinedAt === "Older" || 
+        customer?.joined === "older" || 
+        customer?.joined === "Older";
 
-    const { handleCreateCustomer } = useCustomer();
-    const [isOlder, setIsOlder] = useState(false);
+    const [isOlder, setIsOlder] = useState(isInitiallyOlder);
+
+    const getFormattedDate = () => {
+        if (isInitiallyOlder) return new Date().toISOString().split("T")[0];
+        const jDate = customer?.joinedAt || customer?.joined;
+        if (!jDate || isNaN(new Date(jDate).getTime())) {
+            return new Date().toISOString().split("T")[0];
+        }
+        return new Date(jDate).toISOString().split("T")[0];
+    };
 
     const handleSubmit = async (data) => {
-        const success = await handleCreateCustomer(data);
+        const payload = {
+            ...data,
+            creditLimit: parseFloat(data.creditLimit || 0)
+        };
+        const success = await handleUpdateCustomer(customer._id, payload);
         if (success) {
             onClose();
         }
@@ -48,12 +37,12 @@ const CreateForm = ({ onClose }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
             <div className="bg-white text-black w-full max-w-lg rounded-2xl shadow-xl overflow-hidden transform scale-100 transition-transform animate-scale-up">
-
+                
                 {/* Modal Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
                     <div className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-blue-600" />
-                        <h3 className="text-base font-bold text-slate-800">Add New Shop Customer</h3>
+                        <Edit2 className="w-5 h-5 text-amber-600" />
+                        <h3 className="text-base font-bold text-slate-800">Edit Customer Profile</h3>
                     </div>
                     <button
                         onClick={onClose}
@@ -71,9 +60,10 @@ const CreateForm = ({ onClose }) => {
                         <input
                             type="text"
                             name="fullName"
-                            placeholder="e.g. Amit Ji"
+                            defaultValue={customer?.fullName || ""}
                             required
-                            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                            placeholder="e.g. Amit Ji"
+                            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm"
                         />
                     </div>
 
@@ -84,11 +74,12 @@ const CreateForm = ({ onClose }) => {
                             <input
                                 type="tel"
                                 name="phone"
-                                placeholder="e.g. 9955422156"
+                                defaultValue={customer?.phone || ""}
                                 required
                                 pattern="[0-9]{10}"
                                 title="Ten digit phone number"
-                                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                                placeholder="e.g. 9955422156"
+                                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm"
                             />
                         </div>
 
@@ -96,8 +87,8 @@ const CreateForm = ({ onClose }) => {
                             <label className="text-xs font-bold text-slate-500 uppercase">Loyalty Tier *</label>
                             <select
                                 name="loyality"
-                                defaultValue="regular"
-                                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-white"
+                                defaultValue={(customer?.loyality || customer?.loyalty || "regular").toLowerCase()}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm bg-white"
                             >
                                 <option value="new">New</option>
                                 <option value="regular">Regular</option>
@@ -112,8 +103,9 @@ const CreateForm = ({ onClose }) => {
                         <input
                             type="text"
                             name="shopName"
+                            defaultValue={customer?.shopName || ""}
                             placeholder="e.g. Amit & Sons"
-                            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm"
                         />
                     </div>
 
@@ -123,9 +115,10 @@ const CreateForm = ({ onClose }) => {
                         <input
                             type="text"
                             name="address"
-                            placeholder="e.g. Sikandra, Bihar"
+                            defaultValue={customer?.address || ""}
                             required
-                            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                            placeholder="e.g. Sikandra, Bihar"
+                            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm"
                         />
                     </div>
 
@@ -135,10 +128,10 @@ const CreateForm = ({ onClose }) => {
                         <input
                             type="number"
                             name="creditLimit"
-                            placeholder="e.g. 10000"
-                            defaultValue="0"
+                            defaultValue={customer?.creditLimit ?? 0}
                             min="0"
-                            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                            placeholder="e.g. 10000"
+                            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm"
                         />
                     </div>
 
@@ -151,7 +144,7 @@ const CreateForm = ({ onClose }) => {
                                     type="checkbox"
                                     checked={isOlder}
                                     onChange={(e) => setIsOlder(e.target.checked)}
-                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
+                                    className="rounded border-slate-300 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5 cursor-pointer"
                                 />
                                 Mark as "Older" customer
                             </label>
@@ -166,8 +159,8 @@ const CreateForm = ({ onClose }) => {
                             <input
                                 type="date"
                                 name="joinedAt"
-                                defaultValue={new Date().toISOString().split('T')[0]}
-                                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                                defaultValue={getFormattedDate()}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm"
                             />
                         )}
                     </div>
@@ -183,16 +176,16 @@ const CreateForm = ({ onClose }) => {
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer"
+                            className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer shadow-sm"
                         >
-                            Add Customer
+                            Save Changes
                         </button>
                     </div>
                 </form>
 
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default CreateForm
+export default EditForm;

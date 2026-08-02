@@ -113,5 +113,14 @@ const searchCustomers = async (query) => {
     return customers;
 }
 
+const updateCustomer = async (customerId, updateData) => {
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+        customerId,
+        { $set: updateData },
+        { new: true, runValidators: true }
+    ).lean();
+    return updatedCustomer;
+}
 
-export default { createCustomer, getAllCustomers, findCustomer, getCustomerById, deleteCustomer, updateCustomerBalances, addTransaction, deleteTransaction, searchCustomers }
+
+export default { createCustomer, getAllCustomers, findCustomer, getCustomerById, deleteCustomer, updateCustomerBalances, addTransaction, deleteTransaction, searchCustomers, updateCustomer }
