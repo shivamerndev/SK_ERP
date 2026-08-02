@@ -5,10 +5,8 @@ import {
     TrendingDown,
     RefreshCw,
     Coins,
-    Scale,
     Activity,
     Info,
-    ChevronRight,
     IndianRupeeIcon
 } from "lucide-react";
 import {
@@ -31,8 +29,6 @@ const LiveChart = () => {
     const [error, setError] = useState(null);
     const [selectedMetal, setSelectedMetal] = useState("silver"); // gold, silver
     const [selectedUnit, setSelectedUnit] = useState("kg"); // gram, kg
-    const [calcAmount, setCalcAmount] = useState(1);
-    const [purity, setPurity] = useState(98.20); // purity % (tunch)
     const [markupPercent, setMarkupPercent] = useState(() => {
         const saved = localStorage.getItem("metal_rate_markup_percent");
         return saved ? parseFloat(saved) : 23.78; // Default to 23.78% to align live rates with local jeweler rate (~2,18,000)
@@ -41,11 +37,6 @@ const LiveChart = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const markup = useMemo(() => 1 + (markupPercent / 100), [markupPercent]);
-
-    useEffect(() => {
-        setPurity(selectedMetal === "gold" ? 91.60 : 98.20);
-        setCalcAmount(selectedMetal === "gold" ? 10 : 1);
-    }, [selectedMetal]);
 
 
     const formatCurrency = (val, currency = "INR") => {
@@ -242,13 +233,6 @@ const LiveChart = () => {
         }
     }, [rates, selectedMetal, selectedUnit, markup]);
 
-
-    const calcTotal = useMemo(() => {
-        if (!metalData) return 0;
-        return calcAmount * metalData.currentInr * (purity / 100);
-    }, [calcAmount, metalData, purity]);
-
-
     const positionPercentage = useMemo(() => {
         if (!metalData) return 50;
         const { currentInr, lowInr, highInr } = metalData;
@@ -287,7 +271,7 @@ const LiveChart = () => {
     }
 
     return (
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[480px]">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
             {/* Header section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
                 <div>
@@ -377,7 +361,7 @@ const LiveChart = () => {
             </div>
 
             {/* Main stats layout */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
                 {/* KPI Panel */}
                 <div className="md:col-span-4 flex flex-col justify-between border border-slate-100 rounded-xl p-4 bg-slate-50/50">
                     <div className="flex flex-col gap-1">
@@ -497,54 +481,7 @@ const LiveChart = () => {
                 </div>
             </div>
 
-            {/* Calculator tool for metal rates */}
-            <div className="mt-2 bg-slate-50/50 border border-slate-100 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                        <Scale className="w-5 h-5" />
-                    </div>
-                    <div className="flex flex-col leading-tight">
-                        <span className="text-xs font-bold text-slate-800">Quick Value Calculator</span>
-                        <span className="text-[10px] text-slate-400 font-medium">Estimate inventory gold/silver value</span>
-                    </div>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
-                    <div className="flex items-center bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm">
-                        <input
-                            type="number"
-                            value={calcAmount}
-                            onChange={(e) => setCalcAmount(Math.max(0, parseFloat(e.target.value) || 0))}
-                            className="w-12 sm:w-16 text-right font-bold text-xs focus:outline-none text-slate-800 pr-1.5"
-                        />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase border-l border-slate-100 pl-1.5">
-                            {selectedUnit === "gram" ? "grams" : "kg"}
-                        </span>
-                    </div>
-
-                    <div className="flex items-center bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm">
-                        <span className="text-[9px] font-bold text-slate-400 pr-1.5 border-r border-slate-100 mr-1.5">
-                            TUNCH
-                        </span>
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={purity}
-                            onChange={(e) => setPurity(Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)))}
-                            className="w-12 text-right font-bold text-xs focus:outline-none text-slate-800 pr-1"
-                        />
-                        <span className="text-[10px] font-bold text-slate-400 pl-0.5">
-                            %
-                        </span>
-                    </div>
-
-                    <ChevronRight className="w-4 h-4 text-slate-400 hidden sm:block" />
-
-                    <div className="bg-blue-50 text-blue-700 border border-blue-100 font-extrabold text-xs px-3.5 py-2 rounded-xl text-center min-w-[120px]">
-                        {formatCurrency(calcTotal)}
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };

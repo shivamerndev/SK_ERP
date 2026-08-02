@@ -1,104 +1,116 @@
-import { FileText, Download } from "lucide-react";
+import { FileText, Download, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import useBilling from "../useBilling";
 
 const BillPreview = () => {
-  const { previewBill, handlePrint } = useBilling();
+  const { previewBill, setPreviewBill, handlePrint } = useBilling();
+
+  if (!previewBill) return null;
+
   return (
     <>
-      <div className="bg-white rounded-2xl h-fit border border-slate-200 shadow-sm p-5 sticky top-24">
-        <div className="flex justify-between items-center border-b border-slate-100 pb-3.5 mb-4">
-          <span className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-blue-500" />
-            Bill Preview
-          </span>
-          {previewBill && (
-            <button
-              onClick={() => handlePrint(previewBill)}
-              className="flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-100 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Print PDF
-            </button>
-          )}
+      {/* MODAL BACKDROP OVERLAY */}
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 screen-only">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+          {/* Modal Header */}
+          <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+            <span className="font-bold text-slate-800 text-base flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-600" />
+              Invoice Preview
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handlePrint(previewBill)}
+                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-xs cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                Print PDF
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewBill(null)}
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                title="Close preview"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Modal Body */}
+          <div className="p-6 overflow-y-auto space-y-4 text-xs text-slate-600">
+            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-4">
+              <div className="text-center font-bold text-slate-700 border-b border-dashed border-slate-200 pb-2">
+                <p className="text-[11px] text-slate-500">{previewBill.topHeader}</p>
+                <p className="text-base font-black tracking-wider text-slate-800 mt-0.5">{previewBill.title}</p>
+              </div>
+              <div className="flex justify-between text-xs">
+                <div>
+                  <p><span className="font-bold text-slate-800">Bill No:</span> #{previewBill.billNo}</p>
+                  <p className="mt-1 font-bold text-slate-900 text-sm">{previewBill.customerName}</p>
+                  {previewBill.customerPhone && <p className="mt-0.5 text-slate-500">{previewBill.customerPhone}</p>}
+                </div>
+                <div className="text-right text-slate-500">
+                  <p className="font-medium">{previewBill.date}</p>
+                  <p className="mt-0.5">{previewBill.time}</p>
+                </div>
+              </div>
+
+              {/* Items Table */}
+              <div className="border-t border-b border-slate-200/80 py-2 space-y-1">
+                <div className="grid grid-cols-5 text-xs font-bold border-b border-slate-200 pb-1 text-slate-700">
+                  <span className="col-span-2">Item</span>
+                  <span className="text-right">Net Wt</span>
+                  <span className="text-right">Amt</span>
+                  <span className="text-right">Fine</span>
+                </div>
+                {previewBill.items.map((row, idx) => (
+                  <div key={idx} className="grid grid-cols-5 text-xs text-slate-600 font-semibold py-1 border-b border-slate-100 last:border-0">
+                    <span className="col-span-2 truncate">{row.item}</span>
+                    <span className="text-right">{row.netWt}g</span>
+                    <span className="text-right">{row.amount ? `₹${row.amount}` : "-"}</span>
+                    <span className="text-right">{row.fine ? `${row.fine}g` : "-"}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Summary totals */}
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between font-bold text-slate-700">
+                  <span>Total Sale Wt / Fine:</span>
+                  <span>{previewBill.totals.netWt}g / {previewBill.totals.fine}g</span>
+                </div>
+                <div className="flex justify-between font-bold text-slate-700">
+                  <span>Total Sale Labor Amt:</span>
+                  <span>₹{previewBill.totals.amount}</span>
+                </div>
+                {previewBill.lastBalance && (previewBill.lastBalance.amount > 0 || previewBill.lastBalance.fine > 0) && (
+                  <div className="flex justify-between text-slate-500 font-semibold border-t border-slate-100 pt-1">
+                    <span>Last Balance:</span>
+                    <span>{previewBill.lastBalance.fine}g / ₹{previewBill.lastBalance.amount}</span>
+                  </div>
+                )}
+                {previewBill.silverRate > 0 && (
+                  <div className="flex justify-between text-indigo-600 font-semibold border-t border-slate-100 pt-1">
+                    <span>Bhaw Settle ({previewBill.silverRate}/kg):</span>
+                    <span>+₹{previewBill.convertedFineAmount}</span>
+                  </div>
+                )}
+                {previewBill.jamaDetail.details && (
+                  <div className="flex justify-between text-indigo-600 font-semibold border-t border-slate-100 pt-1">
+                    <span>Jama ({previewBill.jamaDetail.details}):</span>
+                    <span>{previewBill.jamaDetail.fine}g / ₹{previewBill.jamaDetail.amount}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-black text-slate-900 border-t border-slate-300 pt-2 text-sm bg-slate-100 p-2.5 rounded-lg mt-2">
+                  <span>BAKI AMT / FINE:</span>
+                  <span className="text-blue-700">₹{previewBill.finalBaki.amount} / {previewBill.finalBaki.fine}g</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {previewBill ? (
-          <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-4  overflow-y-auto  text-xs text-slate-600">
-            <div className="text-center font-bold text-slate-700 border-b border-dashed border-slate-200 pb-2">
-              <p className="text-[10px]">{previewBill.topHeader}</p>
-              <p className="text-sm font-black tracking-wider text-slate-800 mt-0.5">{previewBill.title}</p>
-            </div>
-            <div className="flex justify-between text-[10px]">
-              <div>
-                <p><span className="font-bold text-slate-800">Bill No:</span> #{previewBill.billNo}</p>
-                <p className="mt-1 font-bold text-slate-900">{previewBill.customerName}</p>
-                {previewBill.customerPhone && <p className="mt-0.5 text-slate-400">{previewBill.customerPhone}</p>}
-              </div>
-              <div className="text-right">
-                <p>{previewBill.date}</p>
-                <p className="mt-0.5">{previewBill.time}</p>
-              </div>
-            </div>
-
-            {/* Small Summary Table */}
-            <div className="border-t border-b border-slate-200/60 py-2 space-y-1">
-              <div className="grid grid-cols-5 text-[9px] font-bold border-b border-slate-100 pb-1">
-                <span className="col-span-2">Item</span>
-                <span className="text-right">Net Wt</span>
-                <span className="text-right">Amt</span>
-                <span className="text-right">Fine</span>
-              </div>
-              {previewBill.items.map((row, idx) => (
-                <div key={idx} className="grid grid-cols-5 text-[9px] text-slate-500 font-semibold py-0.5">
-                  <span className="col-span-2 truncate">{row.item}</span>
-                  <span className="text-right ">{row.netWt}g</span>
-                  <span className="text-right ">{row.amount || "-"}</span>
-                  <span className="text-right ">{row.fine || "-"}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-1 text-[10px]">
-              <div className="flex justify-between font-bold">
-                <span>Total Sale Wt / Fine:</span>
-                <span>{previewBill.totals.netWt}g / {previewBill.totals.fine}g</span>
-              </div>
-              <div className="flex justify-between font-bold">
-                <span>Total Sale Labor Amt:</span>
-                <span>₹{previewBill.totals.amount}</span>
-              </div>
-              {previewBill.lastBalance && (previewBill.lastBalance.amount > 0 || previewBill.lastBalance.fine > 0) && (
-                <div className="flex justify-between text-slate-500 font-semibold border-t border-slate-100 pt-1">
-                  <span>Last Balance:</span>
-                  <span>{previewBill.lastBalance.fine}g / ₹{previewBill.lastBalance.amount}</span>
-                </div>
-              )}
-              {previewBill.silverRate > 0 && (
-                <div className="flex justify-between text-indigo-600 font-semibold border-t border-slate-100 pt-1">
-                  <span>Bhaw Settle ({previewBill.silverRate}/kg):</span>
-                  <span>+₹{previewBill.convertedFineAmount}</span>
-                </div>
-              )}
-              {previewBill.jamaDetail.details && (
-                <div className="flex justify-between text-indigo-600 font-semibold border-t border-slate-100 pt-1">
-                  <span>Jama ({previewBill.jamaDetail.details}):</span>
-                  <span>{previewBill.jamaDetail.fine}g / ₹{previewBill.jamaDetail.amount}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-black text-slate-800 border-t border-slate-200/80 pt-1.5 text-[11px]">
-                <span>BAKI AMT / FINE:</span>
-                <span>₹{previewBill.finalBaki.amount} / {previewBill.finalBaki.fine}g</span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-12 text-slate-400 border border-dashed border-slate-200 rounded-xl bg-slate-50">
-            <FileText className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-            <p className="text-xs font-semibold">No invoice compiled yet.</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Fill the form and hit save to load a print preview.</p>
-          </div>
-        )}
       </div>
 
       {/* PRINT-ONLY TRADITIONAL ESTIMATE SLIP CONTAINER */}

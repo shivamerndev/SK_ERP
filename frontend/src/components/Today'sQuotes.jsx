@@ -95,13 +95,15 @@ const TodaysQuotes = ({ isOpen: controlledIsOpen, onClose: controlledOnClose }) 
       return (
         <button
           onClick={() => setInternalIsOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#b8860b] text-[#1c130b] px-4.5 py-3 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer font-semibold text-sm border border-[#fffdfa]/40 group"
+          className="fixed bottom-6 right-6 z-40 flex items-center bg-gradient-to-r from-[#d4af37] via-[#e5c158] to-[#b8860b] text-[#1c130b] p-3 hover:px-4.5 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer font-semibold text-sm border border-[#fffdfa]/40 group"
           title="आज का विचार (Today's Quote)"
         >
-          <div className="p-1 rounded-full bg-[#1c130b]/10 group-hover:rotate-12 transition-transform">
+          <div className="p-1 rounded-full bg-[#1c130b]/10 group-hover:rotate-12 transition-transform flex-shrink-0">
             <Sparkles className="w-4 h-4 text-[#1c130b]" />
           </div>
-          <span className="tracking-wide font-bold">आज का विचार</span>
+          <span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out tracking-wide font-bold">
+            आज का विचार
+          </span>
         </button>
       );
     }
