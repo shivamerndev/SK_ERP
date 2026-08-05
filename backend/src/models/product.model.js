@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema(  // focused on payal
             required: true,
             default: 0
         },
+        waste: {
+            type: Number,
+            default: 0,
+        },
         lab: {
             type: Number,
             required: true,

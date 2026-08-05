@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sparkles, X, Check } from 'lucide-react';
 import handleForm from "../../utils/formHandler.utils.js";
 
@@ -26,24 +26,38 @@ const PRESET_IMAGES = [
 ];
 
 const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, addNotification }) => {
-
-
-  const [formName, setFormName] = useState("");
   const [formCategory, setFormCategory] = useState(allCategories[0] || "payal");
-  const [customCategory, setCustomCategory] = useState("");
-  const [formPieces, setFormPieces] = useState("");
-  const [formWeight, setFormWeight] = useState("");
-  const [formTunch, setFormTunch] = useState("");
-  const [formLab, setFormLab] = useState("");
-  const [formPanniDetail, setFormPanniDetail] = useState("");
   const [formImageUrl, setFormImageUrl] = useState(PRESET_IMAGES[0].url);
   const [formErrors, setFormErrors] = useState({});
+  const formRef = useRef(null);
+
+  useEffect(() => {
+    const firstInput = formRef.current?.querySelector("input:not([type='hidden']):not([disabled])");
+    if (firstInput) {
+      firstInput.focus();
+    }
+  }, []);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const form = formRef.current;
+      if (!form) return;
+      const focusable = Array.from(
+        form.querySelectorAll("input:not([type='hidden']):not([disabled]), select:not([disabled])")
+      );
+      const index = focusable.indexOf(e.target);
+      if (index > -1 && index < focusable.length - 1) {
+        focusable[index + 1].focus();
+      }
+    }
+  };
 
   const handleAddSubmit = (data) => {
     const errors = {};
     if (!data.name?.trim()) errors.name = "Product name is required";
 
-    const parsedPieces = data.pieces ? parseInt(data.pieces) : 0;
+    const parsedPieces = data.pieces ? parseInt(data.pieces, 10) : 0;
     if (isNaN(parsedPieces) || parsedPieces < 0) errors.pieces = "Pieces must be a non-negative number";
 
     const weightArr = data.weight ? data.weight.split(",").map(w => parseFloat(w.trim())).filter(w => !isNaN(w)) : [];
@@ -51,9 +65,6 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
 
     const parsedTunch = parseFloat(data.tunch);
     if (isNaN(parsedTunch) || parsedTunch < 0) errors.tunch = "Tunch must be a positive number";
-
-    const parsedLab = parseFloat(data.lab);
-    if (isNaN(parsedLab) || parsedLab < 0) errors.lab = "Lab must be a positive number";
 
     const parsedPanni = data.panniDetail ? parseMathExpression(data.panniDetail) : 0;
     if (isNaN(parsedPanni) || parsedPanni < 0) errors.panniDetail = "Panni detail must be a positive number";
@@ -68,6 +79,8 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
     }
 
     const finalCategory = data.category === "new" ? data.customCategory.trim() : data.category;
+    const parsedLab = data.lab ? parseFloat(data.lab) : 0;
+    const parsedWaste = data.waste ? parseFloat(data.waste) : 0;
 
     const payload = {
       name: data.name.trim(),
@@ -76,6 +89,7 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
       weight: weightArr,
       tunch: parsedTunch,
       lab: parsedLab,
+      waste: parsedWaste,
       panniDetail: parsedPanni,
       image: data.image || PRESET_IMAGES[0].url
     };
@@ -103,7 +117,8 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
           </button>
         </div>
 
-        <form onSubmit={handleForm(handleAddSubmit)}>
+        <form ref={formRef} onSubmit={handleForm(handleAddSubmit)} onKeyDown={handleKeyDown}>
+          <input type="hidden" name="image" value={formImageUrl} />
           <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
             {/* Product Name */}
             <div>
@@ -111,8 +126,7 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
               <input
                 type="text"
                 name="name"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
+                autoFocus
                 placeholder="Enter product title..."
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
               />
@@ -126,13 +140,7 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
                 <select
                   name="category"
                   value={formCategory}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setFormCategory(val);
-                    if (val === "new") {
-                      setCustomCategory("");
-                    }
-                  }}
+                  onChange={(e) => setFormCategory(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all capitalize font-medium cursor-pointer"
                 >
                   {allCategories.map((c) => (
@@ -152,8 +160,6 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
                 <input
                   type="number"
                   name="pieces"
-                  value={formPieces}
-                  onChange={(e) => setFormPieces(e.target.value)}
                   placeholder="e.g. 10"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-semibold"
                 />
@@ -167,8 +173,6 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
                 <input
                   type="text"
                   name="customCategory"
-                  value={customCategory}
-                  onChange={(e) => setCustomCategory(e.target.value)}
                   placeholder="e.g. payal, ring, got..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all uppercase"
                 />
@@ -176,18 +180,31 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
               </div>
             )}
 
-            {/* Weights input */}
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Weights (g) <span className="text-slate-400 font-medium capitalize">(comma separated for multiple pieces)</span></label>
-              <input
-                type="text"
-                name="weight"
-                value={formWeight}
-                onChange={(e) => setFormWeight(e.target.value)}
-                placeholder="e.g. 10.5, 12.3, 9.8"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
-              />
-              {formErrors.weight && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.weight}</span>}
+            <div className=' flex items-center gap-4 w-full'>
+
+              {/* Weights input */}
+              <div className='flex-1'>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Weights (g) <span className="text-slate-400 font-medium capitalize">(multiple pieces)</span></label>
+                <input
+                  type="text"
+                  name="weight"
+                  placeholder="e.g. 10.5, 12.3, 9.8"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
+                />
+                {formErrors.weight && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.weight}</span>}
+              </div>
+
+              {/* PanniDetail */}
+              <div className='flex-1'>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Panni (g)</label>
+                <input
+                  type="text"
+                  name="panniDetail"
+                  placeholder="e.g. 5 or 1*2.5 + 1*3"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
+                />
+                {formErrors.panniDetail && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.panniDetail}</span>}
+              </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
@@ -198,12 +215,23 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
                   type="number"
                   step="any"
                   name="tunch"
-                  value={formTunch}
-                  onChange={(e) => setFormTunch(e.target.value)}
                   placeholder="e.g. 90"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
                 />
                 {formErrors.tunch && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.tunch}</span>}
+              </div>
+
+
+              {/* Wastage */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Wastage (%)</label>
+                <input
+                  type="number"
+                  step="any"
+                  name="waste"
+                  placeholder="e.g. 90"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
+                />
               </div>
 
               {/* Lab */}
@@ -213,27 +241,12 @@ const AddProduct = ({ setIsAddModalOpen, allCategories, handleCreateProduct, add
                   type="number"
                   step="any"
                   name="lab"
-                  value={formLab}
-                  onChange={(e) => setFormLab(e.target.value)}
                   placeholder="e.g. 15"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
                 />
-                {formErrors.lab && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.lab}</span>}
               </div>
 
-              {/* PanniDetail */}
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Panni (g)</label>
-                <input
-                  type="text"
-                  name="panniDetail"
-                  value={formPanniDetail}
-                  onChange={(e) => setFormPanniDetail(e.target.value)}
-                  placeholder="e.g. 5 or 1*2.5 + 1*3"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
-                />
-                {formErrors.panniDetail && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.panniDetail}</span>}
-              </div>
+
             </div>
 
             {/* Product Image Selection */}

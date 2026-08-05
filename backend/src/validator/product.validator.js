@@ -16,6 +16,7 @@ function productValidator(productData) {
         tunch: joi.number().min(0).required().messages({
             'any.required': 'Tunch is required',
         }),
+        waste: joi.number().min(0).default(0),
         lab: joi.number().min(0).required().messages({
             'any.required': 'Lab is required',
         }),

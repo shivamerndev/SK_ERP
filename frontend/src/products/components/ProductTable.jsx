@@ -32,19 +32,22 @@ const ProductTable = ({
               <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider w-[26%]">
                 Product Name
               </th>
-              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-right w-[10%]">
+              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-center w-[10%]">
                 Pieces
               </th>
-              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-right w-[20%]">
+              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-center w-[20%]">
                 Weight (g)
               </th>
-              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-right w-[11%]">
+              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-center w-[11%]">
                 Tunch (%)
               </th>
-              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-right w-[11%]">
+              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-center w-[11%]">
+                Waste (%)
+              </th>
+              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-center w-[11%]">
                 Lab (₹)
               </th>
-              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-right w-[11%]">
+              <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-center w-[11%]">
                 Panni (g)
               </th>
               <th className="p-4 px-6 text-slate-500 border-b border-slate-100 font-bold text-xs uppercase tracking-wider text-center w-[11%]">
@@ -55,7 +58,7 @@ const ProductTable = ({
           <tbody className="divide-y divide-slate-100">
             {displayProducts.length === 0 ? (
               <tr>
-                <td colSpan="7" className="p-12 text-center text-slate-400">
+                <td colSpan="8" className="p-12 text-center text-slate-400">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <Package size={48} className="text-slate-200 animate-bounce" />
                     <span className="font-semibold text-slate-600 text-base">No products found</span>
@@ -117,22 +120,25 @@ const ProductTable = ({
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 px-6 text-right font-semibold text-slate-600">
+                    <td className="p-4 px-6 text-center font-semibold text-slate-600">
                       {product.pieces}
                     </td>
-                    <td className="p-4 px-6 text-right font-bold text-slate-700 ">
+                    <td className="p-4 px-6 text-center font-bold text-slate-700 ">
                       <div>{totalWeight.toFixed(2)}g</div>
                       {Array.isArray(product.weight) && product.weight.length > 1 && (
                         <div className="text-[10px] text-slate-400 font-medium">({product.weight.join(", ")})</div>
                       )}
                     </td>
-                    <td className="p-4 px-6 text-right font-semibold text-slate-600 ">
+                    <td className="p-4 px-6 text-center font-semibold text-slate-600 ">
                       {product.tunch}%
                     </td>
-                    <td className="p-4 px-6 text-right font-semibold text-slate-600 ">
+                    <td className="p-4 px-6 text-center font-semibold text-slate-600 ">
+                      {product.waste ?? 0}%
+                    </td>
+                    <td className="p-4 px-6 text-center font-semibold text-slate-600 ">
                       ₹{product.lab}
                     </td>
-                    <td className="p-4 px-6 text-right font-semibold text-slate-600 ">
+                    <td className="p-4 px-6 text-center font-semibold text-slate-600 ">
                       {product.panniDetail}g
                     </td>
                     <td className="p-4 px-6 text-center">

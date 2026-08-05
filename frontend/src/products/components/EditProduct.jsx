@@ -34,12 +34,11 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
     const [formPieces, setFormPieces] = useState(currentProduct?.pieces ? currentProduct.pieces.toString() : "");
     const [formWeight, setFormWeight] = useState(currentProduct?.weight ? currentProduct.weight.join(", ") : "");
     const [formTunch, setFormTunch] = useState(currentProduct?.tunch ? currentProduct.tunch.toString() : "");
+    const [formWaste, setFormWaste] = useState(currentProduct?.waste !== undefined && currentProduct?.waste !== null ? currentProduct.waste.toString() : "0");
     const [formLab, setFormLab] = useState(currentProduct?.lab ? currentProduct.lab.toString() : "");
     const [formPanniDetail, setFormPanniDetail] = useState(currentProduct?.panniDetail ? currentProduct.panniDetail.toString() : "");
     const [formImageUrl, setFormImageUrl] = useState(currentProduct?.image || PRESET_IMAGES[0].url);
     const [formErrors, setFormErrors] = useState({});
-
-
 
     const handleEditSubmit = (data) => {
         const errors = {};
@@ -54,8 +53,7 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
         const parsedTunch = parseFloat(data.tunch);
         if (isNaN(parsedTunch) || parsedTunch < 0) errors.tunch = "Tunch must be a positive number";
 
-        const parsedLab = parseFloat(data.lab);
-        if (isNaN(parsedLab) || parsedLab < 0) errors.lab = "Lab must be a positive number";
+        const parsedWaste = data.waste ? parseFloat(data.waste) : 0;
 
         const parsedPanni = data.panniDetail ? parseMathExpression(data.panniDetail) : 0;
         if (isNaN(parsedPanni) || parsedPanni < 0) errors.panniDetail = "Panni detail must be a positive number";
@@ -77,6 +75,7 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
             pieces: parsedPieces,
             weight: weightArr,
             tunch: parsedTunch,
+            waste: parsedWaste,
             lab: parsedLab,
             panniDetail: parsedPanni,
             image: data.image || PRESET_IMAGES[0].url
@@ -190,7 +189,7 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
                         {formErrors.weight && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.weight}</span>}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         {/* Tunch */}
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tunch (%)</label>
@@ -204,6 +203,20 @@ const EditProduct = ({ currentProduct, allCategories, setIsEditModalOpen, handle
                                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
                             />
                             {formErrors.tunch && <span className="text-rose-500 text-xs font-semibold mt-1 block">{formErrors.tunch}</span>}
+                        </div>
+
+                        {/* Wastage */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Wastage (%)</label>
+                            <input
+                                type="number"
+                                step="any"
+                                name="waste"
+                                value={formWaste}
+                                onChange={(e) => setFormWaste(e.target.value)}
+                                placeholder="e.g. 90"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all "
+                            />
                         </div>
 
                         {/* Lab */}
