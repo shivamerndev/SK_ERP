@@ -66,13 +66,9 @@ const Login = () => {
 				<div className="flex items-center justify-center gap-3 mb-6">
 					<figure className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-[#f3d078] via-[#b8860b] to-[#59390f] p-[2px] shadow-[0_0_12px_rgba(212,175,55,0.35)] flex items-center justify-center flex-shrink-0">
 						<img
-							src="/icon192.png"
+							src="/icon.png"
 							alt="SK-ERP"
 							className="w-full h-full object-cover rounded-full bg-[#120a05]"
-							onError={(e) => {
-								e.currentTarget.onerror = null;
-								e.currentTarget.src = "/icon.png";
-							}}
 						/>
 					</figure>
 					<div className="flex flex-col text-left">
