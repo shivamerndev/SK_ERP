@@ -1,34 +1,5 @@
-import { useState } from "react";
-import {
-    Search,
-    Plus,
-    Edit2,
-    Trash2,
-    X,
-    Check,
-    Users,
-    TrendingUp,
-    TrendingDown,
-    DollarSign,
-    AlertTriangle,
-    PhoneCall,
-    MessageSquare,
-    Download,
-    Upload,
-    ChevronRight,
-    Info,
-    Calendar,
-    ArrowUpRight,
-    ArrowDownRight,
-    Clock,
-    CreditCard,
-    AlertCircle,
-    Filter,
-    FileText,
-    CheckCircle,
-    ChevronDown,
-    UserPlus
-} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Users } from "lucide-react";
 import handleForm from "../../utils/formHandler.utils.js"
 import useCustomer from "../useCustomer.js";
 
@@ -37,6 +8,29 @@ const CreateForm = ({ onClose }) => {
 
     const { handleCreateCustomer } = useCustomer();
     const [isOlder, setIsOlder] = useState(false);
+    const formRef = useRef(null);
+
+    useEffect(() => {
+        const firstInput = formRef.current?.querySelector("input:not([type='hidden']):not([disabled]), select:not([disabled])");
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }, []);
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            const form = formRef.current;
+            if (!form) return;
+            const focusable = Array.from(
+                form.querySelectorAll("input:not([type='hidden']):not([disabled]), select:not([disabled])")
+            );
+            const index = focusable.indexOf(e.target);
+            if (index > -1 && index < focusable.length - 1) {
+                focusable[index + 1].focus();
+            }
+        }
+    };
 
     const handleSubmit = async (data) => {
         const success = await handleCreateCustomer(data);
@@ -63,7 +57,7 @@ const CreateForm = ({ onClose }) => {
                     </button>
                 </div>
 
-                <form onSubmit={handleForm(handleSubmit)} className="p-6 space-y-4">
+                <form ref={formRef} onSubmit={handleForm(handleSubmit)} onKeyDown={handleKeyDown} className="p-6 space-y-4">
 
                     {/* Full Name */}
                     <div className="flex flex-col gap-1.5">
@@ -71,6 +65,7 @@ const CreateForm = ({ onClose }) => {
                         <input
                             type="text"
                             name="fullName"
+                            autoFocus
                             placeholder="e.g. Amit Ji"
                             required
                             className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"

@@ -16,6 +16,7 @@ const BalancesAndJama = () => {
       </div>
 
       {/* Last Balance Inputs */}
+      // last Balance should be reflect automatically here
       <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-4">
         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Customer Last Balance</p>
         <div className="grid grid-cols-2 gap-4 text-black">

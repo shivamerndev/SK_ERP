@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { getBillHistory, saveBillHistory, getProductsList } from "./billing.service";
+import { getBillHistory, saveBillHistory } from "./billing.service";
 import { getAllCustomersService } from "../customers/customer.service";
 import { toast } from "react-hot-toast";
 import {
@@ -79,8 +79,6 @@ const useBilling = (init = false) => {
   // LOAD SEED/EXTERNAL DATA
   useEffect(() => {
     if (!init) return;
-    setProducts(getProductsList());
-
     // Set current time
     const updateTime = () => {
       const now = new Date();

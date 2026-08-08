@@ -1,5 +1,6 @@
 import { Trash2, X, PhoneCall, Calendar, ArrowUpRight, ArrowDownRight, Clock, FileText } from "lucide-react";
 import { useState } from "react";
+import CustomerReports from "./CustomerReports";
 
 const SlideDrawer = ({ setIsDrawerOpen, selectedCust }) => {
 
@@ -113,7 +114,7 @@ const SlideDrawer = ({ setIsDrawerOpen, selectedCust }) => {
                         <div>
                             <span className="text-slate-400 font-bold uppercase block mb-0.5">Email address</span>
                             <span className="text-slate-700 font-semibold text-sm block truncate">
-                                {selectedCust.email || "—"}
+                                {selectedCust.email || "N/A"}
                             </span>
                         </div>
                         <div>
@@ -145,7 +146,7 @@ const SlideDrawer = ({ setIsDrawerOpen, selectedCust }) => {
                 <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-4">
                     <div className="flex justify-between items-center">
                         <h4 className="text-sm font-bold text-slate-800">Current Credit Limit Usage</h4>
-                        <span className="text-xs font-bold text-slate-400">₹{getBalance(selectedCust).toLocaleString("en-IN")} / ₹{(selectedCust.creditLimit || 0).toLocaleString("en-IN")}</span>
+                        <span className="text-xs font-bold text-slate-400">₹{getBalance(selectedCust).toLocaleString("en-IN")} / {(selectedCust.creditLimit || 0).toLocaleString("en-IN")} kg</span>
                     </div>
 
                     <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden relative">
@@ -170,109 +171,8 @@ const SlideDrawer = ({ setIsDrawerOpen, selectedCust }) => {
                     </div>
                 </div>
 
-                {/* Direct Ledger Transaction Recorder */}
-                <div className="bg-white p-5 border border-slate-100 rounded-2xl shadow-xs space-y-4">
-                    <div className="flex items-center gap-1.5">
-                        <ArrowUpRight className="w-4.5 h-4.5 text-indigo-600" />
-                        <h4 className="text-sm font-bold text-slate-800">Quick Record Ledger Entry</h4>
-                    </div>
+                <CustomerReports selectedCust={selectedCust} />
 
-                    <form onSubmit={handleRecordTransaction} className="space-y-3.5">
-                        <div className="grid grid-cols-2 gap-3">
-
-                            <div className="flex flex-col gap-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">Entry Type</label>
-                                <select value={txForm.type} onChange={(e) => setTxForm(prev => ({ ...prev, type: e.target.value }))} className="px-3 py-1.5 border border-slate-200 rounded-xl text-slate-700 text-xs font-semibold">
-                                    <option value="LENT">LENT (Customer Credit Purchase)</option>
-                                    <option value="PAID">PAID (Customer Settle/Payment)</option>
-                                </select>
-                            </div>
-
-                            <div className="flex flex-col gap-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">Amount (₹) *</label>
-                                <input type="number" placeholder="Amount" value={txForm.amount} onChange={(e) => setTxForm(prev => ({ ...prev, amount: e.target.value }))}
-                                    className={`px-3 py-1.5 border rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-blue-500/20 ${txErrors.amount ? "border-rose-400" : "border-slate-200"}`} />
-                                {txErrors.amount && <span className="text-[10px] text-rose-500 font-semibold">{txErrors.amount}</span>}
-                            </div>
-
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-
-                            <div className="flex flex-col gap-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">Entry description *</label>
-                                <input type="text" placeholder="e.g. 1x Gold Ring, UPI partial payment" value={txForm.description}
-                                    onChange={(e) => setTxForm(prev => ({ ...prev, description: e.target.value }))}
-                                    className={`px-3 py-1.5 border rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-blue-500/20 ${txErrors.description ? "border-rose-400" : "border-slate-200"}`} />
-                                {txErrors.description && <span className="text-[10px] text-rose-500 font-semibold">{txErrors.description}</span>}
-                            </div>
-
-                            <div className="flex flex-col gap-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">Payment Method</label>
-                                <select disabled={txForm.type !== "PAID"} value={txForm.method} onChange={(e) => setTxForm(prev => ({ ...prev, method: e.target.value }))}
-                                    className="px-3 py-1.5 border border-slate-200 rounded-xl text-slate-700 text-xs font-semibold disabled:bg-slate-50 disabled:text-slate-400">
-                                    <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
-                                    <option value="Cash">Cash Handover</option>
-                                    <option value="Card">Credit/Debit Card</option>
-                                    <option value="Bank Transfer">Net Banking / NEFT</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm shadow-indigo-500/10 active:scale-[0.99]">Post Entry to Ledger Account</button>
-                    </form>
-                </div>
-
-                <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                        <h4 className="text-sm font-bold text-slate-800">Ledger Audit Statements ({selectedCust.transactions?.length || 0})</h4>
-                        <span className="text-[10px] text-slate-400 font-semibold uppercase">Newest entries first</span>
-                    </div>
-
-                    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-xs">
-
-                        {selectedCust.transactions && selectedCust.transactions.length > 0 ? <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">{selectedCust.transactions.map((tx) => <div key={tx.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50/50 transition-colors text-xs">
-
-                            <div className="flex gap-3 items-start min-w-0">
-
-                                <div className={`p-2 rounded-lg ${tx.type === "LENT" ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"}`}>
-                                    {tx.type === "LENT" ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                                </div>
-
-                                <div className="flex flex-col min-w-0">
-                                    <span className="font-bold text-slate-800 truncate">{tx.description}</span>
-                                    <div className="flex items-center gap-1.5 mt-0.5 text-slate-400 font-medium">
-                                        <Clock className="w-3 h-3" />
-                                        <span>{tx.date}</span>
-                                        {tx.method && (
-                                            <>
-                                                <span>•</span>
-                                                <span className="bg-slate-100 text-slate-500 px-1 rounded-sm text-[9px] uppercase font-bold">{tx.method}</span>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-
-                            </div>
-
-                            <div className="flex items-center gap-3 flex-shrink-0">
-                                <span className={`font-extrabold ${tx.type === "LENT" ? "text-amber-600" : "text-emerald-600"}`}>
-                                    {tx.type === "LENT" ? "+" : "-"}₹{tx.amount.toLocaleString("en-IN")}
-                                </span>
-                                <button onClick={() => handleDeleteTx(tx.id)} className="p-1 text-slate-300 hover:text-rose-500 rounded-md transition-colors cursor-pointer" title="Delete Transaction Log">
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                            </div>
-
-                        </div>
-                        )}
-                        </div> : <div className="p-8 text-center text-slate-400">
-                            <FileText className="w-10 h-10 text-slate-300 mx-auto mb-1.5" />
-                            <span className="text-xs font-semibold">No transactions registered for this account</span>
-                            <p className="text-[10px] text-slate-400 mt-0.5">Use the ledger form above to post entries.</p>
-                        </div>
-                        }
-                    </div>
-                </div>
             </div>
 
             <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">

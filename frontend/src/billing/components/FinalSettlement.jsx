@@ -31,7 +31,7 @@ const FinalSettlement = () => {
 
         <div className="space-y-4">
           {/* Baki cash card */}
-          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-5 flex justify-between items-center">
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 flex justify-between items-center">
             <div>
               <p className="text-xs font-bold text-emerald-800 uppercase tracking-wide">
                 {isSettle ? "Baki Total Amount (Settle)" : "Baki Labor Amount"}
@@ -47,7 +47,7 @@ const FinalSettlement = () => {
           </div>
 
           {/* Baki fine card */}
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl p-5 flex justify-between items-center">
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 flex justify-between items-center">
             <div>
               <p className="text-xs font-bold text-purple-800 uppercase tracking-wide">Baki Fine Outstanding</p>
               <p className="text-2xl font-black text-purple-700  mt-1">{finalBaki.fine} g</p>
@@ -85,12 +85,12 @@ const FinalSettlement = () => {
       {/* Form Controls */}
       <div className="grid grid-cols-3 gap-3 mt-8">
 
-        <button type="submit" className="col-span-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white rounded-xl py-3 text-sm font-bold shadow-md shadow-blue-500/10 transition-colors">
+        <button type="submit" className="col-span-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-white rounded-lg py-3 text-sm font-bold shadow-md shadow-blue-500/10 transition-colors">
           <Save className="w-4 h-4" />
           Save & Preview Invoice
         </button>
 
-        <button type="button" onClick={handleClearForm} className="flex hover:bg-red-300/50 items-center justify-center gap-1.5 border border-slate-400 cursor-pointer hover:border-red-300 hover:text-red-500 text-slate-500 rounded-xl py-3 text-xs font-bold transition-colors">
+        <button type="button" onClick={handleClearForm} className="flex hover:bg-red-300/50 items-center justify-center gap-1.5 border border-slate-400 cursor-pointer hover:border-red-300 hover:text-red-500 text-slate-500 rounded-lg py-3 text-xs font-bold transition-colors">
           <X className="w-4 h-4" />
           Reset
         </button>

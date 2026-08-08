@@ -10,7 +10,7 @@ const BillPreview = () => {
   return (
     <>
       {/* MODAL BACKDROP OVERLAY */}
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 screen-only">
+      <div className="fixed uppercase inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 screen-only">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
           {/* Modal Header */}
           <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
@@ -115,7 +115,7 @@ const BillPreview = () => {
 
       {/* PRINT-ONLY TRADITIONAL ESTIMATE SLIP CONTAINER */}
       {previewBill && createPortal(
-        <div className="print-invoice print-only">
+        <div className="print-invoice print-only uppercase">
           <div className="print-container">
             {/* Header section */}
             <div className="print-header font-serif">

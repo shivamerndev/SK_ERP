@@ -3,14 +3,9 @@ import { Trash2, Calculator } from "lucide-react";
 import useBilling from "../useBilling";
 
 const ItemsWorksheet = () => {
-  const {
-    items,
-    handleRowChange,
-    handleAddRow,
-    handleRemoveRow,
-    products,
-    totals
-  } = useBilling();
+
+
+  const { items, handleRowChange, handleAddRow, handleRemoveRow, products, totals } = useBilling();
   const [itemSearchFocused, setItemSearchFocused] = useState(null); // track row index
 
   const handleLabKeyDown = (e, index) => {
@@ -50,22 +45,23 @@ const ItemsWorksheet = () => {
         </div>
       </div>
 
-      <table className="w-full border-separate border-spacing-y-3 text-center text-sm min-w-[750px]">
+      <table className="w-full  border-separate border-spacing-y-3 text-center text-sm min-w-[750px]">
         <thead>
           <tr className="text-slate-400 text-xs uppercase font-bold tracking-wider">
-            <th className="pb-1 px-3 w-[9%] text-right">Amount</th>
-            <th className="pb-1 px-3 w-[23%] text-left">Item</th>
-            <th className="pb-1 px-3 w-[10%] text-right">Weight</th>
-            <th className="pb-1 px-3 w-[15%] text-left">Panni Detail</th>
-            <th className="pb-1 px-3 w-[9%] text-right">Less</th>
-            <th className="pb-1 px-3 w-[9%] text-right">Net Wt</th>
-            <th className="pb-1 px-3 w-[8%] text-right">Tunch</th>
-            <th className="pb-1 px-3 w-[12%] text-left">Lab</th>
-            <th className="pb-1 px-3 w-[10%] text-right">Fine</th>
+            <th className="pb-1 px-3 w-[9%] text-center">Amount</th>
+            <th className="pb-1 px-3 w-[23%] text-center">Item</th>
+            <th className="pb-1 px-3 w-[10%] text-center">Weight</th>
+            <th className="pb-1 px-3 w-[15%] text-center">Panni Detail</th>
+            <th className="pb-1 px-3 w-[9%] text-center">Less</th>
+            <th className="pb-1 px-3 w-[9%] text-center">Net Wt</th>
+            <th className="pb-1 px-3 w-[8%] text-center">Tunch</th>
+            <th className="pb-1 px-3 w-[8%] text-center">Wastage</th>
+            <th className="pb-1 px-3 w-[12%] text-center">Lab</th>
+            <th className="pb-1 px-3 w-[10%] text-center">Fine</th>
             <th className="pb-1 px-3 w-[5%] text-center"></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="bg-amber-400/20 shadow-lg rounded-xl ">
           {items.map((row, index) => (
             <tr
               key={index}
@@ -74,7 +70,7 @@ const ItemsWorksheet = () => {
               {/* Amount (Labor) Calculated */}
               <td className="py-3 px-3 border-y border-l border-slate-200 group-hover:border-blue-300 rounded-l-xl text-center font-bold text-slate-800 transition-colors">
                 <span className="inline-block bg-slate-200/60 group-hover:bg-blue-100/50 px-2 py-1 rounded-md text-xs font-bold text-slate-700">
-                  {row.amount ? `₹${row.amount}` : "-"}
+                  {row.amount ? `₹${row.amount}` : "0"}
                 </span>
               </td>
 
@@ -91,20 +87,18 @@ const ItemsWorksheet = () => {
                 />
                 {itemSearchFocused === index && products.length > 0 && (
                   <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-44 overflow-y-auto z-50">
-                    {products
-                      .filter((p) => p.name.toLowerCase().includes(row.item.toLowerCase()))
-                      .map((p) => (
-                        <button
-                          key={p.id || p._id}
-                          type="button"
-                          onMouseDown={() => {
-                            handleRowChange(index, "item", p.name.toUpperCase());
-                          }}
-                          className="w-full text-left px-3 py-2 hover:bg-blue-50 text-xs font-semibold text-slate-700 border-b border-slate-100 last:border-0 transition-colors"
-                        >
-                          {p.name.toUpperCase()} <span className="text-slate-400 font-normal">({p.category})</span>
-                        </button>
-                      ))}
+                    {products.filter((p) => p.name.toLowerCase().includes(row.item.toLowerCase())).map((p) => (
+                      <button
+                        key={p.id || p._id}
+                        type="button"
+                        onMouseDown={() => {
+                          handleRowChange(index, "item", p.name.toUpperCase());
+                        }}
+                        className="w-full text-center px-3 py-2 hover:bg-blue-50 text-xs font-semibold text-slate-700 border-b border-slate-100 last:border-0 transition-colors"
+                      >
+                        {p.name.toUpperCase()} <span className="text-slate-400 font-normal">({p.category})</span>
+                      </button>
+                    ))}
                   </div>
                 )}
               </td>
@@ -116,7 +110,7 @@ const ItemsWorksheet = () => {
                   placeholder="0"
                   value={row.weight}
                   onChange={(e) => handleRowChange(index, "weight", e.target.value)}
-                  className="w-full text-right bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-700 outline-none transition-all"
+                  className="w-full text-center bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-700 outline-none transition-all"
                 />
               </td>
 
@@ -138,12 +132,12 @@ const ItemsWorksheet = () => {
                   placeholder="0"
                   value={row.less}
                   onChange={(e) => handleRowChange(index, "less", e.target.value)}
-                  className="w-full text-right bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg px-2.5 py-1.5 text-sm text-slate-600 outline-none transition-all"
+                  className="w-full text-center bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg px-2.5 py-1.5 text-sm text-slate-600 outline-none transition-all"
                 />
               </td>
 
               {/* Net Wt (Calculated) */}
-              <td className="py-3 px-2 border-y border-slate-200 group-hover:border-blue-300 text-right font-bold text-slate-800 transition-colors">
+              <td className="py-3 px-2 border-y border-slate-200 group-hover:border-blue-300 text-center font-bold text-slate-800 transition-colors">
                 <span className="text-blue-600 font-extrabold">{row.netWt || "0"}</span>
               </td>
 
@@ -154,7 +148,18 @@ const ItemsWorksheet = () => {
                   placeholder="0.0"
                   value={row.tunch}
                   onChange={(e) => handleRowChange(index, "tunch", e.target.value)}
-                  className="w-full text-right bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-700 outline-none transition-all"
+                  className="w-full text-center bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-700 outline-none transition-all"
+                />
+              </td>
+
+              {/* Wastage */}
+              <td className="py-3 px-2 border-y border-slate-200 group-hover:border-blue-300 transition-colors">
+                <input
+                  type="text"
+                  placeholder="0.0"
+                  value={row.wastage}
+                  onChange={(e) => handleRowChange(index, "wastage", e.target.value)}
+                  className="w-full text-center bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-700 outline-none transition-all"
                 />
               </td>
 
@@ -171,8 +176,8 @@ const ItemsWorksheet = () => {
               </td>
 
               {/* Fine Calculated */}
-              <td className="py-3 px-2 border-y border-slate-200 group-hover:border-blue-300 text-right font-bold text-slate-800 transition-colors">
-                <span className="text-purple-600 font-extrabold">{row.fine || "-"}</span>
+              <td className="py-3 px-2 border-y border-slate-200 group-hover:border-blue-300 text-center font-bold text-slate-800 transition-colors">
+                <span className="text-purple-600 font-extrabold">{row.fine || "0"}</span>
               </td>
 
               {/* Actions */}
