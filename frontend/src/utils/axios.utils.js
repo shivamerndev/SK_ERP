@@ -2,8 +2,8 @@ import axios from "axios"
 import { store } from "../store/store"
 import { logout, setAccessToken, setUser } from "../store/features/auth.slice.js"
 
-export let baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:4000/api/v1";
-
+let BASE_URL = window.location.origin
+export let baseURL = BASE_URL.includes("https") ? (BASE_URL + "/api/v1") : "http://localhost:4000/api/v1";
 
 export const api = axios.create({
     baseURL,
@@ -93,4 +93,4 @@ api.interceptors.response.use(response => response, async (error) => {
     }
 
     return Promise.reject(error);
-});
+});
