@@ -45,14 +45,14 @@ app.use("/api/v1/purchases", purchaseRouter);
 app.use("/api/v1/search", navRouter);
 app.use("/api/v1/expenses", expenseRouter);
 
-app.use(express.static(path.resolve("dist")));
+const frontendPath = path.join(path.resolve(), "../frontend/dist")
 
 
-app.get("*client", (req, res, next) => {
-	if (req.path.startsWith("/api")) {
-		return next();
-	}
-	res.sendFile(path.resolve("dist", "index.html"));
+app.use(express.static(frontendPath));
+
+
+app.get("*frontend", (req, res) => {
+	res.sendFile("index.html", { root: frontendPath });
 });
 
 app.use(errorMiddleware);
