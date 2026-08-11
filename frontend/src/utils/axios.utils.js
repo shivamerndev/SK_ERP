@@ -2,7 +2,7 @@ import axios from "axios"
 import { store } from "../store/store"
 import { logout, setAccessToken, setUser } from "../store/features/auth.slice.js"
 
-export let baseURL = "https://suruchi-y9pf.onrender.com/api/v1" || "http://localhost:4000/api/v1";
+export let baseURL = "https://skerp2.onrender.com/api/v1" || "http://localhost:4000/api/v1";
 
 export const api = axios.create({
     baseURL,
